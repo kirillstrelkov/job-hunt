@@ -12,6 +12,10 @@ cli:
 llm-check:
     uv run python cli/check_jd.py
 
+# Review and update matching results from a CSV or ODF file
+llm-review path:
+    uv run python cli/llm_review.py --path {{path}}
+
 # Run the test suite
 test:
     uv run pytest tests/llm_test.py

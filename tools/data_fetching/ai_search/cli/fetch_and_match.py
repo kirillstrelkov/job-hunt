@@ -158,7 +158,7 @@ def _match_cv_and_job_desc(job_desc: Job) -> JobMatch:
         )
 
 
-def _get_job_matches(jobs: list[Job]) -> list[JobMatch]:
+def get_job_matches(jobs: list[Job]) -> list[JobMatch]:
     """Assess matches for a list of job descriptions.
 
     Args:
@@ -217,7 +217,7 @@ def _main(urls: list[str], output: Path = _OUTPUT_PATH, *, use_cache: bool = Tru
         logger.info("Analyzing matches...")
         # filter failed ones and sort by url - to have proper hash
         jobs = sorted([j for j in jobs if j.description.strip()], key=lambda j: j.url)
-        matches = _get_job_matches(jobs)
+        matches = get_job_matches(jobs)
         create_save_df(matches, sort_by="match_percentage", output=output, ascending=False)
 
 

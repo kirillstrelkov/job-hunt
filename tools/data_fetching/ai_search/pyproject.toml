@@ -7,6 +7,7 @@ requires-python = ">=3.12"
 dependencies = [
     "dotenv>=0.9.9",
     "loguru>=0.7.3",
+    "odfpy>=1.4.1",
     "ollama>=0.6.2",
     "pandas>=2.2.0",
     "pytest>=9.0.3",
