@@ -39,8 +39,8 @@ Evaluate the following:
 After evaluating, produce this object. Use the "reasoning" field to briefly explain your
 findings before outputting the boolean flags:
 
-{{
-  "screening": {{
+{
+  "screening": {
     "reasoning": "Briefly state your findings for the 6 rules above.",
     "is_german_text": boolean,
     "is_german_required": boolean,
@@ -50,8 +50,8 @@ findings before outputting the boolean flags:
     "is_excluded_role": boolean,
     "gate_passed": boolean,
     "gate_failed_reasons":[]
-  }}
-}}
+  }
+}
 
 Set "gate_passed" to true only if ALL flags are false.
 Populate "gate_failed_reasons" with the names of any flags that are true
@@ -67,62 +67,62 @@ If gate_passed is true, analyze the CV against the job description and append an
 
 The final JSON structure must be:
 
-{{
-  "screening": {{ ... }},
-  "analysis": {{
+{
+  "screening": { ... },
+  "analysis": {
     "candidate_name": "string | null",
     "job_title": "string",
-    "overall_fit": {{
+    "overall_fit": {
       "percentage": 0,
       "label": "Excellent | Strong | Moderate | Weak | Poor",
       "summary": "2-3 sentence explanation"
-    }},
-    "score_breakdown": {{
-      "skills_match": {{
+    },
+    "score_breakdown": {
+      "skills_match": {
         "percentage": 0,
         "matched_skills": [""],
         "missing_skills": [""],
         "notes": ""
-      }},
-      "experience_relevance": {{
+      },
+      "experience_relevance": {
         "percentage": 0,
         "years_required": 0,
         "years_candidate_has": 0,
         "notes": ""
-      }},
-      "education_and_certifications": {{
+      },
+      "education_and_certifications": {
         "percentage": 0,
         "required": "",
         "candidate_has": "",
         "notes": ""
-      }},
-      "soft_skills_and_culture": {{
+      },
+      "soft_skills_and_culture": {
         "percentage": 0,
         "notes": ""
-      }},
-      "seniority_alignment": {{
+      },
+      "seniority_alignment": {
         "percentage": 0,
         "required_level": "",
         "candidate_level": "",
         "notes": ""
-      }}
-    }},
+      }
+    },
     "strengths": [
-      {{ "point": "", "evidence": "" }}
+      { "point": "", "evidence": "" }
     ],
     "gaps": [
-      {{ "point": "", "severity": "critical | moderate | minor" }}
+      { "point": "", "severity": "critical | moderate | minor" }
     ],
-    "recommendation": {{
+    "recommendation": {
       "verdict": "Strong Yes | Yes | Maybe | No",
       "justification": ""
-    }},
+    },
     "interview_questions":[
-      {{ "question": "", "targets": "" }}
+      { "question": "", "targets": "" }
     ],
     "red_flags":[]
-  }}
-}}
+  }
+}
 
 All percentages are integers 0-100. Every field must be populated — use null only if the
 information is genuinely absent. Base every judgment strictly on the provided documents.

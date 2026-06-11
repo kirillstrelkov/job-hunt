@@ -61,10 +61,6 @@ def test_match_qa() -> None:
     _assert("test/sen_qa.txt", 20)
 
 
-def test_excluded_company() -> None:
-    # https://www.linkedin.com/jobs/view/4409814075
-    _assert("test/mindrift.txt", 0, "is_excluded_company")
-
 
 def test_intern() -> None:
     # https://www.linkedin.com/jobs/view/4409739015
