@@ -1,10 +1,11 @@
 import os
-from unittest.mock import patch
+
 import pytest
-from base import Job, get_browser
-from caching_utils import ENV_VAR_DISABLE_CACHED
 from easelenium.browser import Browser
-from job.ai_search.indeed import IndeedPage
+
+from caching_utils import ENV_VAR_DISABLE_CACHED
+from pages.base import get_browser
+from pages.indeed import IndeedPage
 
 
 @pytest.fixture
@@ -42,11 +43,11 @@ def test_get_job(page: IndeedPage) -> None:
 
 def test_get_job_with_company(page: IndeedPage) -> None:
     job = page._get_job("https://de.indeed.com/viewjob?jk=f61ba1a6e8f452c9&from=serp&vjs=3")
-    assert "Engineering Intern" in job.title
-    assert "ARC Intelligence GmbH" in job.company
+    assert "Principal Field Engineer" in job.title
+    assert "Cognite - AI for Industry" in job.company
     description = job.description
-    assert "ARC Intelligence is building" in description
-    assert "Most mid market/enterprise" in description
+    assert "Cognite operates" in description
+    assert "and Agentic AI." in description
 
 
 def test_get_jobs(page: IndeedPage) -> None:

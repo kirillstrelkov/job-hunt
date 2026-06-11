@@ -1,10 +1,11 @@
 from random import random
 from time import sleep
 
-from base import Job, Page
 from easelenium.browser import Browser
 from loguru import logger
 from selenium.webdriver.remote.webelement import WebElement
+
+from .base import Job, Page
 
 _LINKEDIN_JOB_URL_TEMPLATE = "https://www.linkedin.com/jobs/view/{}"
 
@@ -113,6 +114,10 @@ class LinkedinPage(Page):
         find_jobs = lambda: self._browser.find_elements(by_css=css_job_list_item)
 
         self.__wait_for_same_result(lambda: len(find_jobs()))
+
+        # additional just to be sure banner is not shown after wait
+        if self._browser.is_visible(by_css=css_no_jobs):
+            return []
 
         return [
             _LINKEDIN_JOB_URL_TEMPLATE.format(self._browser.get_attribute(element=e, attr="data-occludable-job-id"))

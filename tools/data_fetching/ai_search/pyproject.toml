@@ -7,6 +7,24 @@ requires-python = ">=3.12"
 dependencies = [
     "dotenv>=0.9.9",
     "loguru>=0.7.3",
+    "ollama>=0.6.2",
+    "pandas>=2.2.0",
     "pytest>=9.0.3",
+    "pyyaml>=6.0.1",
+    "ruff>=0.15.16",
+    "selenium>=4.44.0",
+    "setuptools>=70.0.0",
+    "tenacity>=9.1.4",
     "tqdm>=4.68.2",
+    "undetected-chromedriver==3.5.5",
+    "webdriver-manager>=4.1.2",
+]
+
+[tool.pytest.ini_options]
+pythonpath = [
+    ".",
+    "pages",
+    # should be fixed
+    "/home/kirill/prj/gl/playground",
+    "/home/kirill/prj/gh/easelenium",
 ]

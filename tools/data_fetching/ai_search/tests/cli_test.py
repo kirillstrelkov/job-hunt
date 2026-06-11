@@ -1,13 +1,10 @@
 import os
 from pathlib import Path
-from unittest.mock import patch
-import pytest
-from base import Job, get_browser
-from caching_utils import ENV_VAR_DISABLE_CACHED
-from easelenium.browser import Browser
-from job.ai_search.cli import _OUTPUT_PATH, _main
-from linkedin import LinkedinPage
+
 import pandas as pd
+
+from caching_utils import ENV_VAR_DISABLE_CACHED
+from cli import _main
 
 
 def test_main_flow() -> None:

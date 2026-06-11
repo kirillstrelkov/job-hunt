@@ -1,11 +1,11 @@
 from pathlib import Path
-
-import pytest
-from job.ai_search.llm import analyze_cv, get_checked_passed, get_match_percentage
-from loguru import logger
 from pprint import pformat
 
-__DATA_DIR = Path(__file__).parent / "data"
+from loguru import logger
+
+from llm import analyze_cv, get_checked_passed, get_match_percentage
+
+__DATA_DIR = Path(__file__).parent.parent / "data"
 
 
 CV_TEXT = (__DATA_DIR / "private/cv.txt").read_text(encoding="utf-8")

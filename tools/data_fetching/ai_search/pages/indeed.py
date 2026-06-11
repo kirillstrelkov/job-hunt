@@ -1,8 +1,6 @@
-import os
 
-from base import Page
-from linkedin import Job
-from loguru import logger
+from .base import Page
+from .linkedin import Job
 
 
 class IndeedPage(Page):

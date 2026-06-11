@@ -1,25 +1,27 @@
 import argparse
-import json
-import sys
-from collections import Counter, defaultdict
+from collections import defaultdict
 from dataclasses import dataclass
+import json
 from pathlib import Path
+import sys
+import tempfile
 from urllib.parse import urlsplit
 
-import pandas as pd
-import yaml
-from base import Job, browser_context, get_browser
-from job.ai_search.indeed import IndeedPage
-from linkedin import LinkedinPage
-from job.ai_search.llm import analyze_cv, get_match_percentage, get_checked_passed
 from loguru import logger
-from stepstone import StepstonePage
+import pandas as pd
 from tqdm import tqdm
+import yaml
 
 from caching_utils import get_cached_value, get_hashsum
+from llm import analyze_cv, get_checked_passed, get_match_percentage
+from pages.base import Job, browser_context
+from pages.indeed import IndeedPage
+from pages.linkedin import LinkedinPage
+from pages.stepstone import StepstonePage
+
 
 _CV_TEXT = (Path(__file__).parent / "data/private/cv.txt").read_text(encoding="utf-8")
-_OUTPUT_PATH = Path("/tmp/job_matches.csv")
+_OUTPUT_PATH = Path(tempfile.gettempdir()) / "job_matches.csv"
 
 
 @dataclass

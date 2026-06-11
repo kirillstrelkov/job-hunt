@@ -1,7 +1,7 @@
 import atexit
+from collections.abc import Generator
 from contextlib import contextmanager
-from dataclasses import dataclass, field
-from typing import Generator
+from dataclasses import dataclass
 from traceback import format_exc
 
 from easelenium.browser import Browser
@@ -11,7 +11,7 @@ from tenacity import RetryError, retry, retry_if_exception_type, stop_after_atte
 
 from caching_utils import get_cached_value, get_hashsum, has_cached_value
 from common_utils import get_browser as _get_browser
-from job.ai_search.env_utils import get_credentials
+from env_utils import get_credentials
 
 __BROWSER = None
 
@@ -143,7 +143,7 @@ class Page:
                 try:
                     self._browser.click(by_css=self._CSS_NEXT_PAGE)
                     return cur_url != self._browser.get_current_url()
-                except:
+                except Exception:
                     return not self._browser.is_visible(by_css=self._CSS_NEXT_PAGE)
 
             try:

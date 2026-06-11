@@ -1,10 +1,12 @@
 import os
 from unittest.mock import patch
+
 import pytest
-from base import Job, get_browser, make_job
-from caching_utils import ENV_VAR_DISABLE_CACHED
 from easelenium.browser import Browser
-from linkedin import LinkedinPage
+
+from caching_utils import ENV_VAR_DISABLE_CACHED
+from pages.base import Job, get_browser, make_job
+from pages.linkedin import LinkedinPage
 
 
 @pytest.fixture

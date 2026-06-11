@@ -1,9 +1,9 @@
 import sys
 
-from cli import _CV_TEXT
+from llm import analyze_cv, get_match_percentage
 from loguru import logger
 
-from job.ai_search.llm import analyze_cv, get_match_percentage
+from cli import _CV_TEXT
 
 if __name__ == "__main__":
     logger.info("Enter Job Description:\n```")

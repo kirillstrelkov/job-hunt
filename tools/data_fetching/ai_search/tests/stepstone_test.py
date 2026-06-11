@@ -1,7 +1,8 @@
 import pytest
-from base import get_browser
 from easelenium.browser import Browser
-from stepstone import StepstonePage
+
+from pages.base import get_browser
+from pages.stepstone import StepstonePage
 
 __URL = "https://www.stepstone.de/jobs/rust/in-potsdam?radius=50&action=facet_selected%3bage%3bage_7&ag=age_7&searchOrigin=Resultlist_top-search"
 

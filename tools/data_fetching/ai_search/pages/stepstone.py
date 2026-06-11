@@ -1,8 +1,8 @@
-import os
 
-from base import Page
-from linkedin import Job
 from loguru import logger
+
+from .base import Page
+from .linkedin import Job
 
 
 class StepstonePage(Page):
@@ -61,7 +61,7 @@ class StepstonePage(Page):
                 try:
                     self._browser.click(by_css=css_next_page)
                     return True
-                except:
+                except Exception:
                     return not self._browser.is_visible(by_css=css_next_page)
 
             try:

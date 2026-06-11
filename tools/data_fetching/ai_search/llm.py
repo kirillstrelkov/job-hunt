@@ -1,9 +1,10 @@
-from pathlib import Path
-from loguru import logger
-import ollama
 import json
-import sys
+import tempfile
+from pathlib import Path
 from typing import Any
+
+import ollama
+from loguru import logger
 
 # _MODEL = "llama3.1:8b"
 _MODEL = "gemma4:e2b"
@@ -26,8 +27,8 @@ Analyze the job description.
 Evaluate the following. For rule 6, if the word appears at all, treat it as 100%% confidence:
 1. is_german_text        — Is more than 80%% of the text written in Requirements and Responsibilities sections, in German?
 2. is_german_required    — Is German language listed as a must-have, required, or essential skill? (Ignore if listed as a plus or advantage.)
-3. is_manager            — Does the experience demonstrate ownership over a feature or product lifecycle rather than just executing assigned tasks?
-4. is_staff              — Is "staff engineer" or "lead engineer" mentioned explicitly? Do NOT imply or infer — only mark true if stated verbatim.
+3. is_manager            — Is the position for a manager role? (Select true for any roles with "Manager" in the title, such as Product Manager, Marketing Manager, or roles with people management responsibilities.)
+4. is_staff              — Is "staff engineer" or "lead engineer" (case-insensitive, e.g., "Staff Engineer") mentioned explicitly? Do NOT imply or infer — only mark true if stated verbatim.
 5. is_contract           — Is the position temporary, contract-based, or for freelancers?
 6. is_excluded_company   — Does the job description mention any company from this list: {excluded_companies}? Match case-insensitively if the name appears ANYWHERE in the text.
 7. is_excluded_role      — Is the role a Data Scientist, intern, internship, Werkstudent, or trainee position? Match case-insensitively.
@@ -278,7 +279,7 @@ def llm_send(*prompts: dict, debug_prompts: bool = False) -> str:
     """Send a prompt + content to Ollama."""
     if debug_prompts:
         content = "-----\n".join([p["content"] for p in prompts])
-        Path("/tmp/llm_prompt_debug.txt").write_text(content)
+        (Path(tempfile.gettempdir()) / "llm_prompt_debug.txt").write_text(content)
 
     try:
         response = ollama.chat(
