@@ -1,0 +1,33 @@
+set dotenv-load := false
+
+# List available recipes
+default:
+    @just --list
+
+# Install all dependencies
+install:
+    npm install
+
+# Start the Next.js UI dev server
+dev:
+    npm run dev
+
+# Build Next.js for production
+build:
+    npm run build
+
+# Run the CLI (pass args after --: just cli -- -i cv.txt -j jd.txt -o out.pdf)
+cli *args:
+    npm run cli -- {{args}}
+
+# Type-check without emitting
+typecheck:
+    npx tsc --noEmit
+
+# Tailor CV against all configured models (edit scripts/tailor_all_models.sh to set CV/JD/models)
+tailor-all:
+    bash scripts/tailor_all_models.sh
+
+# Collect all prompt *.txt files into tmp/combined_prompts.md
+collect-prompts:
+    bash scripts/collect_prompts.sh

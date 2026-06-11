@@ -1,0 +1,56 @@
+# Run all evaluation tools for the job description variant
+test-jd: generate-prompt-for-jd promptfoo-config
+	-uv run deepeval test run tools/models_cmp/deepeval/test_eval.py -- --variant jd --html={{TMP_OUTPUT_DIR}}/job1/deepeval/report.html --self-contained-html
+	-npx -y promptfoo@latest eval -c {{TMP_OUTPUT_DIR}}/job1/promptfoo/promptfooconfig_jd.yaml --no-cache
+	-uv run python tools/models_cmp/llamaindex/run_eval.py jd
+	-uv run python tools/models_cmp/ragas/run_eval.py jd
+	-uv run python tools/models_cmp/trulens/run_eval.py jd
+	-uv run python tools/models_cmp/giskard/run_eval.py jd
+	-uv run python tools/models_cmp/textgrad/run_eval.py jd
+
+# View local Pytest HTML test run results in browser
+deepeval-view:
+	@if [ -f {{TMP_OUTPUT_DIR}}/job1/deepeval/report.html ]; then \
+		xdg-open {{TMP_OUTPUT_DIR}}/job1/deepeval/report.html; \
+	else \
+		echo "No local HTML report found. Please run 'just test-jd' first."; \
+	fi
+
+# ==================== PROMPTFOO ====================
+
+# Generate configurations for Promptfoo dynamically
+promptfoo-config:
+	uv run python tools/models_cmp/promptfoo/generate_promptfoo_config.py
+
+# Run Promptfoo evaluation for job description
+promptfoo-test-jd: generate-prompt-for-jd promptfoo-config
+	npx -y promptfoo@latest eval -c {{TMP_OUTPUT_DIR}}/job1/promptfoo/promptfooconfig_jd.yaml --no-cache
+
+# Open the Promptfoo local dashboard viewer
+promptfoo-view:
+	npx -y promptfoo@latest view
+
+# ==================== LLAMAINDEX ====================
+
+llamaindex-test-jd: generate-prompt-for-jd
+	uv run python tools/models_cmp/llamaindex/run_eval.py jd
+
+# ==================== RAGAS ====================
+
+ragas-test-jd: generate-prompt-for-jd
+	uv run python tools/models_cmp/ragas/run_eval.py jd
+
+# ==================== TRULENS ====================
+
+trulens-test-jd: generate-prompt-for-jd
+	uv run python tools/models_cmp/trulens/run_eval.py jd
+
+# ==================== GISKARD ====================
+
+giskard-test-jd: generate-prompt-for-jd
+	uv run python tools/models_cmp/giskard/run_eval.py jd
+
+# ==================== TEXT-GRAD ====================
+
+textgrad-test-jd: generate-prompt-for-jd
+	uv run python tools/models_cmp/textgrad/run_eval.py jd

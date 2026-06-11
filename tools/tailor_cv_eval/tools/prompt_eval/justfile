@@ -1,0 +1,7 @@
+# Run Promptfoo prompt evaluation to compare baseline prompt vs candidate prompt
+eval-prompts:
+	uv run python {{ justfile_directory() }}/run_eval.py
+
+# View Promptfoo prompt evaluation dashboard
+view-promptfoo:
+	npx promptfoo view

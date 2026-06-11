@@ -1,0 +1,43 @@
+Software Engineer – Golang (m/w/d) - Gigafactory Berlin-Brandenburg
+Job-Kategorie	Engineering & Information Technology
+Standort	Grünheide (Mark), Brandenburg
+Anforderungs-ID	265604
+Arbeitsverhältnis	Full-time
+Was Sie erwartet
+Tesla is accelerating the world's transition to sustainable energy. We continuously develop revolutionary strategies and products within shortest time, and successfully launch them on a large scale. This is only possible through extraordinary speed, innovation, and efficiency.
+Gigafactory Berlin forms the perfect basis for rolling out Tesla's incredible success story in Europe. The most important pillar for this is our employees. Their passion, motivation and engagement ensure that we consistently achieve our goals. 
+
+
+
+The Role
+
+We are currently looking for highly motivated Golang developers (all seniorities) to join the Factory Software Engineering team. 
+
+Our engineers are hands-on and encouraged to own their own projects, contribute to innovative ideas, and make an impact on the way our company operates. The mission of our team is to streamline factory operations by building world-class scalable software systems, decrease business costs, and solve engineering challenges from both development and support perspective.
+
+Was zu tun ist
+Participate in requirements gathering, technical specification, and design of complex software systems
+Define an architecture for fault-tolerant, distributed, and adaptive automation applications 
+Implement, deploy, and maintain enterprise-scale manufacturing execution software 
+Work closely with Operations, Manufacturing Engineering, Quality, and Supply Chain teams. Collaborate with teams of engineers from multiple disciplines.
+Build tools, test-automation, and documentation 
+Be flexible, responsive, and adaptive to ever changing business requirements 
+Was mitzubringen ist
+Good understanding of software development fundamentals including software design, algorithms, data structures, modularity, and code maintainability
+Degree in Computer Science or related field, or equivalent experience
+Working experience as a software engineer from 3+ years
+Hands-on software development experience using Go, or a multi-year experience with another programming language (especially Java, Scala, Kotlin, C#, C++, Rust) and a willingness to learn Go
+Efficient knowledge of SQL and relational databases (MySQL, PostgreSQL, etc.)
+Full professional proficiency in English; German is a plus
+Experience with Docker and/or Kubernetes a big plus
+Kafka knowledge and stream processing is nice to have
+Debugging complex systems using centralized logging (Prometheus, Splunk, etc.)
+Knowledge of distributed computing and data storage systems
+Proficiency in working in a high-impact, responsive, and collaborative team environment
+Smart but humble, with a bias for action
+Candidates are expected to uphold and actively promote sustainability principles in their daily work, operating in line with Tesla Global Environmental, Health, Safety & Security (EHS&S) Policy and EMAS requirements, fostering a culture of continuous environmental improvement.
+
+What we offer
+
+You will be working in our state-of-the-art Gigafactory, where you’ll solve the world's most interesting problems with the best and brightest people who share a passion to change the world. Tesla’s compensation package includes competitive salary and Tesla shares or bonuses. Typical benefits that are offered are a pension program, 30 vacation days, flexible work arrangements, corporate benefits, employee insurances, relocation, and commuting support.
+

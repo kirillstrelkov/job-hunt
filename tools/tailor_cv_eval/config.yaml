@@ -1,0 +1,77 @@
+models:
+  - name: "llama3.1:8b-text-q4_K_M"
+    options:
+      num_ctx: 16384
+      num_predict: 3072
+  - name: "gemma4:e4b-it-qat"
+    options:
+      num_ctx: 16384
+      num_predict: 3072
+  - name: "llama3.2:3b-instruct-q8_0"
+    options:
+      num_ctx: 16384
+      num_predict: 3072
+  - name: "qwen2.5:3b-instruct-q8_0"
+    options:
+      num_ctx: 16384
+      num_predict: 3072
+  - name: "qwen2.5:7b-instruct-q4_K_M"
+    options:
+      num_ctx: 16384
+      num_predict: 3072
+  - name: "mistral:7b-instruct-v0.3-q4_K_M"
+    options:
+      num_ctx: 16384
+      num_predict: 3072
+  - name: "qwen3.5:9b-q4_K_M"
+    options:
+      num_ctx: 16384
+      num_predict: 3072
+  - name: "gemma4:12b-it-qat"
+    options:
+      num_ctx: 16384
+      num_predict: 3072
+  - name: "qwen3.5:4b-q8_0"
+    options:
+      num_ctx: 16384
+      num_predict: 3072
+  - name: "llama3.1:8b-instruct-q6_K"
+    options:
+      num_ctx: 16384
+      num_predict: 3072
+  - name: "gemma2:9b-instruct-q5_K_M"
+    options:
+      num_ctx: 16384
+      num_predict: 3072
+  - name: "gemma4:e2b"
+    options:
+      num_ctx: 16384
+      num_predict: 3072
+  - name: "deepseek-r1:7b"
+    options:
+      num_ctx: 16384
+      num_predict: 3072
+  - name: "qwen2.5:7b"
+    options:
+      num_ctx: 16384
+      num_predict: 3072
+  - name: "qwen2.5-coder:7b"
+    options:
+      num_ctx: 16384
+      num_predict: 3072
+  - name: "llama3.1:8b"
+    options:
+      num_ctx: 16384
+      num_predict: 3072
+  - name: "codegemma:7b-code"
+    options:
+      num_ctx: 16384
+      num_predict: 3072
+  - name: "deepseek-r1:1.5b"
+    options:
+      num_ctx: 16384
+      num_predict: 3072
+eval_model: "llama3.1:8b"
+tmp_output_dir: "tmp/outputs"
+llm_prompt_output_file: "llm_prompt.md"
+trulens_db_url: "sqlite:///tmp/outputs/truelens/default.sqlite"

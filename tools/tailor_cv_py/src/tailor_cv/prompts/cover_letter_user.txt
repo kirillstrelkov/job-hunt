@@ -1,0 +1,13 @@
+Write a cover letter for the job below based on my Master CV.
+
+<job_description>
+{job_description}
+</job_description>
+
+<master_cv>
+{cv}
+</master_cv>
+
+FINAL REMINDER:
+- Output ONLY the cover letter in pure Markdown format.
+- Start immediately with the opening paragraph. Do not write anything else.

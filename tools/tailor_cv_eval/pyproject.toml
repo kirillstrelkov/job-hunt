@@ -1,0 +1,47 @@
+[project]
+name = "tailor_cv_eval"
+version = "0.1.0"
+description = "Evaluation framework for LLM-based CV tailoring"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "deepeval>=1.2.0",
+    "ollama>=0.2.1",
+    "pytest>=8.0.0",
+    "pandas>=2.0.0",
+    "tabulate>=0.9.0", # Useful for pandas to_markdown
+    "loguru>=0.7.3",
+    "llama-index>=0.10.0",
+    "llama-index-llms-ollama>=0.1.0",
+    "ragas>=0.1.0",
+    "langchain-community<0.4.0",
+    "trulens-core>=1.0.0",
+    "giskard>=2.0.0",
+    "textgrad>=0.1.0",
+    "datasets>=2.14.0",
+    "griffe<1.0.0",
+    "numpy<2.0.0",
+    "scipy<1.12.0",
+    "matplotlib>=3.10.9",
+    "jupyter>=1.1.1",
+    "seaborn>=0.13.2",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tools/models_cmp/deepeval"]
+python_files = ["test_*.py"]
+addopts = "-p no:xdist"
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "B", "A", "C4"]
+ignore = []
+
+[dependency-groups]
+dev = [
+    "pytest-html>=4.2.0",
+    "ruff>=0.15.16",
+]

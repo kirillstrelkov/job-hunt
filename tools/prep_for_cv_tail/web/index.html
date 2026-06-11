@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CV Tool</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ─── Main navigation ──────────────────────────────────────────────────── -->
+<nav class="main-nav">
+  <button class="main-tab-btn active" data-tab="tab-md">MD → PDF</button>
+  <button class="main-tab-btn" data-tab="tab-cv">CV Settings</button>
+  <button class="main-tab-btn" data-tab="tab-llm">LLM Settings</button>
+  <div class="nav-spacer"></div>
+  <button id="btn-theme" title="Toggle theme">🌙</button>
+</nav>
+
+<!-- ─── Tab 1 : MD → PDF ─────────────────────────────────────────────────── -->
+<div id="tab-md" class="main-tab active">
+  <div class="toolbar">
+    <button id="btn-load">Load Markdown…</button>
+    <button id="btn-convert">Convert to PDF</button>
+    <button id="btn-download" disabled>Download PDF</button>
+    <span id="md-status" class="status"></span>
+  </div>
+  <div class="workspace">
+    <div class="panel" id="md-left">
+      <div class="tab-bar">
+        <button class="tab-btn active" data-pane="pane-markdown">Markdown</button>
+        <button class="tab-btn" data-pane="pane-preview">Preview</button>
+      </div>
+      <div id="pane-markdown" class="pane active">
+        <textarea id="md-input" class="editor" spellcheck="false"
+                  placeholder="# Start typing markdown here…"></textarea>
+      </div>
+      <div id="pane-preview" class="pane">
+        <div id="preview-content" class="prose"></div>
+      </div>
+    </div>
+    <div class="resizer" id="md-resizer"></div>
+    <div class="panel right" id="md-right">
+      <div id="pdf-placeholder" class="placeholder">
+        <p>No PDF generated yet.</p>
+        <p>Edit markdown on the left and click <strong>Convert to PDF</strong>.</p>
+      </div>
+      <iframe id="pdf-frame" title="PDF preview"></iframe>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Tab 2 : CV Settings ──────────────────────────────────────────────── -->
+<div id="tab-cv" class="main-tab">
+  <div class="toolbar">
+    <button id="btn-load-config">Load Config…</button>
+    <button id="btn-combine">Combine → Master CV</button>
+    <button id="btn-cv-load">Load into active…</button>
+    <span id="cv-status" class="status"></span>
+  </div>
+  <div class="workspace">
+
+    <!-- Left: Header / Body / Footer -->
+    <div class="panel" id="cv-left">
+      <div class="tab-bar">
+        <button class="sec-btn active" data-sec="header">Header</button>
+        <button class="sec-btn" data-sec="body">Body</button>
+        <button class="sec-btn" data-sec="footer">Footer</button>
+      </div>
+
+      <div class="cv-section active" id="cv-sec-header">
+        <div class="mini-bar">
+          <button class="view-btn active" data-view="edit">Edit</button>
+          <button class="view-btn" data-view="preview">Preview</button>
+        </div>
+        <div class="view-edit active">
+          <textarea id="header-editor" class="editor" placeholder="Header markdown…"></textarea>
+        </div>
+        <div class="view-preview">
+          <div id="header-preview" class="prose"></div>
+        </div>
+      </div>
+
+      <div class="cv-section" id="cv-sec-body">
+        <div class="mini-bar">
+          <button class="view-btn active" data-view="edit">Edit</button>
+          <button class="view-btn" data-view="preview">Preview</button>
+        </div>
+        <div class="view-edit active">
+          <textarea id="body-editor" class="editor" placeholder="CV body markdown…"></textarea>
+        </div>
+        <div class="view-preview">
+          <div id="body-preview" class="prose"></div>
+        </div>
+      </div>
+
+      <div class="cv-section" id="cv-sec-footer">
+        <div class="mini-bar">
+          <button class="view-btn active" data-view="edit">Edit</button>
+          <button class="view-btn" data-view="preview">Preview</button>
+        </div>
+        <div class="view-edit active">
+          <textarea id="footer-editor" class="editor" placeholder="Footer markdown…"></textarea>
+        </div>
+        <div class="view-preview">
+          <div id="footer-preview" class="prose"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="resizer" id="cv-resizer"></div>
+
+    <!-- Right: Master CV -->
+    <div class="panel right" id="cv-right">
+      <div class="tab-bar">
+        <button class="tab-btn active" data-pane="mastercv-edit-pane">Master CV</button>
+        <button class="tab-btn" data-pane="mastercv-preview-pane">Preview</button>
+        <div class="tab-spacer"></div>
+        <button id="btn-mastercv-load" class="tab-action-btn">Load…</button>
+      </div>
+      <div id="mastercv-edit-pane" class="pane active">
+        <textarea id="mastercv-editor" class="editor"
+                  placeholder="Master CV — combine sections or load a file…"></textarea>
+      </div>
+      <div id="mastercv-preview-pane" class="pane">
+        <div id="mastercv-preview" class="prose"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Tab 3 : LLM Settings ─────────────────────────────────────────────── -->
+<div id="tab-llm" class="main-tab">
+  <div class="toolbar">
+    <button id="btn-load-prompt">Load Prompt…</button>
+    <button id="btn-create-prompt">Create LLM Prompt</button>
+    <button id="btn-copy-output">Copy</button>
+    <button id="btn-save-output">Save…</button>
+    <span id="llm-status" class="status"></span>
+  </div>
+  <div class="workspace">
+
+    <!-- Left: Master CV (sync) / Job Desc / Prompt -->
+    <div class="panel" id="llm-left">
+      <div class="tab-bar">
+        <button class="tab-btn active" data-pane="llm-pane-mastercv">Master CV</button>
+        <button class="tab-btn" data-pane="llm-pane-jd">Job Desc</button>
+        <button class="tab-btn" data-pane="llm-pane-prompt">Prompt</button>
+      </div>
+      <div id="llm-pane-mastercv" class="pane active">
+        <textarea id="llm-mastercv" class="editor" readonly
+                  placeholder="Master CV is synced from CV Settings tab…"></textarea>
+      </div>
+      <div id="llm-pane-jd" class="pane">
+        <textarea id="jd-editor" class="editor" placeholder="Paste job description here…"></textarea>
+      </div>
+      <div id="llm-pane-prompt" class="pane">
+        <textarea id="prompt-editor" class="editor" placeholder="Prompt template…"></textarea>
+      </div>
+    </div>
+
+    <div class="resizer" id="llm-resizer"></div>
+
+    <!-- Right: Generated output -->
+    <div class="panel right" id="llm-right">
+      <div class="panel-label">Generated LLM Prompt</div>
+      <textarea id="llm-output" class="editor output" readonly
+                placeholder="Click 'Create LLM Prompt' to generate…"></textarea>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

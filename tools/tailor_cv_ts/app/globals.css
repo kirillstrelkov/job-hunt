@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body { height: 100%; }
+
+/* monospace textareas */
+textarea.mono {
+  @apply font-mono text-sm bg-gray-900 text-gray-100 border border-gray-700
+         rounded p-2 w-full resize-none focus:outline-none focus:border-blue-500;
+}

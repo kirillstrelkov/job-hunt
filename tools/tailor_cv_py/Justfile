@@ -1,0 +1,43 @@
+set dotenv-load := false
+
+# List available recipes
+default:
+    @just --list
+
+# Create/update virtual environment and install all dependencies
+env:
+    uv sync --all-groups
+
+# Run all tests
+test:
+    uv run pytest -v
+
+# Format source code with ruff
+fmt:
+    uv run ruff format src tests
+    uv run ruff check --fix src tests
+
+# Check formatting and linting without modifying files
+lint:
+    uv run ruff format --check src tests
+    uv run ruff check src tests
+
+# Run the CLI (pass args after --: just run -- -i cv.txt -j jd.txt -o out.pdf)
+run *args:
+    uv run tailor_cv {{args}}
+
+# Launch the Streamlit UI in the browser
+ui:
+    uv run --group ui streamlit run ui/app.py
+
+# Build wheel and sdist packages into dist/
+build:
+    uv build
+
+# Install the CLI globally as a uv tool
+install:
+    uv tool install --editable .
+
+# Remove build artifacts and virtual environment
+clean:
+    rm -rf dist/ .venv/ .pytest_cache/ __pycache__ src/tailor_cv/__pycache__ tests/__pycache__

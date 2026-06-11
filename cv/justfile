@@ -1,0 +1,73 @@
+set shell := ["bash", "-cu"]
+
+
+mastercv := "./tmp/master_cv.md"
+cvbody := "./private/parts/body.md"
+
+check:
+    tools/.venv/bin/python tools/process_cv.py --check {{ cvbody }}
+
+fix:
+    tools/.venv/bin/python tools/process_cv.py --fix {{ mastercv }}
+
+combine:
+    cat ./private/parts/header.md > {{ mastercv }}
+    printf "\n" >> {{ mastercv }}
+    cat {{ cvbody }} >> {{ mastercv }}
+    printf "\n" >> {{ mastercv }}
+    cat ./private/parts/footer.md >> {{ mastercv }}
+
+run: check combine
+    # fix
+    tools/.venv/bin/python tools/process_cv.py --fix {{ mastercv }}
+
+    # create text to tailor cv for job description
+    /home/kirill/prj/gh/job-hunt/tools/prep_for_cv_tail/target/debug/prep_for_tail \
+      --cv {{ mastercv }} \
+      --prompt ./prompts/tailor.md \
+      --jd ./tmp/jd.txt \
+      --output ./tmp/prompt_to_tailor.md
+
+    # evaluate match
+    # cat ./prompt_match.md > "./tmp/prompt_to_match.md"
+    # printf "\nCV:\n" >> "./tmp/prompt_to_match.md"
+    # cat "./tmp/nvidia_gemini_cv.md" >> "./tmp/prompt_to_match.md"
+    # printf "\nJob desription:\n" >> "./tmp/prompt_to_match.md"
+    # cat "./tmp/nvidia.txt" >> "./tmp/prompt_to_match.md"
+
+gui:
+    /home/kirill/prj/gh/job-hunt/tools/prep_for_cv_tail/target/debug/prep_for_tail_ui
+
+
+mastercv-pdf: 
+    tools/.venv/bin/python tools/process_cv.py --fix {{ mastercv }}
+    pandoc -V papersize=a4 -V geometry:margin=1.5cm {{ mastercv }} -o ./tmp/master_cv.pdf
+
+
+prepare-cv folder:
+    # flow:
+
+    # use just gui with config
+    # create master cv
+    # add job description
+    # create llm prompt
+    # ask llm for description
+
+    tools/.venv/bin/python tools/prepare_cv.py {{ folder }} --tailored-cv-body "{{ folder }}/body.md"
+    tools/.venv/bin/python tools/process_cv.py --fix "{{ folder }}/gen/cv.md"
+    pandoc -V papersize=a4 -V geometry:margin=1.5cm "{{ folder }}/gen/cv.md" -o "{{ folder }}/gen/cvStrelkov.pdf"
+
+prepare-llm folder:
+    tools/.venv/bin/python tools/prepare_cv.py --llm-prompt {{ folder }}
+
+prepare-llm-for-titles:
+    # tools/.venv/bin/python tools/prepare_llm_prompt.py --output ./tmp/llm_titles/py.md --tailor-for-title "Python Backend Engineer (Cloud Infrastructure & Microservices)"
+    # tools/.venv/bin/python tools/prepare_llm_prompt.py --output ./tmp/llm_titles/go.md --tailor-for-title "Golang Backend Engineer (Cloud-Native & Distributed Systems)"
+    # tools/.venv/bin/python tools/prepare_llm_prompt.py --output ./tmp/llm_titles/sdet.md --tailor-for-title "Software Development Engineer in Test (SDET) / QA Automation"
+    # tools/.venv/bin/python tools/prepare_llm_prompt.py --output ./tmp/llm_titles/fullstack.md --tailor-for-title "Full-Stack Software Engineer (Modern Web & Cloud Architecture)"
+    # tools/.venv/bin/python tools/prepare_llm_prompt.py --output ./tmp/llm_titles/platform.md --tailor-for-title "Platform Engineer (Cloud Infrastructure, IaC & DevOps Automation)"
+
+    # @echo "TODO: for each *.md file create *_cv.md file. Hint: use your LLM"
+    # @read -p "Press Enter when done... "
+
+    tools/.venv/bin/python tools/create_cv_from_titles.py --folder ./tmp/llm_titles

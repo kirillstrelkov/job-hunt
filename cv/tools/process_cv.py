@@ -1,0 +1,324 @@
+#!/usr/bin/env python3
+import argparse
+from pathlib import Path
+import re
+import sys
+from dataclasses import dataclass
+from typing import List, Optional
+
+from loguru import logger
+
+MONTHS_TO_SHORT = {
+    "January": "Jan",
+    "February": "Feb",
+    "March": "Mar",
+    "April": "Apr",
+    "May": "May",
+    "June": "Jun",
+    "July": "Jul",
+    "August": "Aug",
+    "September": "Sep",
+    "October": "Oct",
+    "November": "Nov",
+    "December": "Dec",
+}
+
+RE_HEADING = re.compile(r"^#+\s")
+RE_DATE_EXTRACT = re.compile(r"([A-Z][a-z]+)?\s*(\d{4})")
+RE_WORK_EXP = re.compile(r"^\*\*(.*?)\*\*\s*\|\s*_(.*?)_\s*\|\s*(.*)$")
+RE_PIPE_SPLIT = re.compile(r"\|")
+RE_ENDS_WITH_YEAR = re.compile(r"\d{4}$")
+RE_COURSE_FORMAT = re.compile(r"^\- .+?\, \_.+?\_ \| \w{3}\s\d{4}$")
+RE_COURSE_DATE = re.compile(r"([A-Za-z]+\s+\d{4})$")
+RE_LEADING_SPACES = re.compile(r"^\s*")
+RE_COURSE_ADD_HFILL = re.compile(r"\s+([A-Za-z]+\s+\d{4})$")
+RE_LAST_PIPE_YEAR = re.compile(r"\|\s*([A-Za-z]*\s*\d{4}.*)$")
+RE_LAST_PIPE_REPLACE = re.compile(r"\|([^|]*)$")
+RE_TRAILING_DOT = re.compile(r"\.(\s*)$")
+
+MONTHS_TO_SHORT_RE = {re.compile(rf"\b{full_m}\b"): short_m for full_m, short_m in MONTHS_TO_SHORT.items()}
+
+
+@dataclass
+class Line:
+    raw_line: str
+    number: int
+
+
+@dataclass
+class Section:
+    name: Optional[str]
+    filepath: str
+    lines: list[Line]
+
+
+@dataclass
+class Error:
+    msg: str
+    filepath: str
+    line_num: int
+    line: str
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Check and fix CV markdown file.")
+    parser.add_argument("file", type=str, help="Path to the markdown file")
+    parser.add_argument("--check", action="store_true", help="Check the file for errors")
+    parser.add_argument("--keep-thesis", action="store_true", help="Keep thesis name")
+    parser.add_argument("--fix", action="store_true", help="Fix the errors in the file")
+    return parser.parse_args()
+
+
+def split_into_sections(filepath: str) -> list[Section]:
+    with Path(filepath).open("r", encoding="utf-8") as f:
+        lines_raw = f.read().splitlines()
+
+    sections = []
+    cur_section = None
+
+    for i, raw_line in enumerate(lines_raw):
+        if RE_HEADING.match(raw_line):
+            if cur_section is not None:
+                sections.append(cur_section)
+                cur_section = None
+
+            name = raw_line.lstrip("#").strip().lower()
+            cur_section = Section(name=name, filepath=filepath, lines=[])
+
+        if cur_section:
+            line = Line(raw_line=raw_line, number=i + 1)
+            cur_section.lines.append(line)
+
+    sections.append(cur_section)
+
+    return sections
+
+
+def get_sort_key(date_str):
+    month_names = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+    ]
+    month_map = {m: i + 1 for i, m in enumerate(month_names)}
+    for full, short in MONTHS_TO_SHORT.items():
+        month_map[full] = month_map[short]
+
+    matches = RE_DATE_EXTRACT.findall(date_str)
+
+    if not matches:
+        return (0, 0)
+
+    m_str, y_str = matches[0]
+    year = int(y_str)
+    month = month_map.get(m_str, 1) if m_str else 1
+
+    return (year, month)
+
+
+def do_check(sections: list[Section]) -> list[Error]:
+    errors = []
+    for section in sections:
+        heading_title = section.name.lower()
+
+        if "work experience" in heading_title:
+            line_and_dates = []
+            for line_obj in section.lines:
+                line_str = line_obj.raw_line.strip()
+                if line_str.startswith("**") and "_ " in line_str:
+                    if not RE_WORK_EXP.match(line_str):
+                        errors.append(
+                            Error(
+                                msg=f"{section.name} format mismatch",
+                                filepath=section.filepath,
+                                line_num=line_obj.number,
+                                line=line_obj.raw_line,
+                            )
+                        )
+                    else:
+                        date_str = RE_PIPE_SPLIT.split(line_str)[-1].strip()
+                        line_and_dates.append(
+                            (
+                                line_obj,
+                                (get_sort_key(date_str), date_str, line_str),
+                            )
+                        )
+
+            for i in range(len(line_and_dates) - 1):
+                line1_obj, dates1 = line_and_dates[i]
+                line2_obj, dates2 = line_and_dates[i + 1]
+                if dates1[0] < dates2[0] or (dates1[0] == dates2[0] and dates1[1] < dates2[1]):
+                    errors.append(
+                        Error(
+                            msg=f"Chronological order broken in {section.name}: '{dates1[2]}' is before '{dates2[2]}'",
+                            filepath=section.filepath,
+                            line_num=line1_obj.number,
+                            line=line1_obj.raw_line,
+                        )
+                    )
+
+        elif "courses and certificates" in heading_title:
+            line_and_dates = []
+            for line_obj in section.lines:
+                line_str = line_obj.raw_line.strip()
+                if not line_str:
+                    continue
+                if RE_ENDS_WITH_YEAR.search(line_str):
+                    if not RE_COURSE_FORMAT.match(line_str):
+                        errors.append(
+                            Error(
+                                msg=f"{section.name} format mismatch",
+                                filepath=section.filepath,
+                                line_num=line_obj.number,
+                                line=line_obj.raw_line,
+                            )
+                        )
+                        parts = RE_PIPE_SPLIT.split(line_str)
+                        if len(parts) >= 2:
+                            date_str = parts[-1].strip()
+                        else:
+                            match = RE_COURSE_DATE.search(line_str)
+                            date_str = match.group(1) if match else line_str
+                        line_and_dates.append((line_obj, (get_sort_key(date_str), date_str, line_str)))
+                    else:
+                        date_str = RE_PIPE_SPLIT.split(line_str)[-1].strip()
+                        line_and_dates.append((line_obj, (get_sort_key(date_str), date_str, line_str)))
+
+            for i in range(len(line_and_dates) - 1):
+                line1_obj, dates1 = line_and_dates[i]
+                line2_obj, dates2 = line_and_dates[i + 1]
+                if dates1[0] < dates2[0] or (dates1[0] == dates2[0] and dates1[1] < dates2[1]):
+                    errors.append(
+                        Error(
+                            msg=f"Chronological order broken in {section.name}: '{dates1[2]}' is before '{dates2[2]}'",
+                            filepath=section.filepath,
+                            line_num=line1_obj.number,
+                            line=line1_obj.raw_line,
+                        )
+                    )
+
+        elif "personal projects" in heading_title:
+            line_and_dates = []
+            for line_obj in section.lines:
+                line_str = line_obj.raw_line.strip()
+                if line_str.startswith("**["):
+                    date_str = RE_PIPE_SPLIT.split(line_str)[-1].strip()
+                    line_and_dates.append((line_obj, (get_sort_key(date_str), date_str, line_str)))
+
+            for i in range(len(line_and_dates) - 1):
+                line1_obj, dates1 = line_and_dates[i]
+                line2_obj, dates2 = line_and_dates[i + 1]
+                if dates1[0] < dates2[0] or (dates1[1] < dates2[1]):
+                    errors.append(
+                        Error(
+                            msg=f"Chronological order broken in {section.name}: '{dates1[2]}' is before '{dates2[2]}'",
+                            filepath=section.filepath,
+                            line_num=line1_obj.number,
+                            line=line1_obj.raw_line,
+                        )
+                    )
+                    errors.append(
+                        Error(
+                            msg=f"Chronological order broken in {section.name}: '{dates2[2]}' is after '{dates1[2]}'",
+                            filepath=section.filepath,
+                            line_num=line2_obj.number,
+                            line=line2_obj.raw_line,
+                        )
+                    )
+
+    return errors
+
+
+def do_fix(sections: list[Section], keep_thesis: bool = True) -> list[Section]:
+    if not keep_thesis:
+        logger.warning("Thesis will be removed")
+
+    for section in sections:
+        heading_title = section.name.lower()
+        filtered_lines = []
+        for line_obj in section.lines:
+            if not keep_thesis and line_obj.raw_line.strip().startswith("- Thesis"):
+                continue
+
+            line_str = line_obj.raw_line
+            for full_m_re, short_m in MONTHS_TO_SHORT_RE.items():
+                line_str = full_m_re.sub(short_m, line_str)
+
+            if "work experience" in heading_title or "projects" in heading_title:
+                line_str = RE_TRAILING_DOT.sub(r"\1", line_str)
+
+            if "courses and certificates" in heading_title:
+                line_stripped = line_str.strip()
+                if line_stripped and not line_stripped.startswith("-") and RE_ENDS_WITH_YEAR.search(line_stripped):
+                    line_str = RE_LEADING_SPACES.sub("- ", line_str)
+
+                line_str = line_str.rstrip()
+                if (
+                    RE_ENDS_WITH_YEAR.search(line_str)
+                    and "|" not in line_str
+                    and r"\hfill" not in line_str
+                    and r"/hfill" not in line_str
+                ):
+                    line_str = RE_COURSE_ADD_HFILL.sub(r" \\hfill \1", line_str)
+
+            if RE_LAST_PIPE_YEAR.search(line_str):
+                line_str = RE_LAST_PIPE_REPLACE.sub(r"\\hfill\1", line_str)
+
+            line_obj.raw_line = line_str
+            filtered_lines.append(line_obj)
+
+        section.lines = filtered_lines
+
+    return sections
+
+
+def check_file(filepath: str) -> None:
+    logger.debug("Checking file {}", filepath)
+
+    sections = split_into_sections(filepath)
+    errors = do_check(sections)
+    if errors:
+        logger.error("Found {} errors", len(errors))
+        for err in errors:
+            logger.error(f"{err.msg}\n{err.filepath}:{err.line_num}: `{err.line}`")
+        sys.exit(1)
+    logger.info("No errors found")
+
+
+def fix_file(filepath: str, keep_thesis: bool = True) -> None:
+    logger.debug("Fixing file {}", filepath)
+
+    sections = split_into_sections(filepath)
+    do_fix(sections, keep_thesis=keep_thesis)
+    with Path(filepath).open("w", encoding="utf-8") as f:
+        for section in sections:
+            for line_obj in section.lines:
+                f.write(line_obj.raw_line + "\n")
+    logger.info("Fixes applied and file written")
+
+
+def main() -> None:
+    args = parse_args()
+
+    logger.info("Starting CV processing for file: {}", args.file)
+
+    if args.check:
+        logger.info("Running checks...")
+        check_file(args.file)
+
+    if args.fix:
+        logger.info("Applying fixes...")
+        fix_file(args.file, args.keep_thesis)
+
+
+if __name__ == "__main__":
+    main()

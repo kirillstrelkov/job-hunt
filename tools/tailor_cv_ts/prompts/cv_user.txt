@@ -1,0 +1,40 @@
+Please extract, filter, and format the relevant information from my Master CV to match the Job Description below, ensuring the final output fits a strict 2-page limit.
+
+<job_description>
+{job_description}
+</job_description>
+
+<master_cv>
+{cv}
+</master_cv>
+
+CRITICAL INSTRUCTION: Output ONLY the tailored resume body. Use EXACTLY the Markdown template below. Fill in the bracketed placeholders. Do NOT write my name at the top. Pay close attention to using \hfill before the dates. Filter out the "Kitchen Sink" (irrelevant tech/courses).
+
+## Summary
+[Write a 2-3 sentence tailored professional summary here]
+
+## Technical Skills
+* **Languages:** [Relevant skills reordered to match JD]
+* **DevOps & Cloud:**[Relevant skills reordered to match JD]
+* **Tools & Frameworks:** [Relevant skills reordered to match JD]
+
+## Work Experience
+
+**[Job Title]** | *[Company, Location]* \hfill [Dates]
+*[Relevant achievement using Action + Tech + Impact. NO BOLD TEXT.]
+* [Relevant achievement using Action + Tech + Impact. NO BOLD TEXT.]
+* Skills: [Tools used in this specific job]
+
+## Projects
+
+**[Project Name]** | *[GitHub/Link]* \hfill [Year]
+* [Relevant achievement using Action + Tech + Impact. NO BOLD TEXT.]
+* Skills: [Tools used in this specific project]
+
+## Certifications
+* **[Certification Name]** | *[Issuer]* \hfill [Year]
+
+## Previous Experience[CRITICAL: ONLY output Title, Company, and Dates. DO NOT write any descriptions!]
+
+**[Job Title]** | *[Company, Location]* \hfill[Dates]
+**[Job Title]** | *[Company, Location]* \hfill [Dates]

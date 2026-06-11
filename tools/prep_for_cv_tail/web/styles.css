@@ -1,0 +1,359 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Theme tokens ─────────────────────────────────────────────────────────── */
+:root {
+  --bg-base:        #1e1e1e;
+  --bg-toolbar:     #2d2d2d;
+  --bg-tabbar:      #252525;
+  --bg-btn:         #3c3c3c;
+  --bg-btn-hover:   #4a4a4a;
+  --bg-right:       #2e2e2e;
+  --border:         #444;
+  --border-btn:     #555;
+  --text:           #ddd;
+  --text-muted:     #aaa;
+  --text-tab:       #999;
+  --text-tab-act:   #fff;
+  --text-editor:    #d4d4d4;
+  --accent:         #4a9eff;
+  --resizer:        #444;
+  --prose-bg:       #fff;
+  --prose-text:     #222;
+}
+
+[data-theme="light"] {
+  --bg-base:        #f0f0f0;
+  --bg-toolbar:     #e0e0e0;
+  --bg-tabbar:      #e8e8e8;
+  --bg-btn:         #d8d8d8;
+  --bg-btn-hover:   #c8c8c8;
+  --bg-right:       #dcdcdc;
+  --border:         #bbb;
+  --border-btn:     #aaa;
+  --text:           #1a1a1a;
+  --text-muted:     #555;
+  --text-tab:       #666;
+  --text-tab-act:   #000;
+  --text-editor:    #1a1a1a;
+  --accent:         #0066cc;
+  --resizer:        #bbb;
+  --prose-bg:       #fff;
+  --prose-text:     #222;
+}
+
+html {
+  height: 100%;
+}
+body {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  font-family: system-ui, sans-serif;
+  font-size: 14px;
+  background: var(--bg-base);
+  color: var(--text);
+  overflow: hidden;
+}
+
+/* ── Main navigation ──────────────────────────────────────────────────────── */
+.main-nav {
+  display: flex;
+  align-items: stretch;
+  background: var(--bg-tabbar);
+  border-bottom: 2px solid var(--border);
+  flex-shrink: 0;
+  height: 34px;
+}
+
+.main-tab-btn {
+  padding: 0 18px;
+  border: none;
+  background: transparent;
+  color: var(--text-tab);
+  cursor: pointer;
+  font-size: 13px;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  white-space: nowrap;
+}
+.main-tab-btn:hover { color: var(--text); }
+.main-tab-btn.active { color: var(--text-tab-act); border-bottom-color: var(--accent); }
+
+.nav-spacer { flex: 1; }
+
+#btn-theme {
+  border: none;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  padding: 0 10px;
+  font-size: 15px;
+}
+
+/* ── Main tabs ────────────────────────────────────────────────────────────── */
+.main-tab {
+  display: none;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+.main-tab.active { display: flex; }
+
+/* ── Toolbar ──────────────────────────────────────────────────────────────── */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  background: var(--bg-toolbar);
+  border-bottom: 1px solid var(--border);
+  height: 38px;
+  flex-shrink: 0;
+}
+
+.toolbar button {
+  padding: 3px 12px;
+  border: 1px solid var(--border-btn);
+  border-radius: 4px;
+  background: var(--bg-btn);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.toolbar button:hover:not(:disabled) { background: var(--bg-btn-hover); }
+.toolbar button:disabled { opacity: 0.4; cursor: default; }
+
+.status {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-left: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+/* ── Workspace ────────────────────────────────────────────────────────────── */
+.workspace {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ── Panels ───────────────────────────────────────────────────────────────── */
+.panel {
+  display: flex;
+  flex-direction: column;
+  width: 50%;
+  min-width: 180px;
+  overflow: hidden;
+  background: var(--bg-base);
+}
+.panel.right {
+  flex: 1;
+  background: var(--bg-right);
+}
+
+/* ── Tab bar (within panels) ──────────────────────────────────────────────── */
+.tab-bar {
+  display: flex;
+  align-items: center;
+  background: var(--bg-tabbar);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.tab-btn {
+  padding: 6px 16px;
+  border: none;
+  background: transparent;
+  color: var(--text-tab);
+  cursor: pointer;
+  font-size: 13px;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+}
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active { color: var(--text-tab-act); border-bottom-color: var(--accent); }
+
+.tab-spacer { flex: 1; }
+
+.tab-action-btn {
+  margin: 3px 6px;
+  padding: 2px 8px;
+  font-size: 12px;
+  border: 1px solid var(--border-btn);
+  border-radius: 3px;
+  background: var(--bg-btn);
+  color: var(--text);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.tab-action-btn:hover { background: var(--bg-btn-hover); }
+
+/* ── Panes ────────────────────────────────────────────────────────────────── */
+.pane {
+  display: none;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+.pane.active { display: flex; flex-direction: column; }
+
+/* ── Generic editor textarea ──────────────────────────────────────────────── */
+.editor {
+  flex: 1;
+  width: 100%;
+  padding: 12px;
+  border: none;
+  background: var(--bg-base);
+  color: var(--text-editor);
+  font-family: "Fira Code", "Cascadia Code", monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  resize: none;
+  outline: none;
+}
+.editor.output {
+  background: var(--bg-right);
+}
+
+/* ── Resizer ──────────────────────────────────────────────────────────────── */
+.resizer {
+  width: 4px;
+  background: var(--resizer);
+  cursor: col-resize;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.resizer:hover, .resizer.dragging { background: var(--accent); }
+
+/* ── PDF frame / placeholder ──────────────────────────────────────────────── */
+.placeholder {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: 14px;
+  text-align: center;
+  padding: 40px;
+}
+
+#pdf-frame {
+  display: none;
+  flex: 1;
+  width: 100%;
+  border: none;
+  background: #fff;
+}
+
+/* ── Tab 2: CV sections ───────────────────────────────────────────────────── */
+.sec-btn {
+  padding: 6px 16px;
+  border: none;
+  background: transparent;
+  color: var(--text-tab);
+  cursor: pointer;
+  font-size: 13px;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+}
+.sec-btn:hover { color: var(--text); }
+.sec-btn.active { color: var(--text-tab-act); border-bottom-color: var(--accent); }
+
+.cv-section {
+  display: none;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+.cv-section.active { display: flex; }
+
+/* Mini-bar: Edit / Preview toggle within a section */
+.mini-bar {
+  display: flex;
+  background: var(--bg-tabbar);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  padding: 2px 4px;
+  gap: 2px;
+}
+
+.view-btn {
+  padding: 2px 10px;
+  border: none;
+  background: transparent;
+  color: var(--text-tab);
+  cursor: pointer;
+  font-size: 12px;
+  border-bottom: 2px solid transparent;
+}
+.view-btn:hover { color: var(--text); }
+.view-btn.active { color: var(--text-tab-act); border-bottom-color: var(--accent); }
+
+.view-edit, .view-preview {
+  display: none;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+.view-edit.active  { display: flex; flex-direction: column; }
+.view-preview.active { display: flex; flex-direction: column; }
+
+/* ── Tab 3: right panel label ─────────────────────────────────────────────── */
+.panel-label {
+  padding: 6px 10px;
+  font-size: 12px;
+  color: var(--text-muted);
+  background: var(--bg-tabbar);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+/* ── Prose (markdown preview) ─────────────────────────────────────────────── */
+.prose {
+  flex: 1;
+  padding: 20px 24px;
+  overflow-y: auto;
+  background: var(--prose-bg);
+  color: var(--prose-text);
+}
+
+.prose h1 { font-size: 1.8em; margin: 0 0 0.5em; }
+.prose h2 { font-size: 1.4em; margin: 1.2em 0 0.4em; }
+.prose h3 { font-size: 1.1em; margin: 1em 0 0.3em; }
+.prose p  { margin: 0.6em 0; line-height: 1.7; }
+.prose ul, .prose ol { margin: 0.5em 0 0.5em 1.5em; }
+.prose li { margin: 0.2em 0; }
+.prose pre {
+  background: #f5f5f5;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 12px;
+  overflow-x: auto;
+  font-size: 0.9em;
+}
+.prose code {
+  background: #f5f5f5;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-family: monospace;
+  font-size: 0.9em;
+}
+.prose pre code { background: none; padding: 0; }
+.prose blockquote {
+  border-left: 3px solid #ccc;
+  margin: 0.5em 0;
+  padding-left: 12px;
+  color: #666;
+}
+.prose a { color: #0066cc; }
+.prose hr { border: none; border-top: 1px solid #ddd; margin: 1em 0; }
+/* Task list checkboxes from comrak */
+.prose input[type="checkbox"] { margin-right: 4px; }

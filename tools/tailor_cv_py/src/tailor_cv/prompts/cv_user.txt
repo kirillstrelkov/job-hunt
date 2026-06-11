@@ -1,0 +1,38 @@
+Please extract and format the relevant information from my Master CV to match the Job Description below.
+
+<job_description>
+{job_description}
+</job_description>
+
+<master_cv>
+{cv}
+</master_cv>
+
+CRITICAL INSTRUCTION: Output ONLY the tailored resume body. Use EXACTLY the Markdown template below. Fill in the bracketed placeholders. Do NOT write my name at the top. Pay close attention to using \hfill before the dates.
+
+## Summary[Write a 2-3 sentence tailored professional summary here]
+
+## Technical Skills
+
+* **Languages:** [Skills]
+* **DevOps & Cloud:** [Skills]
+* **Tools & Frameworks:** [Skills]
+
+## Work Experience
+
+**[Job Title]**, *[Company, Location]* \hfill [Dates]
+
+* [Relevant achievement bullet point highlighting transferable skills]
+*[Relevant achievement bullet point highlighting transferable skills]
+* **Tech Stack:** [Tools used in this specific job]
+
+**[Job Title]**, *[Company, Location]* \hfill [Dates]
+
+*[Relevant achievement bullet point]
+* **Tech Stack:** [Tools used in this specific job]
+
+## Previous Experience
+[CRITICAL: ONLY output Title, Company, and Dates. DO NOT write any descriptions!]
+
+**[Job Title]**, *[Company, Location]* \hfill [Dates]
+**[Job Title]**, *[Company, Location]* \hfill [Dates]
