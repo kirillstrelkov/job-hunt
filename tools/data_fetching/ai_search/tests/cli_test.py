@@ -4,7 +4,7 @@ from pathlib import Path
 import pandas as pd
 
 from caching_utils import ENV_VAR_DISABLE_CACHED
-from cli import _main
+from cli.fetch_and_match import _main
 
 
 def test_main_flow() -> None:

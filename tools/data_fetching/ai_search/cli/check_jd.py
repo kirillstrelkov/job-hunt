@@ -2,10 +2,14 @@
 
 import json
 import sys
+from pathlib import Path
+
+# Add parent directory to path so relative imports work when executed directly
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from loguru import logger
 
-from cli import _CV_TEXT
+from cli.fetch_and_match import _CV_TEXT
 from llm import analyze_cv, get_match_percentage
 
 if __name__ == "__main__":
@@ -18,5 +22,3 @@ if __name__ == "__main__":
 
     logger.info("Generated LLM Text:\n{}", json.dumps(data, indent=2, ensure_ascii=False))
     logger.info(f"Match Percentage: {match}%")
-
-

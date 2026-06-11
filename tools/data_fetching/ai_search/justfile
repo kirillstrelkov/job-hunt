@@ -1,15 +1,22 @@
 set dotenv-path := "private/.env"
 set dotenv-required := true
 
+default:
+    @just -l
+
+# Run the full CV-to-job matching pipeline on URLs list
 cli:
-    uv run python cli.py --log-level DEBUG data/private/urls.yml
+    uv run python cli/fetch_and_match.py --log-level DEBUG data/private/urls.yml
 
-scli:
-    uv run python cli_single.py
+# Analyze a single job description from standard input
+llm-check:
+    uv run python cli/check_jd.py
 
+# Run the test suite
 test:
     uv run pytest tests/llm_test.py
 
+# Run linter and formatting checks
 lint:
     uv run ruff check --fix
     uv run ruff check

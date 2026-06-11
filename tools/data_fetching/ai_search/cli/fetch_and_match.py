@@ -9,6 +9,9 @@ from dataclasses import asdict, dataclass, is_dataclass
 from pathlib import Path
 from urllib.parse import urlsplit
 
+# Add parent directory to path so relative imports work when executed directly
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 import pandas as pd
 import yaml
 from loguru import logger
@@ -21,7 +24,7 @@ from pages.indeed import IndeedPage
 from pages.linkedin import LinkedinPage
 from pages.stepstone import StepstonePage
 
-_CV_TEXT = (Path(__file__).parent / "data/private/cv.txt").read_text(encoding="utf-8")
+_CV_TEXT = (Path(__file__).parent.parent / "data/private/cv.txt").read_text(encoding="utf-8")
 _OUTPUT_PATH = Path(tempfile.gettempdir()) / "job_matches.csv"
 
 EXCLUDED_COMPANIES = {

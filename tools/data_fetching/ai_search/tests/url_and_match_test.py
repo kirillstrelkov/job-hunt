@@ -2,7 +2,7 @@ import os
 from unittest.mock import patch
 
 from caching_utils import ENV_VAR_DISABLE_CACHED
-from cli import _get_job_matches, get_jobs
+from cli.fetch_and_match import _get_job_matches, get_jobs
 
 __URL = "https://www.stepstone.de/jobs/rust/in-potsdam?radius=50&action=facet_selected%3bage%3bage_7&ag=age_7&searchOrigin=Resultlist_top-search"
 
