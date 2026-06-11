@@ -11,10 +11,7 @@ from loguru import logger
 _MODEL = "gemma4:e2b"
 _MODEL = "gemma4:e2b-it-qat"
 
-EXCLUDED_COMPANIES = [
-    "Mindrift",
-    "Turing",
-]
+
 SYSTEM_PROMPT = """
 You are a tech reverse recruiter. Follow the two stages below in order.
 Return ONLY valid JSON — no markdown fences, no commentary outside the JSON.
@@ -25,7 +22,7 @@ STAGE 1 — JOB DESCRIPTION PRE-SCREENING
 
 Analyze the job description.
 
-Evaluate the following. For rule 6, if the word appears at all, treat it as 100%% confidence:
+Evaluate the following:
 1. is_german_text        — Is more than 80%% of the text written in Requirements and
    Responsibilities sections, in German?
 2. is_german_required    — Is German language listed as a must-have, required, or essential skill?
@@ -36,9 +33,7 @@ Evaluate the following. For rule 6, if the word appears at all, treat it as 100%
 4. is_staff              — Is "staff engineer" or "lead engineer" (case-insensitive, e.g., "Staff Engineer")
    mentioned explicitly? Do NOT imply or infer — only mark true if stated verbatim.
 5. is_contract           — Is the position temporary, contract-based, or for freelancers?
-6. is_excluded_company   — Does the job description mention any company from this list: {excluded_companies}?
-   Match case-insensitively if the name appears ANYWHERE in the text.
-7. is_excluded_role      — Is the role a Data Scientist, intern, internship, Werkstudent, or trainee
+6. is_excluded_role      — Is the role a Data Scientist, intern, internship, Werkstudent, or trainee
    position? Match case-insensitively.
 
 After evaluating, produce this object. Use the "reasoning" field to briefly explain your
@@ -46,13 +41,12 @@ findings before outputting the boolean flags:
 
 {{
   "screening": {{
-    "reasoning": "Briefly state your findings for the 7 rules above.",
+    "reasoning": "Briefly state your findings for the 6 rules above.",
     "is_german_text": boolean,
     "is_german_required": boolean,
     "is_manager": boolean,
     "is_staff": boolean,
     "is_contract": boolean,
-    "is_excluded_company": boolean,
     "is_excluded_role": boolean,
     "gate_passed": boolean,
     "gate_failed_reasons":[]
@@ -61,7 +55,7 @@ findings before outputting the boolean flags:
 
 Set "gate_passed" to true only if ALL flags are false.
 Populate "gate_failed_reasons" with the names of any flags that are true
-(e.g. ["is_german_required", "is_excluded_company"]).
+(e.g. ["is_german_required", "is_excluded_role"]).
 
 ════════════════════════════════════════
 STAGE 2 — CANDIDATE FIT ANALYSIS
@@ -206,9 +200,6 @@ def analyze_cv(cv: str, job_description: str) -> dict[str, Any]:
         Parsed JSON result with screening and (if gate passed) analysis sections
 
     """
-    system_prompt = SYSTEM_PROMPT.format(
-        excluded_companies=", ".join(EXCLUDED_COMPANIES),
-    )
     cv_prompt = CV_PROMPT.format(
         cv=cv.strip(),
     )
@@ -216,7 +207,7 @@ def analyze_cv(cv: str, job_description: str) -> dict[str, Any]:
         job_description=job_description.strip(),
     )
     raw = llm_send(
-        _create_prompt(system=system_prompt),
+        _create_prompt(system=SYSTEM_PROMPT),
         _create_prompt(user=cv_prompt),
         _create_prompt(user=jd_prompt),
         debug_prompts=True,
@@ -244,4 +235,3 @@ def get_match_percentage(analysis_data: dict) -> int:
 def get_checked_passed(analysis_data: dict) -> bool:
     """Return percentage from analyzed data."""
     return analysis_data.get("screening", {}).get("gate_passed", False)
-

@@ -24,6 +24,11 @@ from pages.stepstone import StepstonePage
 _CV_TEXT = (Path(__file__).parent / "data/private/cv.txt").read_text(encoding="utf-8")
 _OUTPUT_PATH = Path(tempfile.gettempdir()) / "job_matches.csv"
 
+EXCLUDED_COMPANIES = {
+    "mindrift",
+    "turing",
+}
+
 
 @dataclass
 class JobMatch:
@@ -87,7 +92,24 @@ def get_jobs(*urls: str, limit: None | int = None, use_cache: bool = False) -> l
     uniq_jobs = list(set(jobs))
     logger.debug("Total jobs: {}, unique jobs: {}", len(jobs), len(uniq_jobs))
 
-    return uniq_jobs
+    # filter for excluded companies
+    filtered_jobs = []
+    for job in uniq_jobs:
+        is_excluded = False
+        for company in EXCLUDED_COMPANIES:
+            if company in job.company.lower():
+                logger.warning(
+                    "Job '{}' from company '{}' was skipped because '{}' is in the excluded companies list.",
+                    job.title,
+                    job.company,
+                    company,
+                )
+                is_excluded = True
+                break
+        if not is_excluded:
+            filtered_jobs.append(job)
+
+    return filtered_jobs
 
 
 def _match_cv_and_job_desc(job_desc: Job) -> JobMatch:
@@ -100,6 +122,7 @@ def _match_cv_and_job_desc(job_desc: Job) -> JobMatch:
         A JobMatch containing match metadata.
 
     """
+
     def _get() -> JobMatch:
         """Call the LLM to get the CV evaluation."""
         res = analyze_cv(_CV_TEXT, job_desc.description)
@@ -211,4 +234,3 @@ if __name__ == "__main__":
     urls = yaml.safe_load(Path(args.yaml_path).read_text(encoding="utf-8"))
 
     _main(urls, use_cache=not args.no_cache)
-
