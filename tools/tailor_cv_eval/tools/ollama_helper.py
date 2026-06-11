@@ -99,6 +99,23 @@ def track_ollama_gpu(model_name: str, interval_seconds: float = 0.5):
         thread.join()
 
 
+def format_options(options: dict) -> str:
+    """Format model options dictionary into a readable string."""
+    if not options:
+        return ""
+    parts = []
+    if "num_ctx" in options:
+        parts.append(f"ctx: {options['num_ctx']}")
+    if "num_predict" in options:
+        parts.append(f"pred: {options['num_predict']}")
+    if "temperature" in options:
+        parts.append(f"temp: {options['temperature']}")
+    for k, v in options.items():
+        if k not in ["num_ctx", "num_predict", "temperature"]:
+            parts.append(f"{k}: {v}")
+    return ", ".join(parts)
+
+
 def run_model(model: str, prompt_content: str, options: dict = None) -> dict:
     if options is None:
         options = get_model_options(model)
@@ -157,7 +174,9 @@ def run_model(model: str, prompt_content: str, options: dict = None) -> dict:
         "gpu_usage": avg_gpu / 100.0 if avg_gpu is not None else 1.0,
         "gpu_info": gpu_info,
         "response": response,
+        "options_str": format_options(options),
     }
+
 
 
 def generate_response(model: str, prompt: str, options: dict = None) -> str:

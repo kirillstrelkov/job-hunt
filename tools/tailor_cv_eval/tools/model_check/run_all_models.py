@@ -17,20 +17,64 @@ RESULTS_DIR = ROOT_DIR / "tmp/outputs/model_check"
 CONFIG_DIR = ROOT_DIR / "tmp/inputs/model_check"
 
 
-def format_options(options: dict) -> str:
-    if not options:
-        return ""
-    parts = []
-    if "num_ctx" in options:
-        parts.append(f"ctx: {options['num_ctx']}")
-    if "num_predict" in options:
-        parts.append(f"pred: {options['num_predict']}")
-    if "temperature" in options:
-        parts.append(f"temp: {options['temperature']}")
-    for k, v in options.items():
-        if k not in ["num_ctx", "num_predict", "temperature"]:
-            parts.append(f"{k}: {v}")
-    return ", ".join(parts)
+def save_and_log_statistics(stats: list[dict], results_dir: Path, run_name: str | None = None) -> None:
+    """Create a DataFrame from statistics, save it as CSV, and print a Markdown table to logs."""
+    df = pd.DataFrame(stats)
+
+    # Reorder columns for presentation
+    columns_order = [
+        "model",
+        "total_time",
+        "load_time",
+        "prompt_tokens",
+        "gen_tokens",
+        "tokens_per_sec",
+        "char_count",
+        "word_count",
+        "gpu_usage",
+        "gpu_info",
+        "options_str",
+    ]
+
+    # Ensure all columns exist
+    for col in columns_order:
+        if col not in df.columns:
+            df[col] = None
+
+    df = df[columns_order]
+
+    # Rename columns for presentation
+    df.columns = [
+        "Model",
+        "Total Time (s)",
+        "Load Time (s)",
+        "Prompt Tokens",
+        "Gen Tokens",
+        "Gen Speed (t/s)",
+        "Response Chars",
+        "Response Words",
+        "GPU Usage",
+        "GPU Info",
+        "Options",
+    ]
+
+    # Make sure results directory exists
+    results_dir.mkdir(parents=True, exist_ok=True)
+
+    # Output file base name
+    suffix = f"_{run_name}" if run_name else ""
+    csv_name = f"model_comparison{suffix}.csv"
+
+    # Save DataFrame as CSV
+    csv_output_path = results_dir / csv_name
+    df.to_csv(csv_output_path, index=False)
+    logger.info(f"Saved statistics data table to CSV: {csv_output_path}")
+
+    # Generate Markdown representation for logging
+    markdown_table = df.to_markdown(index=False)
+
+    # Log data table to stdout
+    logger.info(f"\nModel Evaluation Statistics ({run_name or 'custom'}):\n\n{markdown_table}\n")
 
 
 def run_evaluation_for_config(config_path: Path, run_name: str | None = None):
@@ -88,7 +132,6 @@ def run_evaluation_for_config(config_path: Path, run_name: str | None = None):
         logger.info(f"Running model '{model_name}'...")
         try:
             model_stat = run_model(model_name, prompt_content, options=options)
-            model_stat["options_str"] = format_options(options)
             stats.append(model_stat)
             logger.info(
                 f"Finished '{model_name}': Total Time: {model_stat['total_time']:.2f}s, "
@@ -102,63 +145,9 @@ def run_evaluation_for_config(config_path: Path, run_name: str | None = None):
         logger.error("No statistics collected.")
         return
 
-    # Create statistics DataFrame
-    df = pd.DataFrame(stats)
+    # Process and save collected stats
+    save_and_log_statistics(stats, RESULTS_DIR, run_name)
 
-    # Reorder columns for presentation
-    columns_order = [
-        "model",
-        "total_time",
-        "load_time",
-        "prompt_tokens",
-        "gen_tokens",
-        "tokens_per_sec",
-        "char_count",
-        "word_count",
-        "gpu_usage",
-        "gpu_info",
-        "options_str",
-    ]
-
-    # Ensure all columns exist
-    for col in columns_order:
-        if col not in df.columns:
-            df[col] = None
-
-    df = df[columns_order]
-
-    # Rename columns for presentation
-    df.columns = [
-        "Model",
-        "Total Time (s)",
-        "Load Time (s)",
-        "Prompt Tokens",
-        "Gen Tokens",
-        "Gen Speed (t/s)",
-        "Response Chars",
-        "Response Words",
-        "GPU Usage",
-        "GPU Info",
-        "Options",
-    ]
-
-    # Make sure results directory exists
-    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
-
-    # Output file base name
-    suffix = f"_{run_name}" if run_name else ""
-    csv_name = f"model_comparison{suffix}.csv"
-
-    # Save DataFrame as CSV
-    csv_output_path = RESULTS_DIR / csv_name
-    df.to_csv(csv_output_path, index=False)
-    logger.info(f"Saved statistics data table to CSV: {csv_output_path}")
-
-    # Generate Markdown representation for logging
-    markdown_table = df.to_markdown(index=False)
-
-    # Log data table to stdout
-    logger.info(f"\nModel Evaluation Statistics ({run_name or 'custom'}):\n\n{markdown_table}\n")
 
 
 def generate_run_configs() -> list[tuple[Path, str]]:
