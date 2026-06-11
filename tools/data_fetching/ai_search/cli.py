@@ -5,7 +5,7 @@ import json
 import sys
 import tempfile
 from collections import defaultdict
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass, is_dataclass
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -145,21 +145,24 @@ def _get_job_matches(jobs: list[Job]) -> list[JobMatch]:
     return [_match_cv_and_job_desc(jd) for jd in tqdm(jobs)]
 
 
-def _save_df(matches: list[JobMatch], output: Path) -> None:
-    """Save match results to a CSV file sorted by match percentage.
+def create_save_df(objects: list[Job | JobMatch], sort_by: str, output: Path, *, ascending: bool = True) -> None:
+    """Create a DataFrame from a list of objects, sort, and save it to a CSV file.
 
     Args:
-        matches: List of match assessments.
+        objects: List of objects (Job or JobMatch).
+        sort_by: Column name to sort the DataFrame by.
         output: CSV destination file path.
+        ascending: True to sort ascending, False for descending.
 
     """
-    if not matches:
+    if not objects:
         msg = "No matches found"
         raise ValueError(msg)
 
-    df = pd.DataFrame(matches).sort_values(by="match_percentage", ascending=False)
+    data = [asdict(item) if is_dataclass(item) else item for item in objects]
+    df = pd.DataFrame(data).sort_values(by=sort_by, ascending=ascending)
     df.to_csv(output, index=False)
-    logger.info(f"Saved job matches to {output}")
+    logger.info(f"Saved to {output}")
 
 
 def _main(urls: list[str], output: Path = _OUTPUT_PATH, *, use_cache: bool = True) -> None:
@@ -171,13 +174,25 @@ def _main(urls: list[str], output: Path = _OUTPUT_PATH, *, use_cache: bool = Tru
         use_cache: If True, use cached matches/jobs.
 
     """
-    jobs = get_jobs(*urls, use_cache=use_cache)
+    jobs_file = output.with_name("jobs.csv")
 
-    # filter failed ones and sort by url - to have proper hash
-    jobs = sorted([j for j in jobs if j.description.strip()], key=lambda j: j.url)
-    matches = _get_job_matches(jobs)
+    if jobs_file.exists():
+        logger.info(f"Loading jobs from {jobs_file}")
+        df = pd.read_csv(jobs_file).fillna("")
+        jobs = [Job(**row) for row in df.to_dict(orient="records")]
+    else:
+        logger.info("Fetching jobs...")
+        jobs = get_jobs(*urls, use_cache=use_cache)
+        create_save_df(jobs, sort_by="url", output=jobs_file, ascending=True)
 
-    _save_df(matches, output)
+    if output.exists():
+        logger.info(f"Output file {output} already exists, skipping match analysis.")
+    else:
+        logger.info("Analyzing matches...")
+        # filter failed ones and sort by url - to have proper hash
+        jobs = sorted([j for j in jobs if j.description.strip()], key=lambda j: j.url)
+        matches = _get_job_matches(jobs)
+        create_save_df(matches, sort_by="match_percentage", output=output, ascending=False)
 
 
 if __name__ == "__main__":
