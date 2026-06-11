@@ -1,0 +1,16 @@
+What you will do
+Design and build real-time systems in Rust that dynamically assign tasks to vehicles in our fleet.
+Extend our systems to support new mobility modes and expand into new cities.
+Write production-grade Rust code contributing to our in-house optimization algorithms and surrounding systems. 
+Embrace DevOps: Own your code in production with strong observability, test coveragem abd frequent deployments. 
+What will help you to fulfill your role 
+You have a team player attitude. You actively seek to avoid knowledge in silos. You like to provide and receive feedback, and to develop software collabroatively for example thorugh pair programming.
+You have Rust experience or a strong interest in Rust paired with experience in other systems programming languages. 
+Considered a plus: You have hands-on experience with cloud-native infrastructure and distributed systems. 
+You're motivated to grow your skills in a supportive, technically strong team. We're happy to mentor early-career engineers who show initiative and curiosity. 
+You know the fundamentals like unit testing, git, and navigating your favorite IDE. 
+Our team and system
+We're one of the few companies running Rust in production at scale for real-time decision systems. Your work will go live daily and have a visible, city-wide impact. 
+Our software is built on AWS, gRPC, Kubernetes & all code lives on GitHub. 
+Our team comprises experts in various fields: Operations Research, Data Sciecne and of course, Software Engineering. However, none of us identifies as either-or, and we believe in the value of closing knowledge gaps as much as possible. 
+We welcome applicants from diverse backgrounds — even if you don’t meet every requirement. If you’re excited about the role and MOIA’s mission, we’d love to hear from you!

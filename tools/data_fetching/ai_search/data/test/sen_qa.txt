@@ -1,0 +1,55 @@
+Sr. Python Test Automation Engineer (f/m/d) at an established IT-Security Company
+Berlin
+Full-time
+Permanent employee
+Apply for this job
+
+English
+Untertitel
+Zertificon Solutions – Software Manufacturer since 2004.
+We are IT security specialists: our products encrypt business communications. More than 25% of the 100 highest-revenue companies in Germany, as well as hundreds of medium-sized enterprises across all industries, already use our Z1 encryption solutions. We have big plans and continue to grow steadily. Nearly 140 employees are already working with us in Neukölln. Join our professional, highly qualified team: take on challenges, share your knowledge, learn new things, and discover your potential!
+Your tasks
+Join us as a Senior Test Automation Engineer and be the driving force behind a flawless software. Rapidly develop cutting-edge automation tests to elevate our test coverage, ensuring no regression slips through with every new feature release. Measure and enhance our software's performance regularly, and be the guardian of quality and excellence our customers deserve. Your expertise will be crucial in delivering robust, reliable solutions.
+
+Design, develop, and execute cutting-edge automated software tests, complete with error analysis, assessments, and detailed documentation
+Ensure comprehensive test coverage by testing existing features incrementally and new features in parallel with implementation
+Step in with precise manual tests when automated testing isn't enough
+Collaborate closely with developers and fellow test engineers to devise and implement effective testing strategies
+Identify, report, and track defects, working hand-in-hand with development teams for swift resolution
+Generate clear and insightful test reports, metrics, and documentation to keep stakeholders informed and up-to-date
+Stay ahead of the curve with the latest trends, tools, and technologies in test automation and quality assurance
+Your profile
+Proven experience (min 5 years) as a Software Test Engineer in an agile software development environment
+Excellent skills in ISTQB  test specification methods and management, ideally certified
+Strong experience in test automation methods with advanced techniques
+Knowledge of Selenium, Cucumber, and Playwright testing frameworks
+First hands-on experience working with Docker for containerization
+Proficiency in Python, Linux and shell scripting
+You have an open and clear communication style and excellent English skills 
+Nice to have
+
+Hands-on experience with test documentation tools like TestRail
+Good German language skills
+We offer
+Flexible hours and home office options
+Mobility: free Germany-wide public transport ticket, bike leasing, or parking
+Subsidies for meals (e.g., delivery services) and home office internet
+Urban Sports Club membership for flexible fitness and wellness
+Office perks: rooftop terraces & green courtyard, organic fruit and drinks, personal packages accepted at the office
+Get-togethers: monthly Pizza Friday, regular team events, big summer party
+Responsible leadership: structured onboarding, regular feedback, clear goals
+Innovative without startup risk: profitable for 20+ years, self-funded innovation with strong global potential
+International team: 120+ colleagues from 30+ countries, open and collaborative culture
+About us
+Why Zertificon?
+
+Zertificon stands for securing digital business. We develop trusted IT security solutions "Made in Germany" – built for businesses that value both protection and usability.
+
+Independent & committed: For over 20 years, we’ve built secure communication tools – as an owner-managed company with a clear stance
+Purpose-driven: We believe that digital communication must be secure and free. If you think Edward Snowden did the right thing as a whistleblower, we might just share the same values. As a sign of our support, we donate €1,000 to an organization that supports Edward Snowden for every new hire who mentions him in their application
+Hands-on excellence: We take on complex challenges because we can. Our in-house experts are top-tier – even external specialists often learn from us. When we want the best, we build it ourselves
+Agile by conviction: We think fast, act pragmatically, and improve continuously. No bloated processes, no “that’s just how it’s always been done.” Initiative is welcome – but of course, it will be challenged, and not every idea will make it through unchallenged
+Security that works: We build software that’s not only secure, but actually usable – not just for large enterprises with dedicated highly skilled IT teams, but also for small and mid-sized businesses that need strong security without the complexity
+Diverse & international: Our team of 130 people from 30+ countries shares one mission: making secure digital communication easily accessible to businesses of all sizes
+
+If that resonates with you, we’d love to hear from you.

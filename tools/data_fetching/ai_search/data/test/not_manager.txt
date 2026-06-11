@@ -1,0 +1,19 @@
+We believe "It's all about the user. All of them." We're passionate about providing a seamless one-stop experience for business travelers, no matter how they travel, where they stay, or where they're going.
+We are looking for a Sr. Full-Stack Engineer to lead the design and development of mission-critical product features and services that power our platform, used daily by thousands of travelers worldwide. You will play a pivotal role in shaping technical direction, mentoring engineers, and driving cross-team initiatives to deliver scalable, reliable, and user-focused solutions.
+What You'll Do
+Lead technical strategy and architecture for core backend and frontend components of the platform, ensuring scalability, reliability, and performance.
+Own complex domains end-to-end: from design through development, launch, and ongoing evolution of key microservices and customer-facing features.
+Influence cross-functional teams (engineering, product, design) by aligning technical execution with business goals and long-term product vision.
+Raise the technical bar through code reviews, architectural guidance, and fostering best practices in testing, monitoring, and documentation.
+Mentor and coach engineers across the organization, helping to grow technical skills and leadership capabilities.
+Partner with leadership to define and execute a multi-year technical roadmap, ensuring that platform investments support company growth at scale.
+What We're Looking For
+5+ years of software development experience, with deep expertise in both backend and frontend systems.
+Strong programming skills and CS fundamentals, with mastery in at least one backend language (Java, Python, etc., preference: Java and Spring Boot) and modern frontend frameworks (React, Angular, TypeScript).
+Proven experience designing and evolving large-scale distributed systems and microservice architectures.
+Demonstrated ability to own technical domains, making architectural trade-offs and long-term design decisions.
+Experience driving cross-domain initiatives, coordinating with multiple teams to deliver cohesive solutions.
+Track record of mentoring engineers, leading technical discussions, and influencing outcomes at an organizational level.
+Experience with cloud platforms (AWS preferred), CI/CD pipelines, and modern DevOps practices.
+Passion for solving complex problems, continuously learning, and delivering customer-focused innovations.
+Excellent communication skills with the ability to influence technical and non-technical stakeholders alike.

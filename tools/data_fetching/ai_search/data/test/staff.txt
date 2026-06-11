@@ -1,0 +1,61 @@
+Staff Engineer | Remote (inside Germany) | €110-135k | Golang
+
+
+
+About the Business
+
+Fast growing German tech startup building a product that scans and analyses complex infrastructure environments
+
+Trusted by well known enterprises across Germany to improve visibility reliability and security
+
+Operating at the intersection of deep technical challenges and real world customer impact
+
+Strong focus on engineering excellence long term product quality and sustainable growth
+
+
+Role
+
+Lead and grow a high performing engineering team building a core infrastructure scanning product
+
+Own technical direction while remaining hands on when critical issues arise
+
+Partner closely with product and business stakeholders across the company
+
+Drive engineering best practices in a fast moving startup environment
+
+
+Responsibilities
+
+Provide technical leadership and people management for a team with long term ownership
+
+Design and evolve scalable system architecture for complex infrastructure environments
+
+Ensure high code quality through reviews mentoring and pragmatic standards
+
+Step into implementation and debugging when production or delivery requires it
+
+
+Requirements
+
+Strong background in Golang plus at least one of C++ Python Rust or similar
+
+Minimum five years experience leading teams from both technical and people perspectives
+
+Deep understanding of system design distributed systems and software architecture
+
+Proven ability to balance leadership responsibilities with hands on coding
+
+
+Benefits
+
+Salary range of 110k to 135k EUR depending on experience
+
+Fully remote role within Germany
+
+Opportunity to work on a product trusted by major companies across Germany
+
+High impact role with real ownership in a growing tech startup
+
+ 
+If you are interested or know someone that might be, please feel free to reach out over LinkedIn.
+

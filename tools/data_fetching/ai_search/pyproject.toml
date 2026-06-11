@@ -1,0 +1,12 @@
+[project]
+name = "ai-search"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "dotenv>=0.9.9",
+    "loguru>=0.7.3",
+    "pytest>=9.0.3",
+    "tqdm>=4.68.2",
+]

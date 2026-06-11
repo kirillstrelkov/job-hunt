@@ -1,0 +1,22 @@
+set dotenv-path := "private/.env"
+set dotenv-required
+
+cli:
+  uv run python cli.py --log-level DEBUG data/private/urls.yml
+
+scli:
+  uv run python cli_single.py
+
+test:
+  uv run pytest llm_test.py
+
+show-files: 
+  clear
+  tree .
+  cat ./llm.py
+  cat ./llm_test.py
+  cat ./data/test/allianz.txt
+  cat ./data/test/de_desc.txt
+  cat ./data/test/de_req.txt
+  cat ./data/test/dotnet.txt
+  cat ./data/test/tesla_go.txt

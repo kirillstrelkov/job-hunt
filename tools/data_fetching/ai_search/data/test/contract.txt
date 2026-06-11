@@ -1,0 +1,34 @@
+Position: Software Engineering Evaluator
+Type: Contractor (Hourly contract)
+Compensation: $150/hr
+Location: Remote
+Commitment: 10–40 hours/week
+
+
+Role Responsibilities
+
+Curate, build, and correct high-quality code examples for AI model training across Python, JavaScript (including ReactJS), C/C++, Java, Rust, and Go.
+Evaluate and refine AI-generated code to ensure efficiency, scalability, and reliability.
+Design verification mechanisms and agents to validate software engineering solutions and identify error patterns.
+Assess AI capabilities across the full software engineering lifecycle, including design, development, testing, deployment, and maintenance.
+Collaborate with researchers and cross-functional teams to improve enterprise-grade AI-driven coding solutions.
+
+
+Requirements
+
+Strong experience at a top-tier product company.
+Strong expertise in building full-stack, production-grade applications using modern programming languages and tools.
+Deep understanding of software architecture, system design, debugging, and code quality assessment.
+Ability to evaluate complex codebases and provide clear, structured feedback.
+Excellent written and verbal communication skills.
+
+
+Application Process (Takes 20 Min)
+
+Upload resume
+Interview (15 min)
+Submit form
+
+
+Desired Skills and Experience
+react, Rust, Javascript, c++
