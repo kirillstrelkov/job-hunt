@@ -11,7 +11,7 @@ sys.path.append(str(ROOT_DIR))
 
 from config import ConfigManager  # noqa: E402
 from tools.config_generator import create_config  # noqa: E402
-from tools.model_check.run_single_model import run_model  # noqa: E402
+from tools.ollama_helper import run_model  # noqa: E402
 
 RESULTS_DIR = ROOT_DIR / "tmp/outputs/model_check"
 CONFIG_DIR = ROOT_DIR / "tmp/inputs/model_check"
@@ -87,8 +87,7 @@ def run_evaluation_for_config(config_path: Path, run_name: str | None = None):
 
         logger.info(f"Running model '{model_name}'...")
         try:
-            # Pass config_manager to run_model
-            model_stat = run_model(model_name, prompt_content, options=options, config_manager=config_manager)
+            model_stat = run_model(model_name, prompt_content, options=options)
             model_stat["options_str"] = format_options(options)
             stats.append(model_stat)
             logger.info(
