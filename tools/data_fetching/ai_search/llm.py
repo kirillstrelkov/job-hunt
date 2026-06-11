@@ -1,3 +1,5 @@
+"""LLM integration for CV and job description screening and analysis."""
+
 import json
 import tempfile
 from pathlib import Path
@@ -6,17 +8,16 @@ from typing import Any
 import ollama
 from loguru import logger
 
-# _MODEL = "llama3.1:8b"
 _MODEL = "gemma4:e2b"
 _MODEL = "gemma4:e2b-it-qat"
-# _MODEL = "deepseek-r1:8b" # Also works well
 
 EXCLUDED_COMPANIES = [
     "Mindrift",
     "Turing",
 ]
 SYSTEM_PROMPT = """
-You are a tech reverse recruiter. Follow the two stages below in order. Return ONLY valid JSON — no markdown fences, no commentary outside the JSON.
+You are a tech reverse recruiter. Follow the two stages below in order.
+Return ONLY valid JSON — no markdown fences, no commentary outside the JSON.
 
 ════════════════════════════════════════
 STAGE 1 — JOB DESCRIPTION PRE-SCREENING
@@ -25,15 +26,23 @@ STAGE 1 — JOB DESCRIPTION PRE-SCREENING
 Analyze the job description.
 
 Evaluate the following. For rule 6, if the word appears at all, treat it as 100%% confidence:
-1. is_german_text        — Is more than 80%% of the text written in Requirements and Responsibilities sections, in German?
-2. is_german_required    — Is German language listed as a must-have, required, or essential skill? (Ignore if listed as a plus or advantage.)
-3. is_manager            — Is the position for a manager role? (Select true for any roles with "Manager" in the title, such as Product Manager, Marketing Manager, or roles with people management responsibilities.)
-4. is_staff              — Is "staff engineer" or "lead engineer" (case-insensitive, e.g., "Staff Engineer") mentioned explicitly? Do NOT imply or infer — only mark true if stated verbatim.
+1. is_german_text        — Is more than 80%% of the text written in Requirements and
+   Responsibilities sections, in German?
+2. is_german_required    — Is German language listed as a must-have, required, or essential skill?
+   (Ignore if listed as a plus or advantage.)
+3. is_manager            — Is the position for a manager role? (Select true for any roles with "Manager"
+   in the title, such as Product Manager, Marketing Manager, or roles with people management
+   responsibilities.)
+4. is_staff              — Is "staff engineer" or "lead engineer" (case-insensitive, e.g., "Staff Engineer")
+   mentioned explicitly? Do NOT imply or infer — only mark true if stated verbatim.
 5. is_contract           — Is the position temporary, contract-based, or for freelancers?
-6. is_excluded_company   — Does the job description mention any company from this list: {excluded_companies}? Match case-insensitively if the name appears ANYWHERE in the text.
-7. is_excluded_role      — Is the role a Data Scientist, intern, internship, Werkstudent, or trainee position? Match case-insensitively.
+6. is_excluded_company   — Does the job description mention any company from this list: {excluded_companies}?
+   Match case-insensitively if the name appears ANYWHERE in the text.
+7. is_excluded_role      — Is the role a Data Scientist, intern, internship, Werkstudent, or trainee
+   position? Match case-insensitively.
 
-After evaluating, produce this object. Use the "reasoning" field to briefly explain your findings before outputting the boolean flags:
+After evaluating, produce this object. Use the "reasoning" field to briefly explain your
+findings before outputting the boolean flags:
 
 {{
   "screening": {{
@@ -51,7 +60,8 @@ After evaluating, produce this object. Use the "reasoning" field to briefly expl
 }}
 
 Set "gate_passed" to true only if ALL flags are false.
-Populate "gate_failed_reasons" with the names of any flags that are true (e.g. ["is_german_required", "is_excluded_company"]).
+Populate "gate_failed_reasons" with the names of any flags that are true
+(e.g. ["is_german_required", "is_excluded_company"]).
 
 ════════════════════════════════════════
 STAGE 2 — CANDIDATE FIT ANALYSIS
@@ -71,7 +81,7 @@ The final JSON structure must be:
     "overall_fit": {{
       "percentage": 0,
       "label": "Excellent | Strong | Moderate | Weak | Poor",
-      "summary": "2–3 sentence explanation"
+      "summary": "2-3 sentence explanation"
     }},
     "score_breakdown": {{
       "skills_match": {{
@@ -120,7 +130,8 @@ The final JSON structure must be:
   }}
 }}
 
-All percentages are integers 0–100. Every field must be populated — use null only if the information is genuinely absent. Base every judgment strictly on the provided documents.
+All percentages are integers 0-100. Every field must be populated — use null only if the
+information is genuinely absent. Base every judgment strictly on the provided documents.
 
 """
 
@@ -149,121 +160,6 @@ Job description:
 </job_description>
 """
 
-PROMPT_TEMPLATE = """You are a recruitment pipeline assistant. Follow the two stages below in order. Return ONLY valid JSON — no markdown fences, no commentary outside the JSON.
-
-════════════════════════════════════════
-STAGE 1 — JOB DESCRIPTION PRE-SCREENING
-════════════════════════════════════════
-
-Analyze the job description strictly. 
-
-<job_description>
-{job_description}
-</job_description>
-
-Evaluate the following. For rule 6, if the word appears at all, treat it as 100% confidence:
-1. is_german_text        — Is more than 80% of the text written in German?
-2. is_german_required    — Is German language listed as a must-have, required, or essential skill? (Ignore if listed as a plus or advantage.)
-3. is_manager            — Is the position for a manager role?
-4. is_staff              — Is "staff engineer" or "lead engineer" mentioned explicitly? Do NOT imply or infer — only mark true if stated verbatim.
-5. is_contract           — Is the position temporary, contract-based, or for freelancers?
-6. is_excluded_company   — Does the job description mention any company from this list: {excluded_companies}? Match case-insensitively if the name appears ANYWHERE in the text.
-7. is_excluded_role      — Is the role a Data Scientist, intern, internship, Werkstudent, or trainee position? Match case-insensitively.
-
-After evaluating, produce this object. Use the "reasoning" field to briefly explain your findings before outputting the boolean flags:
-
-{{
-  "screening": {{
-    "reasoning": "Briefly state your findings for the 7 rules above.",
-    "is_german_text": boolean,
-    "is_german_required": boolean,
-    "is_manager": boolean,
-    "is_staff": boolean,
-    "is_contract": boolean,
-    "is_excluded_company": boolean,
-    "is_excluded_role": boolean,
-    "gate_passed": boolean,
-    "gate_failed_reasons":[]
-  }}
-}}
-
-Set "gate_passed" to true only if ALL flags are false.
-Populate "gate_failed_reasons" with the names of any flags that are true (e.g. ["is_german_required", "is_excluded_company"]).
-
-════════════════════════════════════════
-STAGE 2 — CANDIDATE FIT ANALYSIS
-════════════════════════════════════════
-
-IMPORTANT: If gate_passed is false, stop here. Return ONLY the "screening" object above — do not analyze the CV.
-
-If gate_passed is true, analyze the CV against the job description and append an "analysis" key to the same JSON object.
-
-<cv>
-{cv}
-</cv>
-
-The final JSON structure must be:
-
-{{
-  "screening": {{ ... }},
-  "analysis": {{
-    "candidate_name": "string | null",
-    "job_title": "string",
-    "overall_fit": {{
-      "percentage": 0,
-      "label": "Excellent | Strong | Moderate | Weak | Poor",
-      "summary": "2–3 sentence explanation"
-    }},
-    "score_breakdown": {{
-      "skills_match": {{
-        "percentage": 0,
-        "matched_skills": [""],
-        "missing_skills": [""],
-        "notes": ""
-      }},
-      "experience_relevance": {{
-        "percentage": 0,
-        "years_required": 0,
-        "years_candidate_has": 0,
-        "notes": ""
-      }},
-      "education_and_certifications": {{
-        "percentage": 0,
-        "required": "",
-        "candidate_has": "",
-        "notes": ""
-      }},
-      "soft_skills_and_culture": {{
-        "percentage": 0,
-        "notes": ""
-      }},
-      "seniority_alignment": {{
-        "percentage": 0,
-        "required_level": "",
-        "candidate_level": "",
-        "notes": ""
-      }}
-    }},
-    "strengths": [
-      {{ "point": "", "evidence": "" }}
-    ],
-    "gaps": [
-      {{ "point": "", "severity": "critical | moderate | minor" }}
-    ],
-    "recommendation": {{
-      "verdict": "Strong Yes | Yes | Maybe | No",
-      "justification": ""
-    }},
-    "interview_questions":[
-      {{ "question": "", "targets": "" }}
-    ],
-    "red_flags":[]
-  }}
-}}
-
-All percentages are integers 0–100. Every field must be populated — use null only if the information is genuinely absent. Base every judgment strictly on the provided documents.
-"""
-
 
 def _create_prompt(system: None | str = None, user: str | None = None) -> dict:
     if system:
@@ -272,7 +168,8 @@ def _create_prompt(system: None | str = None, user: str | None = None) -> dict:
     if user:
         return {"role": "user", "content": user}
 
-    raise ValueError("system or user should be used")
+    msg = "system or user should be used"
+    raise ValueError(msg)
 
 
 def llm_send(*prompts: dict, debug_prompts: bool = False) -> str:
@@ -293,7 +190,7 @@ def llm_send(*prompts: dict, debug_prompts: bool = False) -> str:
             },
         )
         return response["message"]["content"]
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"LLM Error: {e}")
         return ""
 
@@ -309,14 +206,6 @@ def analyze_cv(cv: str, job_description: str) -> dict[str, Any]:
         Parsed JSON result with screening and (if gate passed) analysis sections
 
     """
-    # prompt = PROMPT_TEMPLATE.format(
-    #     cv=cv.strip(),
-    #     excluded_companies=", ".join(EXCLUDED_COMPANIES),
-    #     job_description=job_description.strip(),
-    # )
-
-    # raw = llm_send(_create_prompt(user=prompt))
-
     system_prompt = SYSTEM_PROMPT.format(
         excluded_companies=", ".join(EXCLUDED_COMPANIES),
     )
@@ -355,3 +244,4 @@ def get_match_percentage(analysis_data: dict) -> int:
 def get_checked_passed(analysis_data: dict) -> bool:
     """Return percentage from analyzed data."""
     return analysis_data.get("screening", {}).get("gate_passed", False)
+

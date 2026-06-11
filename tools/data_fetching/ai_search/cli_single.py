@@ -1,9 +1,11 @@
+"""Command-line interface to analyze a single job description from standard input."""
+
 import sys
 
-from llm import analyze_cv, get_match_percentage
 from loguru import logger
 
 from cli import _CV_TEXT
+from llm import analyze_cv, get_match_percentage
 
 if __name__ == "__main__":
     logger.info("Enter Job Description:\n```")

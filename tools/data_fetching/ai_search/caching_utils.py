@@ -1,6 +1,5 @@
 """Utilities for caching computed values to disk using pickle serialization."""
 
-import functools
 import hashlib
 import os
 import pickle
@@ -8,7 +7,6 @@ import tempfile
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
-
 
 ENV_VAR_DISABLE_CACHED = "DISABLE_CACHED_VALUE"
 _TMP_CACHE_FOLDER = "locpycache"
@@ -46,6 +44,7 @@ def get_cached_value(
         func_get_value: A zero-argument callable that produces the value to cache.
         folder: Directory in which cache files are stored.
                 Defaults to a ``locpycache`` subdirectory inside the system temp dir.
+        extra_folders: Subfolders to append to the cache directory path.
 
     Returns:
         The cached or freshly computed value.
@@ -92,6 +91,12 @@ def has_cached_value(hashsum: str, folder: Path | None = None) -> bool:
     return (cache_folder / hashsum).exists()
 
 
-def tmp_cached() -> Callable:
-    # TODO:
+def tmp_cached() -> Callable[..., Any]:
+    """Temporary placeholder for a cache decorator.
+
+    Raises:
+        NotImplementedError: This function is not yet implemented.
+
+    """
     raise NotImplementedError
+

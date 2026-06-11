@@ -1,3 +1,6 @@
+"""Scraper implementation for LinkedIn."""
+
+from collections.abc import Callable
 from random import random
 from time import sleep
 
@@ -10,7 +13,11 @@ from .base import Job, Page
 _LINKEDIN_JOB_URL_TEMPLATE = "https://www.linkedin.com/jobs/view/{}"
 
 
-def _find_first_visible(browser: Browser, **kwargs: dict) -> WebElement:
+def _find_first_visible(browser: Browser, **kwargs: object) -> WebElement:
+    """Find and return the first visible element matching the criteria.
+
+    If no elements are visible, wait for visibility and return the element.
+    """
     _ = kwargs.pop("times", 0)
 
     for e in browser.find_elements(**kwargs):
@@ -22,9 +29,12 @@ def _find_first_visible(browser: Browser, **kwargs: dict) -> WebElement:
 
 
 class LinkedinPage(Page):
+    """Scraper class for the LinkedIn job search website."""
+
     _CSS_NEXT_PAGE = '[aria-label="View next page"]'
 
     def _signin(self) -> bool:
+        """Sign in to LinkedIn if not already logged in."""
         if self.__already_logged_in():
             return True
 
@@ -51,11 +61,13 @@ class LinkedinPage(Page):
         return self.__already_logged_in()
 
     def __skip_welcome_back(self) -> None:
+        """Skip the welcome back banner / member profile block if shown."""
         css_login_again = "#rememberme-div .member-profile-block"
         if self._browser.is_visible(by_css=css_login_again):
             self._browser.click(by_css=css_login_again)
 
     def __wait_for_logged_in(self) -> None:
+        """Wait until the user is successfully logged in."""
         logger.debug("Waiting for logged in...")
         self._browser.webdriver_wait(lambda _: self.__already_logged_in(), timeout=self._SINGIN_TIMEOUT)
 
@@ -66,6 +78,7 @@ class LinkedinPage(Page):
         )
 
     def __already_logged_in(self) -> bool:
+        """Check if the user is already logged in to LinkedIn."""
         css_header_span_text = "header button>span>span"
 
         is_logged = any(
@@ -77,6 +90,7 @@ class LinkedinPage(Page):
         return is_logged
 
     def _get_job(self, url: str | None = None) -> Job:
+        """Scrape job details from a LinkedIn job page."""
         if url:
             self.open(url)
         css_job_desc = "[componentkey*='AboutTheJob']"
@@ -106,12 +120,15 @@ class LinkedinPage(Page):
         return Job(title=title, company=company, url=url, description=text, error="")
 
     def _get_job_urls(self) -> list[str]:
+        """Scrape job URLs from the current LinkedIn job search list."""
         css_no_jobs = ".jobs-search-no-results-banner"
         if self._browser.is_visible(by_css=css_no_jobs):
             return []
 
         css_job_list_item = ".scaffold-layout__list  ul > li.ember-view"
-        find_jobs = lambda: self._browser.find_elements(by_css=css_job_list_item)
+
+        def find_jobs() -> list[WebElement]:
+            return self._browser.find_elements(by_css=css_job_list_item)
 
         self.__wait_for_same_result(lambda: len(find_jobs()))
 
@@ -124,7 +141,7 @@ class LinkedinPage(Page):
             for e in find_jobs()
         ]
 
-    def __wait_for_same_result(self, func, times: int = 5):
+    def __wait_for_same_result(self, func: Callable[[], int], times: int = 5) -> None:
         """Wait for same result of func to appears number of times."""
         # special wait as jobs are loaded dynamically - wait until 5 times is same result
         holder = {
@@ -132,7 +149,7 @@ class LinkedinPage(Page):
             "prev_result": func(),
         }
 
-        def _is_same_result(_driver) -> bool:
+        def _is_same_result(_driver: object) -> bool:
             if holder["times"] == 0:
                 return True
 

@@ -9,14 +9,14 @@ unfixable = ["B"]
 
 [lint.per-file-ignores]
 "**/*_test.py" = [
-    "S101",      # asserts are allowed in tests
-    "FBT001",    # boolean positional arguments in test functions
-    "D",         # docstrings are not required in tests
-    "SLF001",    # private member access is allowed in tests
-    "PLR2004",   # magic values are allowed in assertions
-    "S108",      # tmp files are allowed in tests
-    "T201",      # print is allowed in tests
-    "ANN",       # type annotations are not strictly required for test helpers
+    "S101",
+    "FBT001",
+    "D",
+    "SLF001",
+    "PLR2004",
+    "S108",
+    "T201",
+    "ANN",
 ]
 "**/test_*" = [
     "S101",

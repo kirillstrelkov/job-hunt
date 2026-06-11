@@ -1,8 +1,11 @@
+"""Base scraper module defining shared classes and utilities."""
+
 import atexit
 from collections.abc import Generator
 from contextlib import contextmanager
 from dataclasses import dataclass
 from traceback import format_exc
+from typing import Self
 
 from easelenium.browser import Browser
 from loguru import logger
@@ -17,6 +20,7 @@ __BROWSER = None
 
 
 def get_browser() -> Browser:
+    """Get the singleton browser instance."""
     return _SingleBrowser().browser
 
 
@@ -32,9 +36,11 @@ def browser_context() -> Generator[Browser]:
 
 
 class _SingleBrowser:
+    """Singleton helper class to manage a single browser instance."""
+
     _instance = None
 
-    def __new__(cls, *args, **kwargs) -> "_SingleBrowser":
+    def __new__(cls, *_args: object, **_kwargs: object) -> Self:
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             cls._instance.browser = _get_browser(show_images=True)
@@ -51,6 +57,8 @@ class _SingleBrowser:
 
 @dataclass(frozen=True)
 class Job:
+    """Represents a job description model."""
+
     title: str
     company: str
     url: str
@@ -59,10 +67,13 @@ class Job:
 
 
 def make_job(title: str = "", company: str = "", url: str = "", description: str = "", error: str = "") -> Job:
+    """Create a Job instance."""
     return Job(title=title, company=company, url=url, description=description, error=error)
 
 
 class Page:
+    """Base class for scrapers of different job sites."""
+
     # timeout should be long enough to verify login via phone app or via email or validate capcha
     _SINGIN_TIMEOUT = 60
 
@@ -134,39 +145,47 @@ class Page:
 
     def _next_page(self) -> None:
         """Go to the next page."""
-        assert self._CSS_NEXT_PAGE
+        if not self._CSS_NEXT_PAGE:
+            msg = "CSS_NEXT_PAGE must be defined"
+            raise ValueError(msg)
 
         if self._browser.is_visible(by_css=self._CSS_NEXT_PAGE):
 
-            def _click(_) -> bool | None:
+            def _click(_: object) -> bool | None:
                 cur_url = self._browser.get_current_url()
                 try:
                     self._browser.click(by_css=self._CSS_NEXT_PAGE)
                     return cur_url != self._browser.get_current_url()
-                except Exception:
+                except Exception:  # noqa: BLE001
                     return not self._browser.is_visible(by_css=self._CSS_NEXT_PAGE)
 
             try:
                 self._browser.webdriver_wait(_click, timeout=10)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning("failed to get next page: {}", e)
 
     def _has_next_page(self) -> bool:
         """Check if there is a next page."""
-        assert self._CSS_NEXT_PAGE
+        if not self._CSS_NEXT_PAGE:
+            msg = "CSS_NEXT_PAGE must be defined"
+            raise ValueError(msg)
 
         return self._browser.is_visible(by_css=self._CSS_NEXT_PAGE)
 
     def _is_logged_in(self) -> bool:
         """Check if there is a next page."""
-        assert self._CSS_PROFILE
+        if not self._CSS_PROFILE:
+            msg = "CSS_PROFILE must be defined"
+            raise ValueError(msg)
 
         return self._browser.is_visible(by_css=self._CSS_PROFILE)
 
     # should be implemented:
 
     def _signin(self) -> bool:
+        """Sign in to the website. Should be implemented by subclasses."""
         raise NotImplementedError
+
 
     def _get_job_urls(self) -> list[str]:
         """Get job URLs from the page."""
@@ -182,18 +201,13 @@ class Page:
         """Get job from the current page."""
         url = url or self._browser.get_current_url()
 
-        # TODO: do we need retries?
-        # @retry(
-        #     retry=retry_if_exception_type(WebDriverException),
-        #     stop=stop_after_attempt(3),
-        # )
         def get_job_with_retry() -> Job:
             return self._get_job(url)
 
         def wrap_get_job() -> Job:
             try:
                 return get_job_with_retry()
-            except Exception:
+            except Exception:  # noqa: BLE001
                 e_stack = format_exc()
                 logger.error("creating default job due to exception: {}", e_stack)
                 return make_job(url=url, error=e_stack)
