@@ -69,7 +69,7 @@ def create_default_config(dest_path: Path) -> None:
         "header": "../example/header.md",
         "body": "../example/body.md",
         "footer": "../example/footer.md",
-        "prompt": "../prompts/tailor.md",
+        "prompt": "../prompts/tailor_for_description.md",
     }
 
     try:

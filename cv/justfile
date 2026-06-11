@@ -1,6 +1,5 @@
 set shell := ["bash", "-cu"]
 
-
 mastercv := "./tmp/master_cv.md"
 cvbody := "./private/parts/body.md"
 
@@ -33,9 +32,9 @@ run: check combine
     # create text to tailor cv for job description
     /home/kirill/prj/gh/job-hunt/tools/prep_for_cv_tail/target/debug/prep_for_tail \
       --cv {{ mastercv }} \
-      --prompt ./prompts/tailor.md \
+      --prompt ./prompts/tailor_for_description.md \
       --jd ./tmp/jd.txt \
-      --output ./tmp/prompt_to_tailor.md
+      --output ./tmp/prompt_to_tailor_for_description.md
 
     # evaluate match
     # cat ./prompt_match.md > "./tmp/prompt_to_match.md"
@@ -47,11 +46,9 @@ run: check combine
 gui:
     /home/kirill/prj/gh/job-hunt/tools/prep_for_cv_tail/target/debug/prep_for_tail_ui
 
-
-mastercv-pdf: 
+mastercv-pdf:
     tools/.venv/bin/python tools/process_cv.py --fix {{ mastercv }}
     pandoc -V papersize=a4 -V geometry:margin=1.5cm {{ mastercv }} -o ./tmp/master_cv.pdf
-
 
 prepare-cv folder:
     # flow:
