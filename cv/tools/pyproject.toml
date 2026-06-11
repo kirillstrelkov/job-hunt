@@ -5,7 +5,10 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "process-cv"
 version = "0.1.0"
-dependencies = ["loguru"]
+dependencies = [
+    "loguru",
+    "pyyaml",
+]
 
 [project.optional-dependencies]
 dev = ["ruff"]

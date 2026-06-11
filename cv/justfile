@@ -4,6 +4,15 @@ set shell := ["bash", "-cu"]
 mastercv := "./tmp/master_cv.md"
 cvbody := "./private/parts/body.md"
 
+default:
+    @just --list
+
+cfg-create:
+    tools/.venv/bin/python tools/cfg.py --create
+
+cfg-check path="":
+    tools/.venv/bin/python tools/cfg.py --check {{ if path == "" { "" } else { "--path " + path } }}
+
 check:
     tools/.venv/bin/python tools/process_cv.py --check {{ cvbody }}
 
