@@ -13,7 +13,7 @@ Here are the strict rules for tailoring the CV:
 
 2. WORK EXPERIENCE:
    - Keep ALL roles from the Master CV EXCEPT "Junior Developer | AS Tallink Group" and "Assembler | Fabek Elektroonika OÜ" (completely remove these two).
-   - Highlight the most recent and relevant roles by rewriting and compacting the bullet points so they directly align with the ATS keywords, requirements, and responsibilities mentioned in the Target Job Description.
+   - Preserve Original Meaning & Strategic Merging: Keep the core facts, metrics, and narrative of the original Master CV intact. Limit your modifications strictly to: 1) Upgrading the starting action verb, 2) Merging 2-3 related bullet points from the Master CV into a single, highly impactful bullet point to save space and demonstrate end-to-end impact, 3) Trimming unnecessary fluff, and 4) Injecting exact-match ATS keywords from the JD where they logically fit. Do not invent new accomplishments.
    - Focus on quantifiable achievements.
    - For older or less relevant jobs, reduce the description to exactly one bullet point with a single one-line summary instead of multiple bullet points.
    - Action Verbs: Start every single bullet point with a strong, past-tense action verb (e.g., Spearheaded, Architected, Optimized). Never use weak phrases like "Responsible for" or "Helped with."
@@ -46,7 +46,7 @@ Here are the strict rules for tailoring the CV:
 
 5. TONE AND STYLE:
    - Retain the text style, vocabulary, and phrasing from the original Master CV as much as possible.
-   - Only rewrite when necessary to improve impact, insert crucial keywords from the job description, or combine points for conciseness. Do not invent an entirely new "voice."
+   - Do Not Over-Edit: Prioritize using the exact clauses and phrasing from the Master CV whenever they already demonstrate the required skills. When merging bullet points, seamlessly stitch together my original phrasing. Only alter the text if a sentence absolutely needs an ATS keyword injected or needs to be shortened to fit length limits. Do not invent an entirely new "voice."
 
 6. OUTPUT FORMAT & STRUCTURE:
    Provide your response in THREE distinct parts. Do not include any conversational filler (e.g., "Here is your tailored resume").
@@ -74,7 +74,7 @@ Below the resume, add a section called "### Tailoring Justification Report". In 
 
 - **ATS Keyword Strategy:** Explicitly list the top 5-10 exact-match keywords you identified from the JD and successfully injected into the tailored CV.
 - **Reductions & Omissions:** Explicitly list which specific bullet points or technical skills were removed or heavily reduced, and explain WHY based on the Target Job Description.
-- **Selections:** Briefly explain why you selected the specific projects and certificates over the others.
+- **Merging & Selections:** Briefly explain which bullet points you successfully merged for maximum impact, and why you selected the specific projects and certificates over the others.
 
 ---
 
