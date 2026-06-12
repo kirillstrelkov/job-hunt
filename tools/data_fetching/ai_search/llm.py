@@ -1,6 +1,7 @@
 """LLM integration for CV and job description screening and analysis."""
 
 import json
+import os
 import tempfile
 from pathlib import Path
 from typing import Any
@@ -9,6 +10,7 @@ import ollama
 from loguru import logger
 
 MODEL = "gemma4:e4b-it-qat"
+_DEBUG = os.getenv("DEBUG", "false").lower() in ("true", "1", "yes")
 
 
 SYSTEM_PROMPT = """
@@ -165,11 +167,13 @@ def _create_prompt(system: None | str = None, user: str | None = None) -> dict:
     raise ValueError(msg)
 
 
-def llm_send(*prompts: dict, model: str = MODEL, debug_prompts: bool = False) -> str:
+def llm_send(*prompts: dict, model: str = MODEL) -> str:
     """Send a prompt + content to Ollama."""
-    if debug_prompts:
+    if _DEBUG:
         content = "-----\n".join([p["content"] for p in prompts])
-        (Path(tempfile.gettempdir()) / "llm_prompt_debug.txt").write_text(content)
+        path = Path(tempfile.gettempdir()) / "llm_prompt_debug.txt"
+        path.write_text(content)
+        logger.debug(f"Prompt debug file created: {path}")
 
     try:
         response = ollama.chat(
@@ -211,12 +215,14 @@ def analyze_cv(cv: str, job_description: str, model: str = MODEL) -> dict[str, A
         _create_prompt(user=cv_prompt),
         _create_prompt(user=jd_prompt),
         model=model,
-        debug_prompts=True,
     )
 
     if raw.startswith("```"):
         raw = raw.split("\n", 1)[1]
         raw = raw.rsplit("```", 1)[0]
+
+    if _DEBUG:
+        logger.debug(f"Raw response:\n{raw}")
 
     resp = json.loads(raw)
 
