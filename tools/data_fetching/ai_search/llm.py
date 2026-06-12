@@ -8,8 +8,7 @@ from typing import Any
 import ollama
 from loguru import logger
 
-_MODEL = "gemma4:e2b"
-_MODEL = "gemma4:e2b-it-qat"
+_MODEL = "gemma4:e4b-it-qat"
 
 
 SYSTEM_PROMPT = """
