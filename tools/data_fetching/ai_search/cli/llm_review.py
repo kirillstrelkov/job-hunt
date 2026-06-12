@@ -8,8 +8,8 @@ from pathlib import Path
 # Add parent directory to path so relative imports work when executed directly
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from loguru import logger
 import pandas as pd
+from loguru import logger
 
 from caching_utils import ENV_VAR_DISABLE_CACHED
 from cli.fetch_and_match import get_job_matches
@@ -24,15 +24,16 @@ def load_file(path: Path) -> tuple[pd.DataFrame, str]:
 
     Returns:
         A tuple of (DataFrame, format_specifier).
+
     """
     ext = path.suffix.lower()
     if ext in (".csv", ".tsv"):
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             first_line = f.readline()
         sep = "\t" if "\t" in first_line else ","
         df = pd.read_csv(path, sep=sep)
         return df, sep
-    elif ext in (".ods", ".xlsx", ".xls", ".odf"):
+    if ext in (".ods", ".xlsx", ".xls", ".odf"):
         try:
             df = pd.read_excel(path, engine="odf")
             return df, "excel"
@@ -51,6 +52,7 @@ def save_file(df: pd.DataFrame, path: Path, file_type: str) -> None:
         df: The DataFrame to save.
         path: Path to the destination file.
         file_type: The format specifier returned by `load_file`.
+
     """
     if file_type == "excel":
         try:

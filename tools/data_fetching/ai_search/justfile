@@ -14,7 +14,7 @@ llm-check:
 
 # Review and update matching results from a CSV or ODF file
 llm-review path:
-    uv run python cli/llm_review.py --path {{path}}
+    uv run python cli/llm_review.py --path {{ path }}
 
 # Run the test suite
 test:
@@ -24,3 +24,11 @@ test:
 lint:
     uv run ruff check --fix
     uv run ruff check
+
+# Run Promptfoo prompt evaluation to compare baseline prompt vs candidate prompts
+eval-prompts:
+    uv run python promptfoo/run_eval.py
+
+# View Promptfoo prompt evaluation dashboard
+view-promptfoo:
+    npx promptfoo view
