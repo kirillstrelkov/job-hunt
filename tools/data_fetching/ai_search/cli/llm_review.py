@@ -28,7 +28,7 @@ def load_file(path: Path) -> tuple[pd.DataFrame, str]:
     """
     ext = path.suffix.lower()
     if ext in (".csv", ".tsv"):
-        with open(path, encoding="utf-8") as f:
+        with path.open(encoding="utf-8") as f:
             first_line = f.readline()
         sep = "\t" if "\t" in first_line else ","
         df = pd.read_csv(path, sep=sep)
@@ -36,13 +36,11 @@ def load_file(path: Path) -> tuple[pd.DataFrame, str]:
     if ext in (".ods", ".xlsx", ".xls", ".odf"):
         try:
             df = pd.read_excel(path, engine="odf")
-            return df, "excel"
-        except Exception:
+        except Exception:  # noqa: BLE001
             df = pd.read_excel(path)
-            return df, "excel"
-    else:
-        # Fallback to standard CSV
-        return pd.read_csv(path), ","
+        return df, "excel"
+    # Fallback to standard CSV
+    return pd.read_csv(path), ","
 
 
 def save_file(df: pd.DataFrame, path: Path, file_type: str) -> None:
@@ -57,7 +55,7 @@ def save_file(df: pd.DataFrame, path: Path, file_type: str) -> None:
     if file_type == "excel":
         try:
             df.to_excel(path, index=False, engine="odf")
-        except Exception:
+        except Exception:  # noqa: BLE001
             df.to_excel(path, index=False)
     else:
         df.to_csv(path, sep=file_type, index=False)
@@ -103,7 +101,7 @@ def main() -> None:
             sys.exit(1)
 
     jobs = []
-    for idx, row in df.iterrows():
+    for _idx, row in df.iterrows():
         job = Job(
             title=str(row.get("title", "")),
             company=str(row.get("company", "")),
@@ -118,9 +116,9 @@ def main() -> None:
 
     # Update columns
     for idx, match in enumerate(matches):
-        df.at[idx, "match_percentage"] = match.match_percentage
-        df.at[idx, "llm_text"] = match.llm_text
-        df.at[idx, "check_passed"] = match.check_passed
+        df.loc[idx, "match_percentage"] = match.match_percentage
+        df.loc[idx, "llm_text"] = match.llm_text
+        df.loc[idx, "check_passed"] = match.check_passed
 
     logger.info(f"Saving updated data back to {path}...")
     save_file(df, path, file_type)

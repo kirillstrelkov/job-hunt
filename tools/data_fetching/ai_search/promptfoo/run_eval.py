@@ -1,3 +1,5 @@
+"""Script to generate test cases and run Promptfoo evaluations on different LLMs."""
+
 import csv
 import json
 import subprocess
@@ -148,8 +150,8 @@ def generate_prompts_and_test_cases(cv_text: str, jd_files: list[Path], tmp_dir:
 def run_promptfoo_eval(config_file: Path, results_json_path: Path) -> None:
     """Execute Promptfoo eval command line tool."""
     logger.info("Executing Promptfoo evaluation...")
-    res = subprocess.run(
-        [
+    res = subprocess.run(  # noqa: S603
+        [  # noqa: S607
             "npx",
             "-y",
             "promptfoo@latest",
@@ -161,7 +163,8 @@ def run_promptfoo_eval(config_file: Path, results_json_path: Path) -> None:
             "1",
             "-o",
             str(results_json_path),
-        ]
+        ],
+        check=False,
     )
 
     if res.returncode not in [0, 100]:
@@ -250,12 +253,13 @@ def convert_json_to_csv(results_json_path: Path, results_csv_path: Path) -> None
             logger.info(f"Model: {m:<30} | Passed: {stats['passed']}/{stats['total']}")
 
         logger.info(f"Successfully created: {results_csv_path.relative_to(AI_SEARCH_DIR)}")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Failed to process JSON results: {e}")
         sys.exit(1)
 
 
-def main():
+def main() -> None:
+    """Generate prompts, execute Promptfoo evaluation, and run Jupyter notebook."""
     logger.info("=== Generating Prompts and Running Promptfoo Evaluation ===")
 
     tmp_dir = AI_SEARCH_DIR / "tmp" / "promptfoo"
@@ -294,8 +298,8 @@ def run_jupyter_notebook(notebook_path: Path) -> None:
         logger.error(f"Jupyter notebook not found at: {notebook_path}")
         sys.exit(1)
 
-    res = subprocess.run(
-        [
+    res = subprocess.run(  # noqa: S603
+        [  # noqa: S607
             "uv",
             "run",
             "--with",
@@ -315,7 +319,8 @@ def run_jupyter_notebook(notebook_path: Path) -> None:
             "--execute",
             "--inplace",
             str(notebook_path),
-        ]
+        ],
+        check=False,
     )
 
     if res.returncode != 0:

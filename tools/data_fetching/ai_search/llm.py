@@ -9,7 +9,7 @@ from typing import Any
 import ollama
 from loguru import logger
 
-# MODEL = "gemma4:e2b" # fallback moodel
+# Fallback model: "gemma4:e2b"
 MODEL = "gemma4:e4b-it-qat"
 
 _DEBUG = os.getenv("DEBUG", "false").lower() in ("true", "1", "yes")

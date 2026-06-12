@@ -14,7 +14,7 @@ sys.path.insert(0, str(TESTS_DIR.parent))
 from llm_test import assert_llm_response  # noqa: E402
 
 
-def get_assert(output: str, context: Any) -> dict:
+def get_assert(output: str, context: Any) -> dict[str, Any]:  # noqa: ANN401
     """Evaluate LLM output against expected screening gates and match percentage."""
     try:
         raw = output.strip()
@@ -55,16 +55,16 @@ def get_assert(output: str, context: Any) -> dict:
                 "score": 0.0,
                 "reason": f"Assertion failed: {ae}"
             }
-
-        return {
-            "pass": True,
-            "score": 1.0,
-            "reason": "All checks passed successfully."
-        }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return {
             "pass": False,
             "score": 0.0,
             "reason": f"Unexpected error during assertion evaluation: {e}"
+        }
+    else:
+        return {
+            "pass": True,
+            "score": 1.0,
+            "reason": "All checks passed successfully."
         }
 
