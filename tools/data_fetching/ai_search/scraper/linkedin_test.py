@@ -1,12 +1,14 @@
+"""Unit tests for the LinkedIn scraper."""
+
 import os
 from unittest.mock import patch
 
 import pytest
 from easelenium.browser import Browser
 
-from caching_utils import ENV_VAR_DISABLE_CACHED
-from pages.base import Job, get_browser, make_job
-from pages.linkedin import LinkedinPage
+from scraper.base import Job, get_browser, make_job
+from scraper.linkedin import LinkedinPage
+from utils.caching_utils import ENV_VAR_DISABLE_CACHED
 
 
 @pytest.fixture

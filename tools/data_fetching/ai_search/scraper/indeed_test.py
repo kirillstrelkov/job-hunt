@@ -1,11 +1,13 @@
+"""Unit tests for the Indeed scraper."""
+
 import os
 
 import pytest
 from easelenium.browser import Browser
 
-from caching_utils import ENV_VAR_DISABLE_CACHED
-from pages.base import get_browser
-from pages.indeed import IndeedPage
+from scraper.base import get_browser
+from scraper.indeed import IndeedPage
+from utils.caching_utils import ENV_VAR_DISABLE_CACHED
 
 
 @pytest.fixture

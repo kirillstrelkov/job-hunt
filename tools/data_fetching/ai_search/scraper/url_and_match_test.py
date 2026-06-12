@@ -1,8 +1,10 @@
+"""Unit tests for the URL resolving and matching pipeline."""
+
 import os
 from unittest.mock import patch
 
-from caching_utils import ENV_VAR_DISABLE_CACHED
 from cli.fetch_and_match import get_job_matches, get_jobs
+from utils.caching_utils import ENV_VAR_DISABLE_CACHED
 
 __URL = "https://www.stepstone.de/jobs/rust/in-potsdam?radius=50&action=facet_selected%3bage%3bage_7&ag=age_7&searchOrigin=Resultlist_top-search"
 
@@ -11,8 +13,9 @@ os.environ["DEBUG"] = "1"
 
 
 def test_n26_not_german() -> None:
+    """Test matching logic using a mocked get_job_links result."""
     url = "https://www.stepstone.de/stellenangebote--Senior-Backend-Engineer-Berlin-N26-GmbH--13903661-inline.html"
-    with patch("base.Page._get_job_links", return_value=[url]):
+    with patch("scraper.base.Page._get_job_links", return_value=[url]):
         jobs = get_jobs(url)  # url is needed to initiaze proper class
         matches = get_job_matches(jobs)
         print(jobs[0].description)

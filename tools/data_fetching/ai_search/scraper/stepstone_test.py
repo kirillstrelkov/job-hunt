@@ -1,8 +1,10 @@
+"""Unit tests for the StepStone scraper."""
+
 import pytest
 from easelenium.browser import Browser
 
-from pages.base import get_browser
-from pages.stepstone import StepstonePage
+from scraper.base import get_browser
+from scraper.stepstone import StepstonePage
 
 __URL = "https://www.stepstone.de/jobs/rust/in-potsdam?radius=50&action=facet_selected%3bage%3bage_7&ag=age_7&searchOrigin=Resultlist_top-search"
 

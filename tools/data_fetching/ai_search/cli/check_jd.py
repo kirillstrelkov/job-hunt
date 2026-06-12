@@ -10,8 +10,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from loguru import logger
 
-from cli.fetch_and_match import _CV_TEXT
-from llm import MODEL, analyze_cv, get_match_percentage
+from reviewer.llm import MODEL, analyze_cv, get_match_percentage
+
+_CV_TEXT = (Path(__file__).resolve().parent.parent / "data/private/cv.txt").read_text(encoding="utf-8")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Analyze a single job description from standard input.")

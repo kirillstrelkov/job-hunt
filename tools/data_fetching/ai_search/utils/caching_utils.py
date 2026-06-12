@@ -99,4 +99,3 @@ def tmp_cached() -> Callable[..., Any]:
 
     """
     raise NotImplementedError
-

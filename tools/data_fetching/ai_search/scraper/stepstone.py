@@ -84,4 +84,3 @@ class StepstonePage(Page):
         css_next_page = '[aria-label="Nächste"]'
         self._browser.wait_for_present(by_css=css_next_page)
         return not bool(self._browser.get_attribute(by_css=css_next_page, attr="disabled"))
-

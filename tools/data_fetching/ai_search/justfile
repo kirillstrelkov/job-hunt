@@ -18,7 +18,7 @@ llm-review path:
 
 # Run the test suite
 test:
-    uv run pytest tests/llm_test.py
+    uv run pytest reviewer/llm_test.py
 
 # Run linter and formatting checks
 lint:

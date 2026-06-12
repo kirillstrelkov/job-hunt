@@ -33,4 +33,3 @@ def get_credentials(prefix: str) -> Credentials:
         username=os.environ[username_key],
         password=os.environ[password_key],
     )
-

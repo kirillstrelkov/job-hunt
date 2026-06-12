@@ -1,14 +1,13 @@
+"""Unit tests for the LLM CV matching and screening reviewer."""
+
 from pathlib import Path
 from pprint import pformat
 
 from loguru import logger
 
-from llm import analyze_cv, get_checked_passed, get_match_percentage
+from reviewer.llm import analyze_cv, get_checked_passed, get_match_percentage
 
-__DATA_DIR = Path(__file__).parent.parent / "data"
-
-
-CV_TEXT = (__DATA_DIR / "private/cv.txt").read_text(encoding="utf-8")
+__DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 
 
 def assert_llm_response(res: dict, min_match: int, fail_reason: str | None = None) -> None:
@@ -29,6 +28,9 @@ def _run_and_assert(sub_path: str, min_match: int, fail_reason: str | None = Non
 
     res = analyze_cv(CV_TEXT, job_desc)
     assert_llm_response(res, min_match, fail_reason)
+
+
+CV_TEXT = (__DATA_DIR / "private/cv.txt").read_text(encoding="utf-8")
 
 
 def test_match_tesla() -> None:
@@ -69,4 +71,3 @@ def test_match_qa() -> None:
 def test_intern() -> None:
     # https://www.linkedin.com/jobs/view/4409739015
     _run_and_assert("test/intern.txt", 0, "is_excluded_role")
-

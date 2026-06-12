@@ -109,4 +109,3 @@ def browser_decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         return return_value
 
     return wrapper
-

@@ -54,4 +54,3 @@ class IndeedPage(Page):
         css_job_links = 'div:not([class*="recommendation-section"]).result .mainContentTable a'
         job_links = self._browser.find_elements(by_css=css_job_links)
         return [self._browser.get_attribute(job, "href") for job in job_links if self._browser.is_visible(job)]
-

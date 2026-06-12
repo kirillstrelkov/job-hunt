@@ -7,11 +7,10 @@ from typing import Any
 
 # Add the tests directory directly to sys.path to avoid package namespace conflicts with 'tests'
 
-TESTS_DIR = Path("/home/kirill/prj/gh/job-hunt/tools/data_fetching/ai_search/tests")
-sys.path.insert(0, str(TESTS_DIR))
-sys.path.insert(0, str(TESTS_DIR.parent))
+AI_SEARCH_DIR = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(AI_SEARCH_DIR))
 
-from llm_test import assert_llm_response  # noqa: E402
+from reviewer.llm_test import assert_llm_response  # noqa: E402
 
 
 def get_assert(output: str, context: Any) -> dict[str, Any]:  # noqa: ANN401
