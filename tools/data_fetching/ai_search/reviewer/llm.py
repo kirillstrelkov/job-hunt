@@ -3,8 +3,8 @@
 import json
 import os
 import tempfile
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
 
 import ollama
 from loguru import logger
@@ -14,14 +14,14 @@ MODEL = "gemma4:e4b-it-qat"
 
 _DEBUG = os.getenv("DEBUG", "false").lower() in ("true", "1", "yes")
 
+HEADER_PROMPT = """
+You are a professional technical reverse recruiter.
 
-SYSTEM_PROMPT = """
-You are a tech reverse recruiter. Follow the two stages below in order.
-Return ONLY valid JSON — no markdown fences, no commentary outside the JSON.
+Return ONLY valid JSON — no markdown fences, no commentary.
 
-════════════════════════════════════════
-STAGE 1 — JOB DESCRIPTION PRE-SCREENING
-════════════════════════════════════════
+"""
+SYSTEM_PROMPT_SCREENING = f"""
+{HEADER_PROMPT}
 
 Analyze the job description.
 
@@ -31,8 +31,7 @@ Evaluate the following:
 2. is_german_required    — Is German language listed as a must-have, required, or essential skill?
    (Ignore if listed as a plus or advantage.)
 3. is_manager            — Is the position for a manager role? (Select true for any roles with "Manager"
-   in the title, such as Product Manager, Marketing Manager, or roles with people management
-   responsibilities.)
+   in the title, such as Product Manager, Marketing Manager)
 4. is_staff              — Is "staff engineer" or "lead engineer" (case-insensitive, e.g., "Staff Engineer")
    mentioned explicitly? Do NOT imply or infer — only mark true if stated verbatim.
 5. is_contract           — Is the position temporary, contract-based, or for freelancers?
@@ -42,8 +41,9 @@ Evaluate the following:
 After evaluating, produce this object. Use the "reasoning" field to briefly explain your
 findings before outputting the boolean flags:
 
-{
-  "screening": {
+```json
+
+{{
     "reasoning": "Briefly state your findings for the 6 rules above.",
     "is_german_text": boolean,
     "is_german_required": boolean,
@@ -53,109 +53,89 @@ findings before outputting the boolean flags:
     "is_excluded_role": boolean,
     "gate_passed": boolean,
     "gate_failed_reasons":[]
-  }
-}
+}}
+
+```
 
 Set "gate_passed" to true only if ALL flags are false.
 Populate "gate_failed_reasons" with the names of any flags that are true
 (e.g. ["is_german_required", "is_excluded_role"]).
+"""
+SYSTEM_PROMPT_CANDIDATE = f"""
+{HEADER_PROMPT}
 
-════════════════════════════════════════
-STAGE 2 — CANDIDATE FIT ANALYSIS
-════════════════════════════════════════
-
-IMPORTANT: If gate_passed is false, stop here. Return ONLY the "screening" object above — do not analyze the CV.
-
-If gate_passed is true, analyze the CV against the job description and append an "analysis" key to the same JSON object.
-
-The final JSON structure must be:
-
-{
-  "screening": { ... },
-  "analysis": {
-    "candidate_name": "string | null",
-    "job_title": "string",
-    "overall_fit": {
-      "percentage": 0,
-      "label": "Excellent | Strong | Moderate | Weak | Poor",
-      "summary": "2-3 sentence explanation"
-    },
-    "score_breakdown": {
-      "skills_match": {
-        "percentage": 0,
-        "matched_skills": [""],
-        "missing_skills": [""],
-        "notes": ""
-      },
-      "experience_relevance": {
-        "percentage": 0,
-        "years_required": 0,
-        "years_candidate_has": 0,
-        "notes": ""
-      },
-      "education_and_certifications": {
-        "percentage": 0,
-        "required": "",
-        "candidate_has": "",
-        "notes": ""
-      },
-      "soft_skills_and_culture": {
-        "percentage": 0,
-        "notes": ""
-      },
-      "seniority_alignment": {
-        "percentage": 0,
-        "required_level": "",
-        "candidate_level": "",
-        "notes": ""
-      }
-    },
-    "strengths": [
-      { "point": "", "evidence": "" }
-    ],
-    "gaps": [
-      { "point": "", "severity": "critical | moderate | minor" }
-    ],
-    "recommendation": {
-      "verdict": "Strong Yes | Yes | Maybe | No",
-      "justification": ""
-    },
-    "interview_questions":[
-      { "question": "", "targets": "" }
-    ],
-    "red_flags":[]
-  }
-}
+Analyze the CV against the job description.
 
 All percentages are integers 0-100. Every field must be populated — use null only if the
 information is genuinely absent. Base every judgment strictly on the provided documents.
 
-"""
+The final JSON output must be:
 
-USER_PROMPT = """
-<job_description>
-{job_description}
-</job_description>
-
-<cv>
-{cv}
-</cv>
+```json
+{{
+  "match_percentage": 85,
+  "fit_label": "Excellent | Strong | Moderate | Weak | Poor",
+  "summary": "2-3 sentence explanation of candidate fit.",
+  "matched_skills": ["Python", "Docker", "Kubernetes"],
+  "missing_skills": ["Production Rust", "AWS"],
+  "strengths": ["Strong systems programming foundation with 10 years of C/C++."],
+  "gaps": [
+    "No production Rust experience (required for core backend service development).",
+    "No direct AWS cloud deployment experience."
+  ]
+}}
+```
 """
 
 CV_PROMPT = """
 CV:
-
 <cv>
 {cv}
 </cv>
 """
 JD_PROMPT = """
 Job description:
-
 <job_description>
 {job_description}
 </job_description>
 """
+
+
+@dataclass(frozen=True)
+class Screening:
+    """Dataclass holding screening results for a job description."""
+
+    reasoning: str
+    is_german_text: bool
+    is_german_required: bool
+    is_manager: bool
+    is_staff: bool
+    is_contract: bool
+    is_excluded_role: bool
+    gate_passed: bool
+    gate_failed_reasons: list[str]
+
+
+@dataclass(frozen=True)
+class Analysis:
+    """Dataclass holding the CV-to-JD fit analysis details."""
+
+    match_percentage: int
+    fit_label: str
+    summary: str
+    matched_skills: list[str]
+    missing_skills: list[str]
+    strengths: list[str]
+    gaps: list[str]
+
+
+@dataclass(frozen=True)
+class JobMatchResult:
+    """Result object combining screening and match analysis."""
+
+    screening: Screening | None = None
+    analysis: Analysis | None = None
+    error: str | None = None
 
 
 def _create_prompt(system: None | str = None, user: str | None = None) -> dict:
@@ -194,7 +174,30 @@ def llm_send(*prompts: dict, model: str = MODEL) -> str:
         return ""
 
 
-def analyze_cv(cv: str, job_description: str, model: str = MODEL) -> dict[str, Any]:
+def _get_screening(job_description: str, model: str = MODEL) -> Screening:
+    prompts = [
+        _create_prompt(system=SYSTEM_PROMPT_SCREENING),
+        _create_prompt(user=JD_PROMPT.format(job_description=job_description.strip())),
+    ]
+    raw = llm_send(*prompts, model=model)
+    resp = json.loads(raw)
+
+    return Screening(**resp)
+
+
+def _get_analysis(cv: str, job_description: str, model: str = MODEL) -> Analysis:
+    prompts = [
+        _create_prompt(system=SYSTEM_PROMPT_CANDIDATE),
+        _create_prompt(user=CV_PROMPT.format(cv=cv.strip())),
+        _create_prompt(user=JD_PROMPT.format(job_description=job_description.strip())),
+    ]
+    raw = llm_send(*prompts, model=model)
+    resp = json.loads(raw)
+
+    return Analysis(**resp)
+
+
+def analyze_cv(cv: str, job_description: str, model: str = MODEL) -> JobMatchResult:
     """Analyze a CV against a job description using LLM.
 
     Args:
@@ -206,41 +209,31 @@ def analyze_cv(cv: str, job_description: str, model: str = MODEL) -> dict[str, A
         Parsed JSON result with screening and (if gate passed) analysis sections
 
     """
-    cv_prompt = CV_PROMPT.format(
-        cv=cv.strip(),
-    )
-    jd_prompt = JD_PROMPT.format(
-        job_description=job_description.strip(),
-    )
-    raw = llm_send(
-        _create_prompt(system=SYSTEM_PROMPT),
-        _create_prompt(user=cv_prompt),
-        _create_prompt(user=jd_prompt),
-        model=model,
-    )
+    try:
+        screening = _get_screening(job_description, model=model)
+    except Exception as e:  # noqa: BLE001
+        return JobMatchResult(error=str(e))
 
-    if raw.startswith("```"):
-        raw = raw.split("\n", 1)[1]
-        raw = raw.rsplit("```", 1)[0]
+    if screening.gate_passed:
+        try:
+            analysis = _get_analysis(cv, job_description, model=model)
+        except Exception as e:  # noqa: BLE001
+            return JobMatchResult(error=str(e))
+    else:
+        analysis = None
 
-    if _DEBUG:
-        logger.debug(f"Raw response:\n{raw}")
-
-    resp = json.loads(raw)
-
-    # recheck
-    fail_reasons = [k for k, v in resp["screening"].items() if k.startswith("is_") and v]
-    resp["screening"]["gate_failed_reasons"] = fail_reasons
-    resp["screening"]["gate_passed"] = len(fail_reasons) == 0
-
-    return resp
+    return JobMatchResult(screening=screening, analysis=analysis)
 
 
-def get_match_percentage(analysis_data: dict) -> int:
+def get_match_percentage(result: JobMatchResult) -> int:
     """Return percentage from analyzed data."""
-    return analysis_data.get("analysis", {}).get("overall_fit", {}).get("percentage", 0)
+    if result.analysis:
+        return result.analysis.match_percentage
+    return 0
 
 
-def get_checked_passed(analysis_data: dict) -> bool:
-    """Return percentage from analyzed data."""
-    return analysis_data.get("screening", {}).get("gate_passed", False)
+def get_checked_passed(result: JobMatchResult) -> bool:
+    """Return whether the screening gate passed."""
+    if result.screening:
+        return result.screening.gate_passed
+    return False

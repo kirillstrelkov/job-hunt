@@ -49,7 +49,7 @@ def test_get_job_with_company(page: IndeedPage) -> None:
     assert "Cognite - AI for Industry" in job.company
     description = job.description
     assert "Cognite operates" in description
-    assert "and Agentic AI." in description
+    assert "Impact 2025" in description
 
 
 def test_get_jobs(page: IndeedPage) -> None:

@@ -1,8 +1,8 @@
 """Reviewer module to evaluate job descriptions against candidate CV."""
 
-import json
 from dataclasses import dataclass
 from pathlib import Path
+from pprint import pformat
 
 from loguru import logger
 from tqdm import tqdm
@@ -50,7 +50,7 @@ def _match_cv_and_job_desc(job_desc: Job) -> JobMatch:
             url=job_desc.url,
             description=job_desc.description,
             match_percentage=match,
-            llm_text=json.dumps(res, indent=2, ensure_ascii=False),
+            llm_text=pformat(res),
             check_passed=check_passed,
         )
 

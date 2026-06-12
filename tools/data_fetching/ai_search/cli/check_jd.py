@@ -1,9 +1,9 @@
 """Command-line interface to analyze a single job description from standard input."""
 
 import argparse
-import json
 import sys
 from pathlib import Path
+from pprint import pformat
 
 # Add parent directory to path so relative imports work when executed directly
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -26,5 +26,5 @@ if __name__ == "__main__":
     data = analyze_cv(_CV_TEXT, jd, model=args.model)
     match = get_match_percentage(data)
 
-    logger.info("Generated LLM Text:\n{}", json.dumps(data, indent=2, ensure_ascii=False))
+    logger.info("Generated LLM Text:\n{}", pformat(data))
     logger.info(f"Match Percentage: {match}%")
