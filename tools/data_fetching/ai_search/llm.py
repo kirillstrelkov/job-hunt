@@ -8,7 +8,7 @@ from typing import Any
 import ollama
 from loguru import logger
 
-_MODEL = "gemma4:e4b-it-qat"
+MODEL = "gemma4:e4b-it-qat"
 
 
 SYSTEM_PROMPT = """
@@ -165,7 +165,7 @@ def _create_prompt(system: None | str = None, user: str | None = None) -> dict:
     raise ValueError(msg)
 
 
-def llm_send(*prompts: dict, debug_prompts: bool = False) -> str:
+def llm_send(*prompts: dict, model: str = MODEL, debug_prompts: bool = False) -> str:
     """Send a prompt + content to Ollama."""
     if debug_prompts:
         content = "-----\n".join([p["content"] for p in prompts])
@@ -173,7 +173,7 @@ def llm_send(*prompts: dict, debug_prompts: bool = False) -> str:
 
     try:
         response = ollama.chat(
-            model=_MODEL,
+            model=model,
             messages=prompts,
             options={
                 "temperature": 0,
@@ -188,12 +188,13 @@ def llm_send(*prompts: dict, debug_prompts: bool = False) -> str:
         return ""
 
 
-def analyze_cv(cv: str, job_description: str) -> dict[str, Any]:
+def analyze_cv(cv: str, job_description: str, model: str = MODEL) -> dict[str, Any]:
     """Analyze a CV against a job description using LLM.
 
     Args:
         cv: Full CV text
         job_description: Full job description text
+        model: Optional model override
 
     Returns:
         Parsed JSON result with screening and (if gate passed) analysis sections
@@ -209,6 +210,7 @@ def analyze_cv(cv: str, job_description: str) -> dict[str, Any]:
         _create_prompt(system=SYSTEM_PROMPT),
         _create_prompt(user=cv_prompt),
         _create_prompt(user=jd_prompt),
+        model=model,
         debug_prompts=True,
     )
 

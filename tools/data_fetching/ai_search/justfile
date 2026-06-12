@@ -9,8 +9,8 @@ cli:
     uv run python cli/fetch_and_match.py --log-level DEBUG data/private/urls.yml
 
 # Analyze a single job description from standard input
-llm-check:
-    uv run python cli/check_jd.py
+llm-check-jd model="":
+    uv run python cli/check_jd.py {{ if model == "" { "" } else { "--model " + model } }}
 
 # Review and update matching results from a CSV or ODF file
 llm-review path:
