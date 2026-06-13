@@ -13,9 +13,10 @@ sys.path.append(str(ROOT_DIR.parent))
 from helpers.config import ConfigManager  # noqa: E402
 from helpers.config_generator import create_config  # noqa: E402
 from helpers.ollama_helper import get_model_names, run_model  # noqa: E402
+from helpers.tmp_helper import get_tmp_input_folder, get_tmp_output_folder  # noqa: E402
 
-RESULTS_DIR = ROOT_DIR / "tmp/outputs/model_check"
-CONFIG_DIR = ROOT_DIR / "tmp/inputs/model_check"
+RESULTS_DIR = get_tmp_output_folder(__file__)
+CONFIG_DIR = get_tmp_input_folder(__file__)
 
 
 def save_and_log_statistics(stats: list[dict], results_dir: Path, run_name: str | None = None) -> None:
