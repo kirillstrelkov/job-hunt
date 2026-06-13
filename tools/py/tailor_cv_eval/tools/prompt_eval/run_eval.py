@@ -78,21 +78,11 @@ def generate_config(prompt_files: list[Path], gt_file: Path, output_file: Path) 
     config["prompts"] = [f"file://{pf.resolve()}" for pf in prompt_files]
 
     # Dynamically build the providers list starting with the EVAL_MODEL provider
-    providers = [
-        {
-            "id": f"ollama:chat:{eval_model}",
-            "config": {"passthrough": {"keep_alive": "0"}, **get_model_options(eval_model)},
-        }
+    ordered_models = [eval_model] + [m for m in models if m != eval_model]
+    config["providers"] = [
+        {"id": f"ollama:chat:{m}", "config": get_model_options(m)}
+        for m in ordered_models
     ]
-
-    # Add the remaining models from config.yaml
-    for m in models:
-        if m != eval_model:
-            providers.append(
-                {"id": f"ollama:chat:{m}", "config": {"passthrough": {"keep_alive": "0"}, **get_model_options(m)}}
-            )
-
-    config["providers"] = providers
 
     # Setup PyYAML to dump multiline strings using block scalar style (|)
     yaml.SafeDumper.add_representer(

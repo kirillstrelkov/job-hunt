@@ -12,7 +12,7 @@ sys.path.append(str(ROOT_DIR.parent))
 
 from helpers.config import ConfigManager  # noqa: E402
 from helpers.config_generator import create_config  # noqa: E402
-from helpers.ollama_helper import run_model  # noqa: E402
+from helpers.ollama_helper import get_model_names, run_model  # noqa: E402
 
 RESULTS_DIR = ROOT_DIR / "tmp/outputs/model_check"
 CONFIG_DIR = ROOT_DIR / "tmp/inputs/model_check"
@@ -150,29 +150,8 @@ def run_evaluation_for_config(config_path: Path, run_name: str | None = None):
     save_and_log_statistics(stats, RESULTS_DIR, run_name)
 
 
-
 def generate_run_configs() -> list[tuple[Path, str]]:
-    models = [
-        "deepseek-r1:1.5b",
-        "gemma4:e2b",
-        "gemma4:e2b-it-qat",
-        "llama3.2:3b-instruct-q8_0",
-        "qwen2.5:3b-instruct-q8_0",
-        "gemma4:e4b-it-qat",
-        "qwen3.5:4b-q8_0",
-        "deepseek-r1:7b",
-        "qwen2.5:7b",
-        "qwen2.5-coder:7b",
-        "codegemma:7b-code",
-        "mistral:7b-instruct-v0.3-q4_K_M",
-        "qwen2.5:7b-instruct-q4_K_M",
-        "llama3.1:8b",
-        "llama3.1:8b-instruct-q6_K",
-        "llama3.1:8b-text-q4_K_M",
-        "gemma2:9b-instruct-q5_K_M",
-        "qwen3.5:9b-q4_K_M",
-        "gemma4:12b-it-qat",
-    ]
+    models = get_model_names()
 
     active_count = len(models)
     runs_data = [
