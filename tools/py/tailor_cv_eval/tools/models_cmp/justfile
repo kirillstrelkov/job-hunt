@@ -1,12 +1,12 @@
 # Run all evaluation tools for the job description variant
 test-jd: generate-prompt-for-jd promptfoo-config
-	-uv run deepeval test run tools/models_cmp/deepeval/test_eval.py -- --variant jd --html={{TMP_OUTPUT_DIR}}/job1/deepeval/report.html --self-contained-html
+	-uv deepeval test run tools/models_cmp/deepeval/test_eval.py -- --variant jd --html={{TMP_OUTPUT_DIR}}/job1/deepeval/report.html --self-contained-html
 	-npx -y promptfoo@latest eval -c {{TMP_OUTPUT_DIR}}/job1/promptfoo/promptfooconfig_jd.yaml --no-cache
-	-uv run python tools/models_cmp/llamaindex/run_eval.py jd
-	-uv run python tools/models_cmp/ragas/run_eval.py jd
-	-uv run python tools/models_cmp/trulens/run_eval.py jd
-	-uv run python tools/models_cmp/giskard/run_eval.py jd
-	-uv run python tools/models_cmp/textgrad/run_eval.py jd
+	-uv run python tools/models_cmp/llamaindex/run.py jd
+	-uv run python tools/models_cmp/ragas/run.py jd
+	-uv run python tools/models_cmp/trulens/run.py jd
+	-uv run python tools/models_cmp/giskard/run.py jd
+	-uv run python tools/models_cmp/textgrad/run.py jd
 
 # View local Pytest HTML test run results in browser
 deepeval-view:
@@ -33,24 +33,25 @@ promptfoo-view:
 # ==================== LLAMAINDEX ====================
 
 llamaindex-test-jd: generate-prompt-for-jd
-	uv run python tools/models_cmp/llamaindex/run_eval.py jd
+	uv run python tools/models_cmp/llamaindex/run.py jd
 
 # ==================== RAGAS ====================
 
 ragas-test-jd: generate-prompt-for-jd
-	uv run python tools/models_cmp/ragas/run_eval.py jd
+	uv run python tools/models_cmp/ragas/run.py jd
 
 # ==================== TRULENS ====================
 
 trulens-test-jd: generate-prompt-for-jd
-	uv run python tools/models_cmp/trulens/run_eval.py jd
+	uv run python tools/models_cmp/trulens/run.py jd
 
 # ==================== GISKARD ====================
 
 giskard-test-jd: generate-prompt-for-jd
-	uv run python tools/models_cmp/giskard/run_eval.py jd
+	uv run python tools/models_cmp/giskard/run.py jd
 
 # ==================== TEXT-GRAD ====================
 
 textgrad-test-jd: generate-prompt-for-jd
-	uv run python tools/models_cmp/textgrad/run_eval.py jd
+	uv run python tools/models_cmp/textgrad/run.py jd
+

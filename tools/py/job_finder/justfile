@@ -27,8 +27,9 @@ lint:
 
 # Run Promptfoo prompt evaluation to compare baseline prompt vs candidate prompts
 eval-prompts:
-    uv run python promptfoo/run_eval.py
+    uv run python promptfoo/run.py
 
 # View Promptfoo prompt evaluation dashboard
 view-promptfoo:
     npx promptfoo view
+

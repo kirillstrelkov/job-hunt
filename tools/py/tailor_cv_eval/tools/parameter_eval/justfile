@@ -1,4 +1,5 @@
 # Run Promptfoo parameter evaluation to find best Ollama helper parameters
 eval-params:
-	uv run python tools/parameter_eval/run_eval.py
+	uv run python tools/parameter_eval/run.py
+
 
