@@ -26,7 +26,7 @@ models:
   - name: "codegemma:7b-code"
   - name: "deepseek-r1:1.5b"
 
-eval_model: "llama3.1:8b"
+eval_model: "gemma4:e2b-it-qat"
 tmp_output_dir: "tmp/outputs"
 llm_prompt_output_file: "llm_prompt.md"
 trulens_db_url: "sqlite:///tmp/outputs/truelens/default.sqlite"

@@ -1,4 +1,3 @@
-import subprocess
 import sys
 from pathlib import Path
 
@@ -10,6 +9,7 @@ sys.path.append(str(Path(__file__).resolve().parents[2]))
 sys.path.append(str(Path(__file__).resolve().parents[3]))
 from helpers.config import LLM_PROMPT_OUTPUT_FILE, ROOT_DIR, TMP_OUTPUT_DIR
 from helpers.ollama_helper import get_eval_model, get_model_names, get_model_options
+from helpers.promptfoo_helper import run_promptfoo_eval, write_yaml_config  # noqa: E402
 
 PROMPTFOO_CONFIG_TEMPLATE = (
     """
@@ -84,19 +84,7 @@ def generate_config(prompt_files: list[Path], gt_file: Path, output_file: Path) 
         for m in ordered_models
     ]
 
-    # Setup PyYAML to dump multiline strings using block scalar style (|)
-    yaml.SafeDumper.add_representer(
-        str,
-        lambda dumper, data: (
-            dumper.represent_scalar("tag:yaml.org,2002:str", data, style="|")
-            if "\n" in data
-            else dumper.represent_scalar("tag:yaml.org,2002:str", data)
-        ),
-    )
-
-    output_file.parent.mkdir(parents=True, exist_ok=True)
-    with open(output_file, "w", encoding="utf-8") as f:
-        yaml.safe_dump(config, f, sort_keys=False, default_flow_style=False)
+    write_yaml_config(config, output_file)
     logger.info(f"Generated Promptfoo config at {output_file.relative_to(ROOT_DIR)}")
 
 
@@ -143,27 +131,9 @@ def main():
 
     generate_config(prompt_files, gt_file, config_file)
 
-    logger.info("Running Promptfoo evaluation...")
-    res = subprocess.run(
-        [
-            "npx",
-            "-y",
-            "promptfoo@latest",
-            "eval",
-            "-c",
-            str(config_file),
-            "--no-cache",
-            "-j",
-            "1",
-        ],
-        check=False,
-    )
-    if res.returncode in [0, 100]:
-        logger.info("Evaluation completed!")
-        logger.info("To view results in the dashboard, run: just view-promptfoo")
-    else:
-        logger.error(f"Error running Promptfoo: exit code {res.returncode}")
-        sys.exit(res.returncode)
+    run_promptfoo_eval(config_file)
+    logger.info("Evaluation completed!")
+    logger.info("To view results in the dashboard, run: just view-promptfoo")
 
 
 if __name__ == "__main__":

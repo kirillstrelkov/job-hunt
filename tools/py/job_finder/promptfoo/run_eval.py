@@ -6,7 +6,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-import yaml
 from loguru import logger
 
 # Add target directories to sys.path to import reviewer package and helpers
@@ -17,6 +16,7 @@ sys.path.append(str(PRJ_ROOT_DIR.parent))
 from reviewer.llm import CV_PROMPT, JD_PROMPT, SYSTEM_PROMPT_CANDIDATE  # noqa: E402
 
 from helpers.ollama_helper import get_model_names  # noqa: E402
+from helpers.promptfoo_helper import run_promptfoo_eval, write_yaml_config  # noqa: E402
 
 MODELS = get_model_names()
 
@@ -42,18 +42,7 @@ def generate_config(models: list[str], tests: list[dict], output_file: Path) -> 
         "tests": tests,
     }
 
-    # Setup PyYAML to dump multiline strings using block scalar style (|)
-    yaml.SafeDumper.add_representer(
-        str,
-        lambda dumper, data: (
-            dumper.represent_scalar("tag:yaml.org,2002:str", data, style="|")
-            if "\n" in data
-            else dumper.represent_scalar("tag:yaml.org,2002:str", data)
-        ),
-    )
-
-    with output_file.open("w", encoding="utf-8") as f:
-        yaml.safe_dump(config, f, sort_keys=False, default_flow_style=False)
+    write_yaml_config(config, output_file)
 
 
 def load_data() -> tuple[str, list[Path]]:
@@ -132,29 +121,7 @@ def generate_prompts_and_test_cases(
     return tests
 
 
-def run_promptfoo_eval(config_file: Path, results_json_path: Path) -> None:
-    """Execute Promptfoo eval command line tool."""
-    logger.info("Executing Promptfoo evaluation...")
-    res = subprocess.run(  # noqa: S603
-        [  # noqa: S607
-            "npx",
-            "-y",
-            "promptfoo@latest",
-            "eval",
-            "-c",
-            str(config_file),
-            "--no-cache",
-            "-j",
-            "1",
-            "-o",
-            str(results_json_path),
-        ],
-        check=False,
-    )
-
-    if res.returncode not in [0, 100]:
-        logger.error(f"Error running Promptfoo: exit code {res.returncode}")
-        sys.exit(res.returncode)
+# run_promptfoo_eval is imported from helpers.promptfoo_helper
 
 
 def convert_json_to_csv(results_json_path: Path, results_csv_path: Path) -> None:
