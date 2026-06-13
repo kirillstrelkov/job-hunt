@@ -11,6 +11,7 @@ sys.path.append(str(Path(__file__).resolve().parents[2]))
 sys.path.append(str(Path(__file__).resolve().parents[3]))
 from helpers.config import LLM_PROMPT_OUTPUT_FILE, ROOT_DIR, TMP_OUTPUT_DIR
 from helpers.ollama_helper import get_eval_model
+from helpers.tmp_helper import get_tmp_folder  # noqa: E402
 
 
 def get_npx_command():
@@ -40,8 +41,7 @@ def main():
     eval_model = get_eval_model()
 
     # 1. Define paths
-    tmp_eval_dir = Path(TMP_OUTPUT_DIR) / "parameter_eval"
-    tmp_eval_dir.mkdir(parents=True, exist_ok=True)
+    tmp_eval_dir = get_tmp_folder(__file__)
 
     provider_script = Path(ROOT_DIR).parent / "helpers" / "ollama_helper.py"
     llm_prompt_file = Path(TMP_OUTPUT_DIR) / "job1" / LLM_PROMPT_OUTPUT_FILE
