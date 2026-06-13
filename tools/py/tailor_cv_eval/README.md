@@ -79,7 +79,7 @@ These tools help tune the prompt templates and generation parameters themselves:
 * **Command**: `just eval-prompts`
 
 ### 2. **Parameter Tuning** (`tools/parameter_eval/`)
-* **Purpose**: Evaluates different generation settings (temperature, top_p, repeat_penalty) configured in `tools/ollama_helper.py` through a custom Promptfoo Python provider.
+* **Purpose**: Evaluates different generation settings (temperature, top_p, repeat_penalty) configured in `tools/py/helpers/ollama_helper.py` through a custom Promptfoo Python provider.
 * **Command**: `just eval-params`
 
 ---

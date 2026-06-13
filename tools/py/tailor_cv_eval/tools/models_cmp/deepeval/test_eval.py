@@ -15,10 +15,11 @@ from deepeval.test_case import LLMTestCase, LLMTestCaseParams
 from loguru import logger
 
 sys.path.append(str(Path(__file__).resolve().parents[3]))
+sys.path.append(str(Path(__file__).resolve().parents[4]))
 from conftest import EVALUATION_RESULTS
 
 from config import LLM_PROMPT_OUTPUT_FILE, TMP_OUTPUT_DIR
-from tools.ollama_helper import get_eval_model, get_models
+from helpers.ollama_helper import get_eval_model, get_models
 
 if get_eval_model() not in get_models():
     raise RuntimeError(
@@ -100,7 +101,7 @@ def test_evaluate_llm_tailoring(model_name: str, variant: str):
 
     # 2. Get LLM response using Ollama helper
     try:
-        from tools.ollama_helper import get_model_output
+        from helpers.ollama_helper import get_model_output
 
         model_output_file = (
             Path(TMP_OUTPUT_DIR) / subfolder / "model_output" / f"{model_name.replace(':', '_')}_{variant}_cv.md"

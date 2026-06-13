@@ -5,8 +5,9 @@ from pathlib import Path
 from loguru import logger
 
 sys.path.append(str(Path(__file__).resolve().parents[3]))
+sys.path.append(str(Path(__file__).resolve().parents[4]))
 from config import LLM_PROMPT_OUTPUT_FILE, TMP_OUTPUT_DIR
-from tools.ollama_helper import get_eval_model, get_models
+from helpers.ollama_helper import get_eval_model, get_models
 
 # Route OpenAI client calls to Ollama local instance
 os.environ["OPENAI_API_KEY"] = "ollama"
@@ -48,7 +49,7 @@ def run_eval():
     for model in models:
         logger.info(f"Generating CV with {model}...")
         try:
-            from tools.ollama_helper import get_model_output
+            from helpers.ollama_helper import get_model_output
 
             model_output_file = (
                 Path(TMP_OUTPUT_DIR) / subfolder / "model_output" / f"{model.replace(':', '_')}_{variant}_cv.md"

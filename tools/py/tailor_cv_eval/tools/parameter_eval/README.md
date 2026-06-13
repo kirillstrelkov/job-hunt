@@ -4,7 +4,7 @@ This tool helps tune, test, and optimize local Ollama generation hyperparameters
 
 ## How It Works
 
-1. **Centralized Model Generation**: Promptfoo routes the test queries to our centralized `tools/ollama_helper.py` script. The helper behaves as a custom Python provider for Promptfoo, loading your environment configuration and communicating with your local Ollama instance.
+1. **Centralized Model Generation**: Promptfoo routes the test queries to our centralized `tools/py/helpers/ollama_helper.py` script. The helper behaves as a custom Python provider for Promptfoo, loading your environment configuration and communicating with your local Ollama instance.
 2. **Hyperparameter Scenarios**: The evaluation matrix defines multiple parameter combinations:
    - **Scenario 1 (Baseline)**: `temperature: 0.0`
    - **Scenario 2**: `temperature: 0.5`
@@ -38,7 +38,7 @@ Execute the tuning sweep:
 ```bash
 just eval-params
 ```
-Promptfoo will invoke `tools/ollama_helper.py` 5 times (once for each parameter variant) and then execute assertions to grade the outputs.
+Promptfoo will invoke `tools/py/helpers/ollama_helper.py` 5 times (once for each parameter variant) and then execute assertions to grade the outputs.
 
 ### Step 3: View Results
 Once execution is complete, launch the interactive dashboard to compare details of each parameter set:

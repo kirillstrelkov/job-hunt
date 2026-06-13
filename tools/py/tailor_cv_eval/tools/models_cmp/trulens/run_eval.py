@@ -7,8 +7,9 @@ from trulens.apps.virtual import TruVirtual, VirtualApp, VirtualRecord
 from trulens.core import Feedback, TruSession
 
 sys.path.append(str(Path(__file__).resolve().parents[3]))
+sys.path.append(str(Path(__file__).resolve().parents[4]))
 from config import LLM_PROMPT_OUTPUT_FILE, TMP_OUTPUT_DIR, TRULENS_DB_URL
-from tools.ollama_helper import get_eval_model, get_models
+from helpers.ollama_helper import get_eval_model, get_models
 
 # Set TruLens database path to be inside the tmp directory
 Path(TRULENS_DB_URL.replace("sqlite:///", "")).parent.mkdir(parents=True, exist_ok=True)
@@ -41,7 +42,7 @@ def run_eval():
             f"against the Ground Truth from 0.0 (worst) to 1.0 (best). Output ONLY the numeric float value."
         )
         try:
-            from tools.ollama_helper import generate_response
+            from helpers.ollama_helper import generate_response
 
             text = generate_response(eval_model, prompt).strip()
             m = re.search(r"[-+]?\d*\.\d+|\d+", text)
@@ -63,7 +64,7 @@ def run_eval():
     for model in models:
         logger.info(f"Generating CV with {model}...")
         try:
-            from tools.ollama_helper import get_model_output
+            from helpers.ollama_helper import get_model_output
 
             model_output_file = (
                 Path(TMP_OUTPUT_DIR) / subfolder / "model_output" / f"{model.replace(':', '_')}_{variant}_cv.md"

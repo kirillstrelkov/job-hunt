@@ -4,8 +4,9 @@ from pathlib import Path
 from loguru import logger
 
 sys.path.append(str(Path(__file__).resolve().parents[3]))
+sys.path.append(str(Path(__file__).resolve().parents[4]))
 from config import LLM_PROMPT_OUTPUT_FILE, ROOT_DIR, TMP_OUTPUT_DIR
-from tools.ollama_helper import get_eval_model, get_models
+from helpers.ollama_helper import get_eval_model, get_models
 
 
 def main():

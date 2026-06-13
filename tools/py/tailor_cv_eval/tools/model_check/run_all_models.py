@@ -8,10 +8,11 @@ from loguru import logger
 # Find workspace root directory dynamically starting from current file
 ROOT_DIR = Path(__file__).resolve().parents[2]
 sys.path.append(str(ROOT_DIR))
+sys.path.append(str(ROOT_DIR.parent))
 
 from config import ConfigManager  # noqa: E402
-from tools.config_generator import create_config  # noqa: E402
-from tools.ollama_helper import run_model  # noqa: E402
+from helpers.config_generator import create_config  # noqa: E402
+from helpers.ollama_helper import run_model  # noqa: E402
 
 RESULTS_DIR = ROOT_DIR / "tmp/outputs/model_check"
 CONFIG_DIR = ROOT_DIR / "tmp/inputs/model_check"
