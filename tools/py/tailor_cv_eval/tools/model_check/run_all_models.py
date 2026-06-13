@@ -12,6 +12,7 @@ sys.path.append(str(ROOT_DIR.parent))
 
 from helpers.config import ConfigManager  # noqa: E402
 from helpers.config_generator import create_config  # noqa: E402
+from helpers.df_helper import ModelStatsCols  # noqa: E402
 from helpers.ollama_helper import get_model_names, run_model  # noqa: E402
 from helpers.tmp_helper import get_tmp_input_folder, get_tmp_output_folder  # noqa: E402
 
@@ -24,19 +25,7 @@ def save_and_log_statistics(stats: list[dict], results_dir: Path, run_name: str 
     df = pd.DataFrame(stats)
 
     # Reorder columns for presentation
-    columns_order = [
-        "model",
-        "total_time",
-        "load_time",
-        "prompt_tokens",
-        "gen_tokens",
-        "tokens_per_sec",
-        "char_count",
-        "word_count",
-        "gpu_usage",
-        "gpu_info",
-        "options_str",
-    ]
+    columns_order = ModelStatsCols.COLUMNS_ORDER
 
     # Ensure all columns exist
     for col in columns_order:
@@ -46,19 +35,7 @@ def save_and_log_statistics(stats: list[dict], results_dir: Path, run_name: str 
     df = df[columns_order]
 
     # Rename columns for presentation
-    df.columns = [
-        "Model",
-        "Total Time (s)",
-        "Load Time (s)",
-        "Prompt Tokens",
-        "Gen Tokens",
-        "Gen Speed (t/s)",
-        "Response Chars",
-        "Response Words",
-        "GPU Usage",
-        "GPU Info",
-        "Options",
-    ]
+    df.columns = ModelStatsCols.DISPLAY_COLUMNS
 
     # Make sure results directory exists
     results_dir.mkdir(parents=True, exist_ok=True)
