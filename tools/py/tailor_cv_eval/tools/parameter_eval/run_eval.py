@@ -9,9 +9,9 @@ from loguru import logger
 # Add root directory to path to import shared_config and ollama_helper
 sys.path.append(str(Path(__file__).resolve().parents[2]))
 sys.path.append(str(Path(__file__).resolve().parents[3]))
-from helpers.config import LLM_PROMPT_OUTPUT_FILE, ROOT_DIR, TMP_OUTPUT_DIR
+from helpers.config import LLM_PROMPT_OUTPUT_FILE
 from helpers.ollama_helper import get_eval_model
-from helpers.tmp_helper import get_tmp_folder  # noqa: E402
+from helpers.tmp_helper import get_root_dir, get_tmp_folder, get_tmp_output_dir  # noqa: E402
 
 
 def get_npx_command():
@@ -43,14 +43,14 @@ def main():
     # 1. Define paths
     tmp_eval_dir = get_tmp_folder(__file__)
 
-    provider_script = Path(ROOT_DIR).parent / "helpers" / "ollama_helper.py"
-    llm_prompt_file = Path(TMP_OUTPUT_DIR) / "job1" / LLM_PROMPT_OUTPUT_FILE
+    provider_script = Path(get_root_dir()).parent / "helpers" / "ollama_helper.py"
+    llm_prompt_file = Path(get_tmp_output_dir()) / "job1" / LLM_PROMPT_OUTPUT_FILE
 
     # 2. Generate target prompt if not present
     if not llm_prompt_file.exists():
         logger.info(f"Generating target prompt since {llm_prompt_file} is missing...")
         script_path = Path("/home/kirill/prj/gh/job-hunt/cv/tools/prepare_llm_prompt.py")
-        jd_input = Path(ROOT_DIR) / "inputs" / "job1" / "input.txt"
+        jd_input = Path(get_root_dir()) / "inputs" / "job1" / "input.txt"
         llm_prompt_file.parent.mkdir(parents=True, exist_ok=True)
         try:
             subprocess.run(
@@ -99,7 +99,7 @@ def main():
         )
 
     providers_yaml = "\n".join(providers_yaml_list)
-    gt_file = Path(ROOT_DIR) / "inputs" / "job1" / "gt.md"
+    gt_file = Path(get_root_dir()) / "inputs" / "job1" / "gt.md"
 
     # 4. Generate promptfooconfig.yaml
     config_content = f"""description: 'Evaluation of Ollama generation parameters'
@@ -131,7 +131,7 @@ tests:
 
     config_file = tmp_eval_dir / "promptfooconfig.yaml"
     config_file.write_text(config_content, encoding="utf-8")
-    logger.info(f"Generated Promptfoo config at {config_file.relative_to(ROOT_DIR)}")
+    logger.info(f"Generated Promptfoo config at {config_file.relative_to(get_root_dir())}")
 
     # 5. Run promptfoo
     logger.info("Running Promptfoo parameter evaluation...")

@@ -17,7 +17,8 @@ from loguru import logger
 sys.path.append(str(Path(__file__).resolve().parents[3]))
 sys.path.append(str(Path(__file__).resolve().parents[4]))
 from conftest import EVALUATION_RESULTS
-from helpers.config import LLM_PROMPT_OUTPUT_FILE, TMP_OUTPUT_DIR
+from helpers.config import LLM_PROMPT_OUTPUT_FILE
+from helpers.tmp_helper import get_tmp_output_dir
 from helpers.ollama_helper import get_eval_model, get_model_names
 
 if get_eval_model() not in get_model_names():
@@ -86,8 +87,8 @@ def test_evaluate_llm_tailoring(model_name: str, variant: str):
     assert gt_filepath.exists(), f"{gt_filepath} file is missing!"
 
     # Define temporary files and final outputs
-    prompt_temp_file = Path(TMP_OUTPUT_DIR) / subfolder / LLM_PROMPT_OUTPUT_FILE
-    output_dir = Path(f"{TMP_OUTPUT_DIR}/{subfolder}/deepeval")
+    prompt_temp_file = Path(get_tmp_output_dir()) / subfolder / LLM_PROMPT_OUTPUT_FILE
+    output_dir = Path(get_tmp_output_dir()) / subfolder / "deepeval"
     output_dir.mkdir(parents=True, exist_ok=True)
     cv_output_file = output_dir / f"{model_name.replace(':', '_')}_{variant}_cv.md"
 
@@ -103,7 +104,7 @@ def test_evaluate_llm_tailoring(model_name: str, variant: str):
         from helpers.ollama_helper import get_model_output
 
         model_output_file = (
-            Path(TMP_OUTPUT_DIR) / subfolder / "model_output" / f"{model_name.replace(':', '_')}_{variant}_cv.md"
+            Path(get_tmp_output_dir()) / subfolder / "model_output" / f"{model_name.replace(':', '_')}_{variant}_cv.md"
         )
         actual_output = get_model_output(model_name, prompt_content, model_output_file)
     except Exception as e:

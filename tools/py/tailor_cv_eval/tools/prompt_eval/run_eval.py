@@ -7,10 +7,10 @@ from loguru import logger
 # Add root directory to path to import shared_config and ollama_helper
 sys.path.append(str(Path(__file__).resolve().parents[2]))
 sys.path.append(str(Path(__file__).resolve().parents[3]))
-from helpers.config import LLM_PROMPT_OUTPUT_FILE, ROOT_DIR, TMP_OUTPUT_DIR
+from helpers.config import LLM_PROMPT_OUTPUT_FILE
 from helpers.ollama_helper import get_eval_model, get_model_names, get_model_options
 from helpers.promptfoo_helper import run_promptfoo_eval, write_yaml_config  # noqa: E402
-from helpers.tmp_helper import get_tmp_folder  # noqa: E402
+from helpers.tmp_helper import get_root_dir, get_tmp_folder, get_tmp_output_dir  # noqa: E402
 
 PROMPTFOO_CONFIG_TEMPLATE = (
     """
@@ -86,7 +86,7 @@ def generate_config(prompt_files: list[Path], gt_file: Path, output_file: Path) 
     ]
 
     write_yaml_config(config, output_file)
-    logger.info(f"Generated Promptfoo config at {output_file.relative_to(ROOT_DIR)}")
+    logger.info(f"Generated Promptfoo config at {output_file.relative_to(get_root_dir())}")
 
 
 def get_prompt_files(prompts_dir: Path, baseline_prompt_file: Path) -> list[Path]:
@@ -116,10 +116,10 @@ def main():
     tmp_eval_dir = get_tmp_folder(__file__)
     tmp_eval_dir.mkdir(parents=True, exist_ok=True)
 
-    prompts_dir = Path(ROOT_DIR) / "tools" / "prompt_eval" / "prompts"
+    prompts_dir = Path(get_root_dir()) / "tools" / "prompt_eval" / "prompts"
     prompts_dir.mkdir(parents=True, exist_ok=True)
 
-    baseline_prompt_file = Path(TMP_OUTPUT_DIR) / "job1" / LLM_PROMPT_OUTPUT_FILE
+    baseline_prompt_file = Path(get_tmp_output_dir()) / "job1" / LLM_PROMPT_OUTPUT_FILE
 
     prompt_files = get_prompt_files(prompts_dir, baseline_prompt_file)
 
@@ -127,7 +127,7 @@ def main():
     for pf in prompt_files:
         logger.info(f"  - {pf.name}")
 
-    gt_file = Path(ROOT_DIR) / "inputs" / "job1" / "gt.md"
+    gt_file = Path(get_root_dir()) / "inputs" / "job1" / "gt.md"
     config_file = tmp_eval_dir / "promptfoo_cfg.yaml"
 
     generate_config(prompt_files, gt_file, config_file)

@@ -8,8 +8,9 @@ from loguru import logger
 
 sys.path.append(str(Path(__file__).resolve().parents[3]))
 sys.path.append(str(Path(__file__).resolve().parents[4]))
-from helpers.config import LLM_PROMPT_OUTPUT_FILE, TMP_OUTPUT_DIR
+from helpers.config import LLM_PROMPT_OUTPUT_FILE
 from helpers.ollama_helper import get_eval_model, get_model_names
+from helpers.tmp_helper import get_tmp_output_dir  # noqa: E402
 
 
 def run_eval():
@@ -18,7 +19,7 @@ def run_eval():
     subfolder = "job1"
     variant = "jd"
     gt_file = Path(f"inputs/{subfolder}/gt.md")
-    prompt_file = Path(TMP_OUTPUT_DIR) / subfolder / LLM_PROMPT_OUTPUT_FILE
+    prompt_file = get_tmp_output_dir() / subfolder / LLM_PROMPT_OUTPUT_FILE
 
     if not gt_file.exists():
         logger.error(f"Ground truth file {gt_file} is missing.")
@@ -38,7 +39,7 @@ def run_eval():
             from helpers.ollama_helper import get_model_output
 
             model_output_file = (
-                Path(TMP_OUTPUT_DIR) / subfolder / "model_output" / f"{model.replace(':', '_')}_{variant}_cv.md"
+                get_tmp_output_dir() / subfolder / "model_output" / f"{model.replace(':', '_')}_{variant}_cv.md"
             )
             actual = get_model_output(model, prompt_content, model_output_file)
         except Exception as e:
@@ -46,7 +47,7 @@ def run_eval():
             continue
 
         # Save output
-        out_file = Path(f"{TMP_OUTPUT_DIR}/{subfolder}/giskard/{model.replace(':', '_')}_{variant}_cv.md")
+        out_file = get_tmp_output_dir() / f"{subfolder}/giskard/{model.replace(':', '_')}_{variant}_cv.md"
         out_file.parent.mkdir(parents=True, exist_ok=True)
         out_file.write_text(actual, encoding="utf-8")
 

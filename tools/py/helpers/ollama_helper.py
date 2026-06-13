@@ -11,7 +11,7 @@ from typing import Any
 import ollama
 from loguru import logger
 
-from helpers.config import _DEFAULT_CONFIG, ConfigManager
+from helpers.config import DEFAULT_CONFIG, ConfigManager
 
 MIN_EVAL_TIME = 0.001
 
@@ -32,7 +32,7 @@ def __check_models_in_ollama(models: list[str]) -> None:
             raise ValueError(msg)
 
 
-def get_model_names(config_manager: ConfigManager = _DEFAULT_CONFIG) -> list[str]:
+def get_model_names(config_manager: ConfigManager = DEFAULT_CONFIG) -> list[str]:
     """Get all configured model names."""
     models_list = config_manager.get_config_value(".models")
     models = [item["name"] for item in models_list]
@@ -41,7 +41,7 @@ def get_model_names(config_manager: ConfigManager = _DEFAULT_CONFIG) -> list[str
 
 
 def get_models_with_options(
-    config_manager: ConfigManager = _DEFAULT_CONFIG,
+    config_manager: ConfigManager = DEFAULT_CONFIG,
 ) -> list[dict]:
     """Get all configured models along with their full options."""
     model_names = get_model_names(config_manager=config_manager)
@@ -55,7 +55,7 @@ def get_models_with_options(
     ]
 
 
-def get_eval_model(config_manager: ConfigManager = _DEFAULT_CONFIG) -> str:
+def get_eval_model(config_manager: ConfigManager = DEFAULT_CONFIG) -> str:
     """Get the configured evaluation model name."""
     eval_model = config_manager.get_config_value(".eval_model")
     __check_models_in_ollama([eval_model])
@@ -63,7 +63,7 @@ def get_eval_model(config_manager: ConfigManager = _DEFAULT_CONFIG) -> str:
 
 
 def get_model_options(
-    model: str, config_manager: ConfigManager = _DEFAULT_CONFIG
+    model: str, config_manager: ConfigManager = DEFAULT_CONFIG
 ) -> dict:
     """Get configuration settings for a given model.
 

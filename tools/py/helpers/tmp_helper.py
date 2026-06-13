@@ -3,23 +3,28 @@
 import os
 from pathlib import Path
 
-from helpers.config import _DEFAULT_CONFIG, ROOT_DIR
+from helpers.config import DEFAULT_CONFIG
 
 
-def _get_absolute_tmp_output_dir() -> Path:
-    """Load tmp_output_dir from config.yaml and resolve it relative to ROOT_DIR."""
-    tmp_output_dir = _DEFAULT_CONFIG.get_config_value(".tmp_output_dir")
-    return (ROOT_DIR / tmp_output_dir).resolve()
+def get_root_dir() -> Path:
+    """Get the root directory of the project."""
+    return DEFAULT_CONFIG.get_root_path()
+
+
+def get_tmp_output_dir() -> Path:
+    """Load tmp_output_dir from config.yaml and resolve it relative to the root directory."""
+    return DEFAULT_CONFIG.get_tmp_root_output_dir()
 
 
 def get_tmp_folder(file_path: str | Path) -> Path:
     """Get the tmp folder path for a given file_path.
 
     Constructed using tmp_output_dir from tools/py/helpers/config.yaml.
-    The path is mapped relative to the common parent path with _get_absolute_tmp_output_dir().
+    The path is mapped relative to the common parent path with get_tmp_output_dir().
     """
     abs_file_path = Path(file_path).resolve()
-    tmp_base = _get_absolute_tmp_output_dir()
+    tmp_base = get_tmp_output_dir()
+
 
     # Find common ancestor path of tmp_base and the file's parent directory
     common = Path(os.path.commonpath([tmp_base, abs_file_path.parent]))

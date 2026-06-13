@@ -55,6 +55,20 @@ class ConfigManager:
         """Get the absolute path of the configuration file."""
         return self.config_path.resolve()
 
+    def get_root_path(self) -> Path:
+        """Get the resolved root directory path."""
+        root_dir = Path(self.get_config_value(".root_dir"))
+        if not root_dir.is_absolute():
+            root_dir = (self.config_path.parent / root_dir).resolve()
+        return root_dir
+
+    def get_tmp_root_output_dir(self) -> Path:
+        """Get the resolved absolute temporary output directory path."""
+        tmp_output_dir = Path(self.get_config_value(".tmp_output_dir"))
+        if not tmp_output_dir.is_absolute():
+            tmp_output_dir = self.get_root_path() / tmp_output_dir
+        return tmp_output_dir.resolve()
+
     def get_config(self) -> dict:
         """Read configuration from YAML, merging default options into models."""
         if self._config is None:
@@ -113,16 +127,7 @@ class ConfigManager:
         return current
 
 
-_DEFAULT_CONFIG = ConfigManager(CONFIG_DIR / "config.yaml")
+DEFAULT_CONFIG = ConfigManager(CONFIG_DIR / "config.yaml")
 
-# ROOT_DIR points to tailor_cv_eval (loaded from config) to maintain compatibility for all paths
-ROOT_DIR = Path(_DEFAULT_CONFIG.get_config_value(".root_dir"))
-if not ROOT_DIR.is_absolute():
-    ROOT_DIR = (CONFIG_DIR / ROOT_DIR).resolve()
-
-TMP_OUTPUT_DIR = Path(_DEFAULT_CONFIG.get_config_value(".tmp_output_dir"))
-if not TMP_OUTPUT_DIR.is_absolute():
-    TMP_OUTPUT_DIR = ROOT_DIR / TMP_OUTPUT_DIR
-
-LLM_PROMPT_OUTPUT_FILE = _DEFAULT_CONFIG.get_config_value(".llm_prompt_output_file")
-TRULENS_DB_URL = _DEFAULT_CONFIG.get_config_value(".trulens_db_url")
+LLM_PROMPT_OUTPUT_FILE = DEFAULT_CONFIG.get_config_value(".llm_prompt_output_file")
+TRULENS_DB_URL = DEFAULT_CONFIG.get_config_value(".trulens_db_url")

@@ -8,7 +8,7 @@ from loguru import logger
 
 sys.path.append(str(Path(__file__).resolve().parents[3]))
 sys.path.append(str(Path(__file__).resolve().parents[4]))
-from helpers.config import TMP_OUTPUT_DIR
+from helpers.tmp_helper import get_tmp_output_dir
 
 # Global list to aggregate evaluation results across test cases
 EVALUATION_RESULTS = []
@@ -18,7 +18,7 @@ EVALUATION_RESULTS = []
 def pytest_sessionstart(session):
     """Called before runtest loop starts."""
     # Ensure outputs directory exists
-    os.makedirs(TMP_OUTPUT_DIR, exist_ok=True)
+    os.makedirs(get_tmp_output_dir(), exist_ok=True)
 
 
 def pytest_sessionfinish(session, exitstatus):
@@ -28,7 +28,7 @@ def pytest_sessionfinish(session, exitstatus):
         return
 
     # Generate Markdown Report
-    report_path = TMP_OUTPUT_DIR.parent / "evaluation_report.md"
+    report_path = get_tmp_output_dir().parent / "evaluation_report.md"
     df = pd.DataFrame(EVALUATION_RESULTS)
 
     # Sort results first by prompt variant, then by DeepEval score descending
