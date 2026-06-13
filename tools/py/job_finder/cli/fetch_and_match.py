@@ -12,7 +12,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import pandas as pd
 import yaml
 from loguru import logger
-
 from reviewer.match import JobMatch, get_job_matches
 from scraper.base import Job
 from scraper.fetch import get_jobs

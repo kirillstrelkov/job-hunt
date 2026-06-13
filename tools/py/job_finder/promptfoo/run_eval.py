@@ -14,9 +14,9 @@ PRJ_ROOT_DIR = Path(__file__).resolve().parents[1]
 sys.path.append(str(PRJ_ROOT_DIR))
 sys.path.append(str(PRJ_ROOT_DIR.parent))
 
-from helpers.ollama_helper import get_model_names
-from reviewer.llm import CV_PROMPT, JD_PROMPT, SYSTEM_PROMPT_CANDIDATE
+from reviewer.llm import CV_PROMPT, JD_PROMPT, SYSTEM_PROMPT_CANDIDATE  # noqa: E402
 
+from helpers.ollama_helper import get_model_names  # noqa: E402
 
 MODELS = get_model_names()
 

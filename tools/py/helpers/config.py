@@ -1,5 +1,8 @@
+"""Configuration management helper."""
+
 import re
 from pathlib import Path
+from typing import Any
 
 import yaml
 
@@ -11,15 +14,18 @@ CONFIG_DIR = Path(__file__).resolve().parent
 class ConfigManager:
     """Manages reading and querying YAML configurations."""
 
-    def __init__(self, config_path: Path):
+    def __init__(self, config_path: Path) -> None:
+        """Initialize ConfigManager with path to YAML config."""
         self.config_path = Path(config_path)
         self._config = None
 
     def get_config(self) -> dict:
+        """Read configuration from YAML, merging default options into models."""
         if self._config is None:
             if not self.config_path.exists():
-                raise FileNotFoundError(f"Configuration file not found at '{self.config_path}'")
-            with open(self.config_path, encoding="utf-8") as f:
+                msg = f"Configuration file not found at '{self.config_path}'"
+                raise FileNotFoundError(msg)
+            with self.config_path.open(encoding="utf-8") as f:
                 raw_config = yaml.safe_load(f) or {}
 
             # Merge model_default_options into models list options
@@ -35,13 +41,14 @@ class ConfigManager:
             self._config = raw_config
         return self._config
 
-    def get_config_value(self, query: str):
+    def get_config_value(self, query: str) -> Any:  # noqa: ANN401
         """Get a value from config using a yq-like query path (e.g. '.models[0].name').
 
         Raises ValueError if the value is not found or query is invalid.
         """
         if not query.startswith("."):
-            raise ValueError(f"Query '{query}' must start with '.'")
+            msg = f"Query '{query}' must start with '.'"
+            raise ValueError(msg)
 
         config = self.get_config()
         path = query[1:]
@@ -55,12 +62,14 @@ class ConfigManager:
             key, index = match.groups()
             if key is not None:
                 if not isinstance(current, dict) or key not in current:
-                    raise ValueError(f"Path '{query}' not found (missing key '{key}')")
+                    msg = f"Path '{query}' not found (missing key '{key}')"
+                    raise ValueError(msg)
                 current = current[key]
             elif index is not None:
                 idx = int(index)
                 if not isinstance(current, list) or idx < 0 or idx >= len(current):
-                    raise ValueError(f"Path '{query}' not found (index '{idx}' out of bounds)")
+                    msg = f"Path '{query}' not found (index '{idx}' out of bounds)"
+                    raise ValueError(msg)
                 current = current[idx]
 
         return current

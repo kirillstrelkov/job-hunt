@@ -1,0 +1,7 @@
+default:
+    @just -l
+
+# Run linter and formatting checks
+lint:
+    uv run ruff check --fix
+    uv run ruff check

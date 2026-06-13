@@ -9,7 +9,6 @@ from pprint import pformat
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from loguru import logger
-
 from reviewer.llm import MODEL, analyze_cv, get_match_percentage
 
 _CV_TEXT = (Path(__file__).resolve().parent.parent / "data/private/cv.txt").read_text(encoding="utf-8")

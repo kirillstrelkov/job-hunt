@@ -1,3 +1,5 @@
+"""Helper to generate YAML configuration files."""
+
 from pathlib import Path
 
 import yaml
@@ -26,6 +28,7 @@ def _generate_config(
 
     Returns:
         A dictionary representation of the configuration.
+
     """
     config = CONFIG_TEMPLATE.copy()
     config["models"] = []
@@ -66,10 +69,11 @@ def create_config(
         models_data: Dictionary mapping model names to overrides, or None.
         default_options: Dictionary of default options, or None.
         output: Path to the output configuration file.
+
     """
     config_dict = _generate_config(models, models_data, default_options)
     output_path = Path(output).resolve()
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(output_path, "w", encoding="utf-8") as f:
+    with output_path.open("w", encoding="utf-8") as f:
         yaml.safe_dump(config_dict, f, sort_keys=False)

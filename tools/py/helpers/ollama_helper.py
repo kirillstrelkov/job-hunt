@@ -1,14 +1,19 @@
-import sys
+"""Ollama integration helpers for model executions and GPU monitoring."""
+
 import threading
 import time
+from collections.abc import Generator
 from contextlib import contextmanager
 from functools import lru_cache
 from pathlib import Path
+from typing import Any
 
 import ollama
 from loguru import logger
 
 from helpers.config import _DEFAULT_CONFIG, ConfigManager
+
+MIN_EVAL_TIME = 0.001
 
 
 @lru_cache
@@ -20,13 +25,15 @@ def __check_models_in_ollama(models: list[str]) -> None:
     ollama_models = __get_ollama_models()
     for model in models:
         if model not in ollama_models:
-            raise ValueError(
+            msg = (
                 f"Model '{model}' is configured but not found in Ollama. "
                 f"Please run 'ollama pull {model}' to download it."
             )
+            raise ValueError(msg)
 
 
 def get_model_names(config_manager: ConfigManager = _DEFAULT_CONFIG) -> list[str]:
+    """Get all configured model names."""
     models_list = config_manager.get_config_value(".models")
     models = [item["name"] for item in models_list]
     __check_models_in_ollama(models)
@@ -36,9 +43,10 @@ def get_model_names(config_manager: ConfigManager = _DEFAULT_CONFIG) -> list[str
 def get_models_with_options(
     config_manager: ConfigManager = _DEFAULT_CONFIG,
 ) -> list[dict]:
+    """Get all configured models along with their full options."""
     model_names = get_model_names(config_manager=config_manager)
 
-    res = [
+    return [
         {
             "name": model,
             "options": get_model_options(model, config_manager=config_manager),
@@ -46,10 +54,9 @@ def get_models_with_options(
         for model in model_names
     ]
 
-    return res
-
 
 def get_eval_model(config_manager: ConfigManager = _DEFAULT_CONFIG) -> str:
+    """Get the configured evaluation model name."""
     eval_model = config_manager.get_config_value(".eval_model")
     __check_models_in_ollama([eval_model])
     return eval_model
@@ -71,7 +78,8 @@ def get_model_options(
 
     model_names = get_model_names(config_manager=config_manager)
     if model not in model_names:
-        raise ValueError(f"Model '{model}' is not configured.")
+        msg = f"Model '{model}' is not configured."
+        raise ValueError(msg)
 
     models_config = config_manager.get_config_value(".models")
     for item in models_config:
@@ -81,19 +89,20 @@ def get_model_options(
                 options.update(model_options)
             return options
 
-    raise ValueError(f"Model '{model}' is not configured.")
+    msg = f"Model '{model}' is not configured."
+    raise ValueError(msg)
 
 
 @contextmanager
-def track_ollama_gpu(model_name: str, interval_seconds: float = 0.5):
-    """
-    Context manager to track Ollama GPU metrics during generation.
+def track_ollama_gpu(model_name: str, interval_seconds: float = 0.5) -> Generator[dict]:
+    """Context manager to track Ollama GPU metrics during generation.
+
     Yields a shared dict that tracks model size and history of VRAM usage.
     """
     history = {"model_size": 0, "gpu_used": []}
     stop_event = threading.Event()
 
-    def monitor_loop():
+    def monitor_loop() -> None:
         while not stop_event.is_set():
             try:
                 status = ollama.ps()
@@ -102,8 +111,8 @@ def track_ollama_gpu(model_name: str, interval_seconds: float = 0.5):
                 if target and target.size > 0:
                     history["model_size"] = target.size
                     history["gpu_used"].append(target.size_vram)
-            except Exception:
-                pass  # Ignore network drops or busy socket errors
+            except Exception as e:  # noqa: BLE001
+                logger.debug(f"Failed to check Ollama status: {e}")
             stop_event.wait(timeout=interval_seconds)
 
     # Start the monitoring background thread
@@ -136,7 +145,8 @@ def format_options(options: dict) -> str:
     return ", ".join(parts)
 
 
-def run_model(model: str, prompt_content: str, options: dict = None) -> dict:
+def run_model(model: str, prompt_content: str, options: dict | None = None) -> dict:
+    """Run a prompt through the specified Ollama model with timing and GPU stats."""
     if options is None:
         options = get_model_options(model)
     start_time = time.time()
@@ -184,7 +194,7 @@ def run_model(model: str, prompt_content: str, options: dict = None) -> dict:
     if not response.strip() or eval_count == 0:
         tokens_per_sec = 0.0
     else:
-        tokens_per_sec = eval_count / eval_time if eval_time > 0.001 else 0.0
+        tokens_per_sec = eval_count / eval_time if eval_time > MIN_EVAL_TIME else 0.0
 
     return {
         "model": model,
@@ -202,7 +212,7 @@ def run_model(model: str, prompt_content: str, options: dict = None) -> dict:
     }
 
 
-def generate_response(model: str, prompt: str, options: dict = None) -> str:
+def generate_response(model: str, prompt: str, options: dict | None = None) -> str:
     """Generate response from Ollama directly without caching."""
     merged_options = get_model_options(model).copy()
     if options:
@@ -214,7 +224,7 @@ def generate_response(model: str, prompt: str, options: dict = None) -> str:
 
 
 def get_model_output(
-    model: str, prompt_content: str, output_file: Path, options: dict = None
+    model: str, prompt_content: str, output_file: Path, options: dict | None = None
 ) -> str:
     """Get the generated CV from a cached file or generate it using Ollama if not present."""
     if output_file.exists():
@@ -227,19 +237,17 @@ def get_model_output(
     return actual
 
 
-def call_api(prompt, options, context=None):
+def call_api(prompt: str, options: dict, _context: Any = None) -> dict:  # noqa: ANN401
     """Promptfoo custom Python provider call API interface."""
     config = options.get("config", {})
     model = config.get("model", get_eval_model())
 
     # Extract all other parameters as ollama options
-    ollama_options = {}
-    for key, val in config.items():
-        if key != "model":
-            ollama_options[key] = val
+    ollama_options = {key: val for key, val in config.items() if key != "model"}
 
     try:
         response = generate_response(model, prompt, options=ollama_options)
-        return {"output": response}
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return {"error": str(e)}
+    else:
+        return {"output": response}

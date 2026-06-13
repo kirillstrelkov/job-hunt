@@ -5,10 +5,10 @@ from unittest.mock import patch
 
 import pytest
 from easelenium.browser import Browser
+from utils.caching_utils import ENV_VAR_DISABLE_CACHED
 
 from scraper.base import Job, get_browser, make_job
 from scraper.linkedin import LinkedinPage
-from utils.caching_utils import ENV_VAR_DISABLE_CACHED
 
 
 @pytest.fixture

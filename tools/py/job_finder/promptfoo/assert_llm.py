@@ -1,19 +1,20 @@
 """Assertion module for Promptfoo evaluation matching tests/llm_test.py."""
 
-import traceback
-from reviewer.llm import Analysis
 import json
 import sys
+import traceback
 from pathlib import Path
 from typing import Any
+
+from reviewer.llm import Analysis
 
 # Add the tests directory directly to sys.path to avoid package namespace conflicts with 'tests'
 
 AI_SEARCH_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(AI_SEARCH_DIR))
 
+from reviewer.llm import JobMatchResult  # noqa: E402
 from reviewer.llm_test import assert_llm_response  # noqa: E402
-from reviewer.llm import JobMatchResult
 
 
 def get_assert(output: str, context: Any) -> dict[str, Any]:  # noqa: ANN401
@@ -31,7 +32,7 @@ def get_assert(output: str, context: Any) -> dict[str, Any]:  # noqa: ANN401
                 "score": 0.0,
                 "reason": f"Failed to parse LLM output as JSON: {je}. Raw output was: {raw!r}",
             }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             return {
                 "pass": False,
                 "score": 0.0,
