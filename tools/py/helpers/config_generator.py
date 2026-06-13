@@ -1,12 +1,6 @@
-#!/usr/bin/env python
-import sys
 from pathlib import Path
 
 import yaml
-
-# Add root directory to path to ensure proper imports
-ROOT_DIR = Path(__file__).resolve().parents[1] / "tailor_cv_eval"
-sys.path.append(str(ROOT_DIR))
 
 # Standard configuration template
 CONFIG_TEMPLATE = {
@@ -74,9 +68,7 @@ def create_config(
         output: Path to the output configuration file.
     """
     config_dict = _generate_config(models, models_data, default_options)
-    output_path = Path(output)
-    if not output_path.is_absolute():
-        output_path = ROOT_DIR / output_path
+    output_path = Path(output).resolve()
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with open(output_path, "w", encoding="utf-8") as f:
