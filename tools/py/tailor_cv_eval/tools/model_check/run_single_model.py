@@ -10,7 +10,7 @@ ROOT_DIR = Path(__file__).resolve().parents[2]
 sys.path.append(str(ROOT_DIR))
 sys.path.append(str(ROOT_DIR.parent))
 
-from config import ConfigManager  # noqa: E402
+from helpers.config import ConfigManager  # noqa: E402
 from helpers.ollama_helper import get_model_options, run_model  # noqa: E402
 
 

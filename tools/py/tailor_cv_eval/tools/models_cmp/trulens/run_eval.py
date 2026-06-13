@@ -8,7 +8,7 @@ from trulens.core import Feedback, TruSession
 
 sys.path.append(str(Path(__file__).resolve().parents[3]))
 sys.path.append(str(Path(__file__).resolve().parents[4]))
-from config import LLM_PROMPT_OUTPUT_FILE, TMP_OUTPUT_DIR, TRULENS_DB_URL
+from helpers.config import LLM_PROMPT_OUTPUT_FILE, TMP_OUTPUT_DIR, TRULENS_DB_URL
 from helpers.ollama_helper import get_eval_model, get_models
 
 # Set TruLens database path to be inside the tmp directory

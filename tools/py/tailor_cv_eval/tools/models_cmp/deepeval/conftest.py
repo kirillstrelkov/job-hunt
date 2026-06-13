@@ -7,7 +7,8 @@ import pytest
 from loguru import logger
 
 sys.path.append(str(Path(__file__).resolve().parents[3]))
-from config import TMP_OUTPUT_DIR
+sys.path.append(str(Path(__file__).resolve().parents[4]))
+from helpers.config import TMP_OUTPUT_DIR
 
 # Global list to aggregate evaluation results across test cases
 EVALUATION_RESULTS = []

@@ -8,9 +8,7 @@ from pathlib import Path
 import ollama
 from loguru import logger
 
-# Add tailor_cv_eval directory to path to import shared config
-sys.path.append(str(Path(__file__).resolve().parents[1] / "tailor_cv_eval"))
-from config import _DEFAULT_CONFIG, ConfigManager
+from helpers.config import _DEFAULT_CONFIG, ConfigManager
 
 
 @lru_cache

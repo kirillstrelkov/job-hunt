@@ -8,7 +8,7 @@ from loguru import logger
 # Add root directory to path to import shared_config and ollama_helper
 sys.path.append(str(Path(__file__).resolve().parents[2]))
 sys.path.append(str(Path(__file__).resolve().parents[3]))
-from config import LLM_PROMPT_OUTPUT_FILE, ROOT_DIR, TMP_OUTPUT_DIR
+from helpers.config import LLM_PROMPT_OUTPUT_FILE, ROOT_DIR, TMP_OUTPUT_DIR
 from helpers.ollama_helper import get_eval_model, get_model_options, get_models
 
 PROMPTFOO_CONFIG_TEMPLATE = (
