@@ -19,9 +19,9 @@ sys.path.append(str(Path(__file__).resolve().parents[4]))
 from conftest import EVALUATION_RESULTS
 
 from helpers.config import LLM_PROMPT_OUTPUT_FILE, TMP_OUTPUT_DIR
-from helpers.ollama_helper import get_eval_model, get_models
+from helpers.ollama_helper import get_eval_model, get_model_names
 
-if get_eval_model() not in get_models():
+if get_eval_model() not in get_model_names():
     raise RuntimeError(
         f"Required evaluator model '{get_eval_model()}' is not installed in Ollama. "
         f"Please run 'ollama pull {get_eval_model()}'."
@@ -76,7 +76,7 @@ def run_assessment(prompt_content: str, actual_output: str, expected_output: str
     return score, reason, passed
 
 
-@pytest.mark.parametrize("model_name", get_models())
+@pytest.mark.parametrize("model_name", get_model_names())
 def test_evaluate_llm_tailoring(model_name: str, variant: str):
     """Evaluates LLM tailored CV outputs against a reference ground truth
 

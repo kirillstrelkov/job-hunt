@@ -20,7 +20,19 @@ class ConfigManager:
             if not self.config_path.exists():
                 raise FileNotFoundError(f"Configuration file not found at '{self.config_path}'")
             with open(self.config_path, encoding="utf-8") as f:
-                self._config = yaml.safe_load(f)
+                raw_config = yaml.safe_load(f) or {}
+
+            # Merge model_default_options into models list options
+            defaults = raw_config.get("model_default_options", {})
+            models = raw_config.get("models", [])
+            for model in models:
+                opts = model.get("options", {})
+                merged = defaults.copy()
+                if opts:
+                    merged.update(opts)
+                model["options"] = merged
+
+            self._config = raw_config
         return self._config
 
     def get_config_value(self, query: str):

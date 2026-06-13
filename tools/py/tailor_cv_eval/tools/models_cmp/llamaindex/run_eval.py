@@ -8,12 +8,12 @@ from loguru import logger
 sys.path.append(str(Path(__file__).resolve().parents[3]))
 sys.path.append(str(Path(__file__).resolve().parents[4]))
 from helpers.config import LLM_PROMPT_OUTPUT_FILE, TMP_OUTPUT_DIR
-from helpers.ollama_helper import get_eval_model, get_models
+from helpers.ollama_helper import get_eval_model, get_model_names
 
 
 def run_eval():
     eval_model = get_eval_model()
-    models = get_models()
+    models = get_model_names()
     subfolder = "job1"
     variant = "jd"
     gt_file = Path(f"inputs/{subfolder}/gt.md")

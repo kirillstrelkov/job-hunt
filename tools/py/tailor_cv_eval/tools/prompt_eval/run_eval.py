@@ -9,7 +9,7 @@ from loguru import logger
 sys.path.append(str(Path(__file__).resolve().parents[2]))
 sys.path.append(str(Path(__file__).resolve().parents[3]))
 from helpers.config import LLM_PROMPT_OUTPUT_FILE, ROOT_DIR, TMP_OUTPUT_DIR
-from helpers.ollama_helper import get_eval_model, get_model_options, get_models
+from helpers.ollama_helper import get_eval_model, get_model_options, get_model_names
 
 PROMPTFOO_CONFIG_TEMPLATE = (
     """
@@ -69,7 +69,7 @@ tests:
 def generate_config(prompt_files: list[Path], gt_file: Path, output_file: Path) -> None:
     """Load configuration template, resolve placeholder values, and write output config file."""
     eval_model = get_eval_model()
-    models = get_models()
+    models = get_model_names()
 
     template_text = PROMPTFOO_CONFIG_TEMPLATE.replace("{{EVAL_MODEL}}", eval_model)
     template_text = template_text.replace("{{GT_FILE}}", str(gt_file.resolve()))

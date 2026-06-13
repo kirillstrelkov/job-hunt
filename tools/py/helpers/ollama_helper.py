@@ -26,38 +26,60 @@ def __check_models_in_ollama(models: list[str]) -> None:
             )
 
 
-def get_models(config_manager: ConfigManager = None) -> list[str]:
-    cfg = config_manager or _DEFAULT_CONFIG
-    models_list = cfg.get_config_value(".models")
+def get_model_names(config_manager: ConfigManager = _DEFAULT_CONFIG) -> list[str]:
+    models_list = config_manager.get_config_value(".models")
     models = [item["name"] for item in models_list]
     __check_models_in_ollama(models)
     return models
 
 
-def get_eval_model(config_manager: ConfigManager = None) -> str:
-    cfg = config_manager or _DEFAULT_CONFIG
-    eval_model = cfg.get_config_value(".eval_model")
+def get_models_with_options(
+    config_manager: ConfigManager = _DEFAULT_CONFIG,
+) -> list[dict]:
+    model_names = get_model_names(config_manager=config_manager)
+
+    res = [
+        {
+            "name": model,
+            "options": get_model_options(model, config_manager=config_manager),
+        }
+        for model in model_names
+    ]
+
+    return res
+
+
+def get_eval_model(config_manager: ConfigManager = _DEFAULT_CONFIG) -> str:
+    eval_model = config_manager.get_config_value(".eval_model")
     __check_models_in_ollama([eval_model])
     return eval_model
 
 
-def get_model_options(model: str, config_manager: ConfigManager = None) -> dict:
+def get_model_options(
+    model: str, config_manager: ConfigManager = _DEFAULT_CONFIG
+) -> dict:
     """Get configuration settings for a given model.
 
     Raises ValueError if the model is not configured.
     """
-    cfg = config_manager or _DEFAULT_CONFIG
-    models_list = cfg.get_config_value(".models")
-    eval_model = get_eval_model(config_manager=cfg)
-    if model == eval_model:
-        for item in models_list:
-            if item["name"] == model:
-                return item["options"]
-        raise ValueError(f"Model '{model}' not found in config")
+    try:
+        default_options = (
+            config_manager.get_config_value(".model_default_options") or {}
+        )
+    except ValueError:
+        default_options = {}
 
-    for item in models_list:
+    model_names = get_model_names(config_manager=config_manager)
+    if model not in model_names:
+        raise ValueError(f"Model '{model}' is not configured.")
+
+    models_config = config_manager.get_config_value(".models")
+    for item in models_config:
         if item["name"] == model:
-            return item["options"]
+            options = default_options.copy()
+            if model_options := item.get("options"):
+                options.update(model_options)
+            return options
 
     raise ValueError(f"Model '{model}' is not configured.")
 
@@ -135,7 +157,9 @@ def run_model(model: str, prompt_content: str, options: dict = None) -> dict:
         gpu_used = gpu_data["gpu_used"]
         max_vram = max(gpu_used)
 
-        gpu_pcts = [(vram / model_size) * 100.0 for vram in gpu_used] if model_size > 0 else []
+        gpu_pcts = (
+            [(vram / model_size) * 100.0 for vram in gpu_used] if model_size > 0 else []
+        )
         avg_gpu = sum(gpu_pcts) / len(gpu_pcts) if gpu_pcts else 0.0
 
         logger.debug(f"Snapshots taken: {len(gpu_used)}")
@@ -143,7 +167,9 @@ def run_model(model: str, prompt_content: str, options: dict = None) -> dict:
         gpu_info = f"{max_vram / (1024**3):.2f} GB / {model_size / (1024**3):.2f} GB"
         logger.debug(f"Max VRAM / Model size: {gpu_info}")
     else:
-        logger.warning("No snapshots captured. The prompt completed too fast or the model layout wasn't visible.")
+        logger.warning(
+            "No snapshots captured. The prompt completed too fast or the model layout wasn't visible."
+        )
 
     response = res.get("response", "")
     total_duration = (res.get("total_duration") or 0) / 1e9
@@ -181,11 +207,15 @@ def generate_response(model: str, prompt: str, options: dict = None) -> str:
     merged_options = get_model_options(model).copy()
     if options:
         merged_options.update(options)
-    res = ollama.generate(model=model, prompt=prompt, keep_alive=0, options=merged_options)
+    res = ollama.generate(
+        model=model, prompt=prompt, keep_alive=0, options=merged_options
+    )
     return res.get("response", "")
 
 
-def get_model_output(model: str, prompt_content: str, output_file: Path, options: dict = None) -> str:
+def get_model_output(
+    model: str, prompt_content: str, output_file: Path, options: dict = None
+) -> str:
     """Get the generated CV from a cached file or generate it using Ollama if not present."""
     if output_file.exists():
         return output_file.read_text(encoding="utf-8")
