@@ -80,10 +80,7 @@ def generate_config(prompt_files: list[Path], gt_file: Path, output_file: Path) 
 
     # Dynamically build the providers list starting with the EVAL_MODEL provider
     ordered_models = [eval_model] + [m for m in models if m != eval_model]
-    config["providers"] = [
-        {"id": f"ollama:chat:{m}", "config": get_model_options(m)}
-        for m in ordered_models
-    ]
+    config["providers"] = [{"id": f"ollama:chat:{m}", "config": get_model_options(m)} for m in ordered_models]
 
     write_yaml_config(config, output_file)
     logger.info(f"Generated Promptfoo config at {output_file.relative_to(get_root_dir())}")

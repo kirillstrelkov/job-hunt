@@ -777,6 +777,15 @@ wheels = [
 ]
 
 [[package]]
+name = "custom-inherit"
+version = "2.4.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/22/fa/c4619d463cb76d88ffc383c2115883219efffa55e7ecd0ff972cd0034f29/custom_inherit-2.4.1.tar.gz", hash = "sha256:7052eb337bcce83551815264391cc4efc2bf70b295a3c52aba64f1ab57c3a8a2", size = 31193, upload-time = "2023-02-18T19:41:30.306Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c0/0c/f0967273bd2213adaafbd8754fa36f03ba21273ce03f70a83551fe12b0f1/custom_inherit-2.4.1-py3-none-any.whl", hash = "sha256:313f9594d98e79a7fbf58d9ad368fd29adc97572d886975dbd8c7032b14abc6a", size = 15847, upload-time = "2023-02-18T19:41:28.841Z" },
+]
+
+[[package]]
 name = "cycler"
 version = "0.12.1"
 source = { registry = "https://pypi.org/simple" }
@@ -2965,6 +2974,18 @@ wheels = [
 ]
 
 [[package]]
+name = "methodtools"
+version = "0.4.7"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "wirerope" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/13/3b/c21b74ac17befdf17b286494b02221b7a84affb1d410ff86e38ba0e14b13/methodtools-0.4.7.tar.gz", hash = "sha256:e213439dd64cfe60213f7015da6efe5dd4003fd89376db3baa09fe13ec2bb0ba", size = 3586, upload-time = "2023-02-05T13:17:54.473Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b6/4b/6497ffb463b1b75e04b348ef31070606d43e3c503fa295383538ded999c9/methodtools-0.4.7-py2.py3-none-any.whl", hash = "sha256:5e188c780b236adc12e75b5f078c5afb419ef99eb648569fc6d7071f053a1f11", size = 4038, upload-time = "2024-08-23T09:18:03.631Z" },
+]
+
+[[package]]
 name = "mistune"
 version = "3.2.1"
 source = { registry = "https://pypi.org/simple" }
@@ -4035,6 +4056,15 @@ wheels = [
 ]
 
 [[package]]
+name = "pulp"
+version = "3.3.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/4e/70/69be07a67621ad804d6cf347965eb4e0d7786a97330d99c31d735aaa6c5a/pulp-3.3.2.tar.gz", hash = "sha256:d0904700c207ac11e25e3b1213b70eae1d6fb25faa719d75f3f15054901258c0", size = 16305346, upload-time = "2026-05-25T09:41:26.207Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/dd/6e/d674f1dde91c71e2ac19e5e5cf1ee6d5845e3aefecd9c39ed9c4b0c9a696/pulp-3.3.2-py3-none-any.whl", hash = "sha256:631b166f72086971a9597f7a0233ababa99bb8d50a01cd543f7758be5a9f86c0", size = 16391742, upload-time = "2026-05-25T09:41:22.2Z" },
+]
+
+[[package]]
 name = "pure-eval"
 version = "0.2.3"
 source = { registry = "https://pypi.org/simple" }
@@ -4971,6 +5001,30 @@ wheels = [
 ]
 
 [[package]]
+name = "scikit-criteria"
+version = "0.8.6"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "custom-inherit" },
+    { name = "deprecated" },
+    { name = "importlib-metadata" },
+    { name = "jinja2" },
+    { name = "matplotlib" },
+    { name = "methodtools" },
+    { name = "numpy" },
+    { name = "pandas", version = "2.3.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.14'" },
+    { name = "pandas", version = "3.0.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.14'" },
+    { name = "pulp" },
+    { name = "scikit-learn" },
+    { name = "scipy" },
+    { name = "seaborn" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/2e/a7/17f0da12dcc00ce9f7dc49020a59272c6b5cb5de43e0c94734ba7df0b282/scikit-criteria-0.8.6.tar.gz", hash = "sha256:d3cda3103ba8030409de8804ddcfceba596faf4897cc4798766d6d171e0437d9", size = 74441, upload-time = "2023-09-21T19:03:44.307Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ab/3a/b2965ad5bd0accf4757ede876f8097e080af31fdc0d2885e3a17fd296248/scikit_criteria-0.8.6-py3-none-any.whl", hash = "sha256:9c5b71b5a0529940a24aa55720998e04a19d23a98383c0820e5b3a4827b9417d", size = 96926, upload-time = "2023-09-21T19:03:42.798Z" },
+]
+
+[[package]]
 name = "scikit-learn"
 version = "1.3.0"
 source = { registry = "https://pypi.org/simple" }
@@ -5244,12 +5298,14 @@ dependencies = [
     { name = "llama-index-llms-ollama" },
     { name = "loguru" },
     { name = "matplotlib" },
+    { name = "nbconvert" },
     { name = "numpy" },
     { name = "ollama" },
     { name = "pandas", version = "2.3.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.14'" },
     { name = "pandas", version = "3.0.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.14'" },
     { name = "pytest" },
     { name = "ragas" },
+    { name = "scikit-criteria" },
     { name = "scipy" },
     { name = "seaborn" },
     { name = "tabulate" },
@@ -5275,11 +5331,13 @@ requires-dist = [
     { name = "llama-index-llms-ollama", specifier = ">=0.1.0" },
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "matplotlib", specifier = ">=3.10.9" },
+    { name = "nbconvert", specifier = ">=7.17.1" },
     { name = "numpy", specifier = "<2.0.0" },
     { name = "ollama", specifier = ">=0.2.1" },
     { name = "pandas", specifier = ">=2.0.0" },
     { name = "pytest", specifier = ">=8.0.0" },
     { name = "ragas", specifier = ">=0.1.0" },
+    { name = "scikit-criteria", specifier = ">=0.8.6" },
     { name = "scipy", specifier = "<1.12.0" },
     { name = "seaborn", specifier = ">=0.13.2" },
     { name = "tabulate", specifier = ">=0.9.0" },
@@ -5829,6 +5887,18 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/b3/8f/705086c9d734d3b663af0e9bb3d4de6578d08f46b1b101c2442fd9aecaa2/win32_setctime-1.2.0.tar.gz", hash = "sha256:ae1fdf948f5640aae05c511ade119313fb6a30d7eabe25fef9764dca5873c4c0", size = 4867, upload-time = "2024-12-07T15:28:28.314Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/e1/07/c6fe3ad3e685340704d314d765b7912993bcb8dc198f0e7a89382d37974b/win32_setctime-1.2.0-py3-none-any.whl", hash = "sha256:95d644c4e708aba81dc3704a116d8cbc974d70b3bdb8be1d150e36be6e9d1390", size = 4083, upload-time = "2024-12-07T15:28:26.465Z" },
+]
+
+[[package]]
+name = "wirerope"
+version = "1.0.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "six" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/8e/f1/d0a4c936ba77eb1050da6ea5e7cd80aa36add343d9e5f7f9cf79a206c5b8/wirerope-1.0.0.tar.gz", hash = "sha256:7da8bb6feeff9dd939bd7141ef0dc392674e43ba662e20909d6729db81a7c8d0", size = 10930, upload-time = "2025-01-16T11:01:25.427Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/42/2d/3557ee32d8268b04ce8aada3212b0d49f2ddcf86dc200f3999a772262dc5/wirerope-1.0.0-py2.py3-none-any.whl", hash = "sha256:59346555c7b5dbd1c683a4e123f8bed30ca99df646f6867ea6439ceabf43c2f6", size = 9166, upload-time = "2025-01-16T11:01:23.507Z" },
 ]
 
 [[package]]

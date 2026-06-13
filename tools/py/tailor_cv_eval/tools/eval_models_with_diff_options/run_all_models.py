@@ -64,9 +64,7 @@ def run_evaluation_for_config(config_path: Path, run_name: str | None = None):
     output = RESULTS_DIR / csv_name
 
     if output.exists():
-        logger.warning(
-            f"Output file already exists at {output}. Skipping evaluation for run: {run_name or 'custom'}."
-        )
+        logger.warning(f"Output file already exists at {output}. Skipping evaluation for run: {run_name or 'custom'}.")
         return
 
     logger.info(f"Loading configuration from: {config_path}")
