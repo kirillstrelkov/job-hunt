@@ -31,3 +31,6 @@ root_dir: "../.."
 tmp_output_dir: "{root_dir}/tmp/outputs"
 llm_prompt_output_file: "llm_prompt.md"
 trulens_db_url: "sqlite:///{root_dir}/tmp/outputs/truelens/default.sqlite"
+job1_ground_truth: "{root_dir}/inputs/job1/gt.md"
+prepare_llm_prompt_script: "{root_dir}/cv/tools/prepare_llm_prompt.py"
+

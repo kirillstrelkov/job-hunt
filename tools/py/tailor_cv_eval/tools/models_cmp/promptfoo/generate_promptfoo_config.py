@@ -5,7 +5,7 @@ from loguru import logger
 
 sys.path.append(str(Path(__file__).resolve().parents[3]))
 sys.path.append(str(Path(__file__).resolve().parents[4]))
-from helpers.config import LLM_PROMPT_OUTPUT_FILE
+from helpers.config import DEFAULT_CONFIG, LLM_PROMPT_OUTPUT_FILE
 from helpers.ollama_helper import get_eval_model, get_model_names
 from helpers.tmp_helper import get_root_dir, get_tmp_output_dir  # noqa: E402
 
@@ -18,6 +18,9 @@ def main():
             f"Evaluator model '{eval_model}' is not installed in Ollama. Please run 'ollama pull {eval_model}' first."
         )
         sys.exit(1)
+
+    # Resolve job1_ground_truth path from config
+    gt_path = DEFAULT_CONFIG.get_config_value_as_path(".job1_ground_truth")
 
     providers_list = []
     for m in models:
@@ -41,7 +44,7 @@ providers:
 
 tests:
   - vars:
-      expected: file://{Path(get_root_dir()).resolve()}/inputs/job1/gt.md
+      expected: file://{gt_path}
     assert:
       - type: similar
         value: "{{{{expected}}}}"

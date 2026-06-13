@@ -62,12 +62,17 @@ class ConfigManager:
             root_dir = (self.config_path.parent / root_dir).resolve()
         return root_dir
 
+    def get_config_value_as_path(self, query: str) -> Path:
+        """Get a configuration value as an absolute resolved Path."""
+        path_val = Path(self.get_config_value(query))
+        if not path_val.is_absolute():
+            path_val = self.get_root_path() / path_val
+        return path_val.resolve()
+
     def get_tmp_root_output_dir(self) -> Path:
         """Get the resolved absolute temporary output directory path."""
-        tmp_output_dir = Path(self.get_config_value(".tmp_output_dir"))
-        if not tmp_output_dir.is_absolute():
-            tmp_output_dir = self.get_root_path() / tmp_output_dir
-        return tmp_output_dir.resolve()
+        return self.get_config_value_as_path(".tmp_output_dir")
+
 
     def get_config(self) -> dict:
         """Read configuration from YAML, merging default options into models."""

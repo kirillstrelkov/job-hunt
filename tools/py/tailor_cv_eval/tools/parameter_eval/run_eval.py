@@ -9,7 +9,7 @@ from loguru import logger
 # Add root directory to path to import shared_config and ollama_helper
 sys.path.append(str(Path(__file__).resolve().parents[2]))
 sys.path.append(str(Path(__file__).resolve().parents[3]))
-from helpers.config import LLM_PROMPT_OUTPUT_FILE
+from helpers.config import DEFAULT_CONFIG, LLM_PROMPT_OUTPUT_FILE
 from helpers.ollama_helper import get_eval_model
 from helpers.tmp_helper import get_root_dir, get_tmp_folder, get_tmp_output_dir  # noqa: E402
 
@@ -49,7 +49,7 @@ def main():
     # 2. Generate target prompt if not present
     if not llm_prompt_file.exists():
         logger.info(f"Generating target prompt since {llm_prompt_file} is missing...")
-        script_path = Path("/home/kirill/prj/gh/job-hunt/cv/tools/prepare_llm_prompt.py")
+        script_path = DEFAULT_CONFIG.get_config_value_as_path(".prepare_llm_prompt_script")
         jd_input = Path(get_root_dir()) / "inputs" / "job1" / "input.txt"
         llm_prompt_file.parent.mkdir(parents=True, exist_ok=True)
         try:
