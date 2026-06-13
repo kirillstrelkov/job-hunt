@@ -10,6 +10,7 @@ sys.path.append(str(Path(__file__).resolve().parents[3]))
 from helpers.config import LLM_PROMPT_OUTPUT_FILE, ROOT_DIR, TMP_OUTPUT_DIR
 from helpers.ollama_helper import get_eval_model, get_model_names, get_model_options
 from helpers.promptfoo_helper import run_promptfoo_eval, write_yaml_config  # noqa: E402
+from helpers.tmp_helper import get_tmp_folder  # noqa: E402
 
 PROMPTFOO_CONFIG_TEMPLATE = (
     """
@@ -112,7 +113,7 @@ def get_prompt_files(prompts_dir: Path, baseline_prompt_file: Path) -> list[Path
 def main():
     logger.info("=== Starting Promptfoo Prompt Evaluation ===")
 
-    tmp_eval_dir = Path(TMP_OUTPUT_DIR) / "prompt_eval"
+    tmp_eval_dir = get_tmp_folder(__file__)
     tmp_eval_dir.mkdir(parents=True, exist_ok=True)
 
     prompts_dir = Path(ROOT_DIR) / "tools" / "prompt_eval" / "prompts"

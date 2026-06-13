@@ -17,6 +17,7 @@ from reviewer.llm import CV_PROMPT, JD_PROMPT, SYSTEM_PROMPT_CANDIDATE  # noqa: 
 
 from helpers.ollama_helper import get_model_names  # noqa: E402
 from helpers.promptfoo_helper import run_promptfoo_eval, write_yaml_config  # noqa: E402
+from helpers.tmp_helper import get_tmp_folder  # noqa: E402
 
 MODELS = get_model_names()
 
@@ -222,7 +223,7 @@ def main() -> None:
     """Generate prompts, execute Promptfoo evaluation, and run Jupyter notebook."""
     logger.info("=== Generating Prompts and Running Promptfoo Evaluation ===")
 
-    tmp_dir = PRJ_ROOT_DIR / "tmp" / "promptfoo"
+    tmp_dir = get_tmp_folder(__file__)
     results_json_path = tmp_dir / f"eval_results_for_{len(MODELS)}_models.json"
     results_csv_path = results_json_path.with_suffix(".csv")
 

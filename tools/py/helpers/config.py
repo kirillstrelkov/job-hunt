@@ -6,9 +6,41 @@ from typing import Any
 
 import yaml
 
-# ROOT_DIR points to tailor_cv_eval to maintain compatibility for all output and input paths
-ROOT_DIR = Path(__file__).resolve().parents[1] / "tailor_cv_eval"
 CONFIG_DIR = Path(__file__).resolve().parent
+
+
+def _resolve_dict_substitutions(config: dict) -> dict:
+    """Recursively resolve {key} placeholders in config values using config keys as context."""
+    for _ in range(5):
+        # Gather current string values as context
+        context = {}
+        for k, v in config.items():
+            if isinstance(v, (str, int, float, bool)):
+                context[k] = str(v)
+
+        has_changed = False
+
+        def resolve_val(val: Any) -> Any:  # noqa: ANN401
+            nonlocal has_changed
+            if isinstance(val, str):
+                try:
+                    resolved = val.format(**context)
+                    if resolved != val:
+                        has_changed = True
+                        return resolved
+                except (KeyError, ValueError, IndexError):
+                    pass
+            elif isinstance(val, dict):
+                return {k: resolve_val(v) for k, v in val.items()}
+            elif isinstance(val, list):
+                return [resolve_val(item) for item in val]
+            return val
+
+        config = {k: resolve_val(v) for k, v in config.items()}
+        if not has_changed:
+            break
+
+    return config
 
 
 class ConfigManager:
@@ -19,6 +51,10 @@ class ConfigManager:
         self.config_path = Path(config_path)
         self._config = None
 
+    def get_path(self) -> Path:
+        """Get the absolute path of the configuration file."""
+        return self.config_path.resolve()
+
     def get_config(self) -> dict:
         """Read configuration from YAML, merging default options into models."""
         if self._config is None:
@@ -27,6 +63,8 @@ class ConfigManager:
                 raise FileNotFoundError(msg)
             with self.config_path.open(encoding="utf-8") as f:
                 raw_config = yaml.safe_load(f) or {}
+
+            raw_config = _resolve_dict_substitutions(raw_config)
 
             # Merge model_default_options into models list options
             defaults = raw_config.get("model_default_options", {})
@@ -77,6 +115,10 @@ class ConfigManager:
 
 _DEFAULT_CONFIG = ConfigManager(CONFIG_DIR / "config.yaml")
 
+# ROOT_DIR points to tailor_cv_eval (loaded from config) to maintain compatibility for all paths
+ROOT_DIR = Path(_DEFAULT_CONFIG.get_config_value(".root_dir"))
+if not ROOT_DIR.is_absolute():
+    ROOT_DIR = (CONFIG_DIR / ROOT_DIR).resolve()
 
 TMP_OUTPUT_DIR = Path(_DEFAULT_CONFIG.get_config_value(".tmp_output_dir"))
 if not TMP_OUTPUT_DIR.is_absolute():
