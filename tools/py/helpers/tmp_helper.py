@@ -1,9 +1,10 @@
 """Input/Output helpers for managing temporary directories."""
 
+from helpers.config import LLM_PROMPT_OUTPUT_FILE
 import os
 from pathlib import Path
 
-from helpers.config import DEFAULT_CONFIG
+from .config import DEFAULT_CONFIG, InputJob
 
 
 def get_root_dir() -> Path:
@@ -25,7 +26,6 @@ def get_tmp_folder(file_path: str | Path) -> Path:
     abs_file_path = Path(file_path).resolve()
     tmp_base = get_tmp_output_dir()
 
-
     # Find common ancestor path of tmp_base and the file's parent directory
     common = Path(os.path.commonpath([tmp_base, abs_file_path.parent]))
 
@@ -45,3 +45,8 @@ def get_tmp_input_folder(file_path: str | Path) -> Path:
 def get_tmp_output_folder(file_path: str | Path) -> Path:
     """Get the output tmp folder path using get_tmp_folder."""
     return get_tmp_folder(file_path) / "output"
+
+
+def get_llm_prompt_for_job(job: InputJob) -> Path:
+    """Get the llm prompt for a given job."""
+    return get_tmp_output_dir() / job.name / LLM_PROMPT_OUTPUT_FILE

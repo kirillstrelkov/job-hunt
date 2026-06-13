@@ -1,30 +1,22 @@
-TMP_OUTPUT_DIR := `uv run python -c "import yaml; print(yaml.safe_load(open('config.yaml')).get('tmp_output_dir', 'tmp/outputs'))"`
-LLM_PROMPT_OUTPUT_FILE := `uv run python -c "import yaml; print(yaml.safe_load(open('config.yaml')).get('llm_prompt_output_file', 'llm_prompt.md'))"`
-
-export PATH := `uv run python -c "import shutil, os; from pathlib import Path; npx = shutil.which('npx'); print(os.environ.get('PATH', '') if npx else next((str(p/'bin') + os.pathsep + os.environ.get('PATH', '') for p in sorted((Path.home()/'.nvm'/'versions'/'node').glob('v*'), reverse=True) if (p/'bin'/'npx').exists()), os.environ.get('PATH', '')))"`
+set dotenv-path := "../../../.env"
+set dotenv-required := true
 
 init: generate-prompt-for-jd
 
 # Generate target prompt tailored for job description
 generate-prompt-for-jd:
-	mkdir -p {{TMP_OUTPUT_DIR}}/job1
-	uv run /home/kirill/prj/gh/job-hunt/cv/tools/prepare_llm_prompt.py --output {{TMP_OUTPUT_DIR}}/job1/{{LLM_PROMPT_OUTPUT_FILE}} --tailor-for-description --job-description inputs/job1/input.txt
+    uv run python tools/prepare.py
 
 # ==================== UTILITIES ====================
 
 # Format and lint code using ruff
 lint:
-	uv run ruff format .
-	uv run ruff check .
+    uv run ruff format .
+    uv run ruff check .
 
 # Clean temporary files and evaluation outputs
 clean:
-	rm -rf tmp/
-	find . -name .pytest_cache -exec rm -rf {} + 
-	find . -name __pycache__ -exec rm -rf {} + 
-	rm -rf logs/
-
-import 'tools/prompt_eval/justfile'
-import 'tools/parameter_eval/justfile'
-import 'tools/models_cmp/justfile'
-
+    rm -rf tmp/
+    find . -name .pytest_cache -exec rm -rf {} + 
+    find . -name __pycache__ -exec rm -rf {} + 
+    rm -rf logs/

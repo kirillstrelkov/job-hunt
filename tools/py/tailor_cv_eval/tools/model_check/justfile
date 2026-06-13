@@ -1,8 +1,0 @@
-# Run a single model against the prompt file
-run model:
-	uv run python {{ justfile_directory() }}/run_single_model.py --prompt {{ justfile_directory() }}/../../tmp/outputs/job1/llm_prompt.md --model "{{ model }}"
-
-# Run stats comparison for all configured models
-run-all:
-	uv run python {{ justfile_directory() }}/run_all_models.py
-

@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 import argparse
+import os
 from pathlib import Path
 
 from loguru import logger
 
 _CUR_DIR = Path(__file__).parent
-_MASTERCV = _CUR_DIR / ".." / "private/parts/body.md"
+_MASTERCV = Path(os.getenv("MASTERCV_PATH"))
 _PROMPT_TITLE = _CUR_DIR / ".." / "prompts/tailor_for_title.md"
 _PROMPT_DESC = _CUR_DIR / ".." / "prompts/tailor_for_description.md"
 
@@ -49,12 +50,8 @@ def tailor_for_description(output: str, jd_path: str) -> None:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Generate LLM prompt for CV tailoring."
-    )
-    parser.add_argument(
-        "--output", required=True, help="Output path for the generated .md file"
-    )
+    parser = argparse.ArgumentParser(description="Generate LLM prompt for CV tailoring.")
+    parser.add_argument("--output", required=True, help="Output path for the generated .md file")
 
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument("--tailor-for-title", metavar="JOB_TITLE", help="Job title text")

@@ -10,18 +10,24 @@ ROOT_DIR = Path(__file__).resolve().parents[2]
 sys.path.append(str(ROOT_DIR))
 sys.path.append(str(ROOT_DIR.parent))
 
+from helpers.config import DEFAULT_CONFIG
 from helpers.config import ConfigManager  # noqa: E402
 from helpers.config_generator import create_config  # noqa: E402
 from helpers.df_helper import ModelStatsCols  # noqa: E402
 from helpers.ollama_helper import get_model_names, run_model  # noqa: E402
 from helpers.tmp_helper import get_tmp_input_folder, get_tmp_output_folder  # noqa: E402
+from helpers.tmp_helper import get_llm_prompt_for_job
 
 RESULTS_DIR = get_tmp_output_folder(__file__)
 CONFIG_DIR = get_tmp_input_folder(__file__)
 
 
-def save_and_log_statistics(stats: list[dict], results_dir: Path, run_name: str | None = None) -> None:
+def save_and_log_statistics(stats: list[dict], output: Path) -> None:
     """Create a DataFrame from statistics, save it as CSV, and print a Markdown table to logs."""
+    if output.exists():
+        logger.warning(f"Output file {output} already exists. Skipping saving statistics.")
+        return
+
     df = pd.DataFrame(stats)
 
     # Reorder columns for presentation
@@ -37,34 +43,29 @@ def save_and_log_statistics(stats: list[dict], results_dir: Path, run_name: str 
     # Rename columns for presentation
     df.columns = ModelStatsCols.DISPLAY_COLUMNS
 
-    # Make sure results directory exists
-    results_dir.mkdir(parents=True, exist_ok=True)
-
-    # Output file base name
-    suffix = f"_{run_name}" if run_name else ""
-    csv_name = f"model_comparison{suffix}.csv"
+    # Make sure parent directory exists
+    output.parent.mkdir(parents=True, exist_ok=True)
 
     # Save DataFrame as CSV
-    csv_output_path = results_dir / csv_name
-    df.to_csv(csv_output_path, index=False)
-    logger.info(f"Saved statistics data table to CSV: {csv_output_path}")
+    df.to_csv(output, index=False)
+    logger.info(f"Saved statistics data table to CSV: {output}")
 
     # Generate Markdown representation for logging
     markdown_table = df.to_markdown(index=False)
 
     # Log data table to stdout
-    logger.info(f"\nModel Evaluation Statistics ({run_name or 'custom'}):\n\n{markdown_table}\n")
+    logger.info(f"\nModel Evaluation Statistics ({output.stem}):\n\n{markdown_table}\n")
 
 
 def run_evaluation_for_config(config_path: Path, run_name: str | None = None):
     # Output file base name
     suffix = f"_{run_name}" if run_name else ""
     csv_name = f"model_comparison{suffix}.csv"
-    csv_output_path = RESULTS_DIR / csv_name
+    output = RESULTS_DIR / csv_name
 
-    if csv_output_path.exists():
+    if output.exists():
         logger.warning(
-            f"CSV output file already exists at {csv_output_path}. Skipping evaluation for run: {run_name or 'custom'}."
+            f"Output file already exists at {output}. Skipping evaluation for run: {run_name or 'custom'}."
         )
         return
 
@@ -82,14 +83,7 @@ def run_evaluation_for_config(config_path: Path, run_name: str | None = None):
         return
 
     # Determine prompt path from config
-    tmp_dir_str = config["tmp_output_dir"]
-    tmp_output_dir = Path(tmp_dir_str)
-    if not tmp_output_dir.is_absolute():
-        tmp_output_dir = ROOT_DIR / tmp_output_dir
-
-    prompt_file_name = config["llm_prompt_output_file"]
-    prompt_path = tmp_output_dir / "job1" / prompt_file_name
-
+    prompt_path = get_llm_prompt_for_job(DEFAULT_CONFIG.get_jobs()[0])
     if not prompt_path.exists():
         logger.error(f"Prompt file not found at: {prompt_path}")
         return
@@ -125,7 +119,7 @@ def run_evaluation_for_config(config_path: Path, run_name: str | None = None):
         return
 
     # Process and save collected stats
-    save_and_log_statistics(stats, RESULTS_DIR, run_name)
+    save_and_log_statistics(stats, output)
 
 
 def generate_run_configs() -> list[tuple[Path, str]]:

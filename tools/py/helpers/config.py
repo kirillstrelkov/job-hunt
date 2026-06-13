@@ -1,5 +1,4 @@
-"""Configuration management helper."""
-
+from dataclasses import dataclass
 import re
 from pathlib import Path
 from typing import Any
@@ -7,6 +6,15 @@ from typing import Any
 import yaml
 
 CONFIG_DIR = Path(__file__).resolve().parent
+
+
+@dataclass
+class InputJob:
+    """Represents a job configuration with ground truth and description paths."""
+
+    name: str
+    ground_truth_path: str
+    description_path: str
 
 
 def _resolve_dict_substitutions(config: dict) -> dict:
@@ -43,6 +51,19 @@ def _resolve_dict_substitutions(config: dict) -> dict:
     return config
 
 
+def _make_paths_absolute(val: Any) -> Any:
+    """Recursively convert strings starting with ./ or ../ to absolute paths resolved relative to CONFIG_DIR."""
+    if isinstance(val, str):
+        if val.startswith("./") or val.startswith("../") or val == "." or val == "..":
+            return str((CONFIG_DIR / val).resolve())
+        return val
+    elif isinstance(val, dict):
+        return {k: _make_paths_absolute(v) for k, v in val.items()}
+    elif isinstance(val, list):
+        return [_make_paths_absolute(item) for item in val]
+    return val
+
+
 class ConfigManager:
     """Manages reading and querying YAML configurations."""
 
@@ -73,6 +94,17 @@ class ConfigManager:
         """Get the resolved absolute temporary output directory path."""
         return self.get_config_value_as_path(".tmp_output_dir")
 
+    def get_jobs(self) -> list[InputJob]:
+        """Get all configured jobs as a list of InputJob objects."""
+        jobs_list = self.get_config_value(".jobs")
+        return [
+            InputJob(
+                name=job["name"],
+                ground_truth_path=job["ground_truth"],
+                description_path=job["description"],
+            )
+            for job in jobs_list
+        ]
 
     def get_config(self) -> dict:
         """Read configuration from YAML, merging default options into models."""
@@ -83,7 +115,9 @@ class ConfigManager:
             with self.config_path.open(encoding="utf-8") as f:
                 raw_config = yaml.safe_load(f) or {}
 
+            raw_config = _make_paths_absolute(raw_config)
             raw_config = _resolve_dict_substitutions(raw_config)
+            raw_config = _make_paths_absolute(raw_config)
 
             # Merge model_default_options into models list options
             defaults = raw_config.get("model_default_options", {})
