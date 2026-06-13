@@ -14,7 +14,7 @@ AI_SEARCH_DIR = Path(__file__).resolve().parents[1]
 sys.path.append(str(AI_SEARCH_DIR))
 
 try:
-    from reviewer.llm import CV_PROMPT, JD_PROMPT, SYSTEM_PROMPT
+    from reviewer.llm import CV_PROMPT, JD_PROMPT, SYSTEM_PROMPT_CANDIDATE
 except ImportError as e:
     logger.error(f"Failed to import from reviewer.llm: {e}")
     sys.exit(1)
@@ -24,9 +24,10 @@ MODELS = [
     "deepseek-r1:1.5b",
     "gemma4:e2b",
     "gemma4:e2b-it-qat",
+    "gemma4:e4b-it-qat",
+    "gemma4:12b-it-qat",
     "llama3.2:3b-instruct-q8_0",
     "qwen2.5:3b-instruct-q8_0",
-    "gemma4:e4b-it-qat",
     "qwen3.5:4b-q8_0",
     "deepseek-r1:7b",
     "qwen2.5:7b",
@@ -39,7 +40,6 @@ MODELS = [
     "llama3.1:8b-text-q4_K_M",
     "gemma2:9b-instruct-q5_K_M",
     "qwen3.5:9b-q4_K_M",
-    "gemma4:12b-it-qat",
 ]
 
 
@@ -105,14 +105,14 @@ def generate_prompts_and_test_cases(cv_text: str, jd_files: list[Path], tmp_dir:
 
     # Map each JD to its corresponding expected screening gate or match percentage
     test_metadata = {
-        "tesla_go.txt": {"min_match": 60, "fail_reason": ""},
-        "moia.txt": {"min_match": 30, "fail_reason": ""},
-        "not_manager.txt": {"min_match": 60, "fail_reason": ""},
-        "manager.txt": {"min_match": 0, "fail_reason": "is_manager"},
-        "staff.txt": {"min_match": 0, "fail_reason": "is_staff"},
-        "contract.txt": {"min_match": 0, "fail_reason": "is_contract"},
-        "sen_qa.txt": {"min_match": 20, "fail_reason": ""},
-        "intern.txt": {"min_match": 0, "fail_reason": "is_excluded_role"},
+        "tesla_go.txt": {"min_match": 60},
+        "moia.txt": {"min_match": 60},
+        "not_manager.txt": {"min_match": 60},
+        "manager.txt": {"min_match": 30},
+        "staff.txt": {"min_match": 30},
+        "contract.txt": {"min_match": 60},
+        "sen_qa.txt": {"min_match": 70},
+        "intern.txt": {"min_match": 60},
     }
 
     for jd_file in jd_files:
@@ -121,7 +121,7 @@ def generate_prompts_and_test_cases(cv_text: str, jd_files: list[Path], tmp_dir:
         # Combine system prompt, cv, and job description
         cv_content = CV_PROMPT.format(cv=cv_text.strip())
         jd_content = JD_PROMPT.format(job_description=jd_text.strip())
-        system_content = SYSTEM_PROMPT.replace("80%%", "80%")
+        system_content = SYSTEM_PROMPT_CANDIDATE
         combined_prompt = f"{system_content.strip()}\n\n{cv_content.strip()}\n\n{jd_content.strip()}"
 
         # Save prompt under tmp/promptfoo/
@@ -130,7 +130,7 @@ def generate_prompts_and_test_cases(cv_text: str, jd_files: list[Path], tmp_dir:
         logger.info(f"Generated prompt for {jd_file.name} at {prompt_out_file.relative_to(AI_SEARCH_DIR)}")
 
         # Fetch assertions metadata
-        meta = test_metadata.get(jd_file.name, {"min_match": 0, "fail_reason": ""})
+        meta = test_metadata.get(jd_file.name, {"min_match": 0})
 
         # Build test case
         tests.append(
@@ -138,7 +138,6 @@ def generate_prompts_and_test_cases(cv_text: str, jd_files: list[Path], tmp_dir:
                 "vars": {
                     "prompt_content": f"file://{jd_file.stem}_prompt.txt",
                     "min_match": meta["min_match"],
-                    "fail_reason": meta["fail_reason"],
                 },
                 "assert": [{"type": "python", "value": "file://../../promptfoo/assert_llm.py"}],
             }

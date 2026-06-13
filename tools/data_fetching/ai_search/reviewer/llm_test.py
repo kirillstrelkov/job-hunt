@@ -25,7 +25,8 @@ def assert_llm_response(result: JobMatchResult, min_match: int, fail_reason: str
         assert fail_reason in result.screening.gate_failed_reasons, f"Failed : {pformat(result.screening)}"
         return
 
-    assert get_checked_passed(result), f"Failed : {pformat(result.screening)}"
+    if result.screening:
+        assert get_checked_passed(result), f"Failed : {pformat(result.screening)}"
     assert get_match_percentage(result) > min_match
 
 
