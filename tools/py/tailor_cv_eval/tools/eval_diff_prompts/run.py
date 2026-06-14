@@ -8,9 +8,18 @@ from loguru import logger
 sys.path.append(str(Path(__file__).resolve().parents[2]))
 sys.path.append(str(Path(__file__).resolve().parents[3]))
 from helpers.config import DEFAULT_CONFIG  # noqa: E402
+from helpers.notebook import run_jupyter_notebook  # noqa: E402
 from helpers.ollama_helper import get_eval_model, get_model_options  # noqa: E402
-from helpers.promptfoo_helper import run_promptfoo_eval, write_yaml_config  # noqa: E402
+from helpers.promptfoo_helper import PromptfooCsvCols, convert_json_to_csv, run_promptfoo_eval, write_yaml_config  # noqa: E402
 from helpers.tmp_helper import get_root_dir, get_tmp_folder, get_tmp_output_dir  # noqa: E402
+
+# Global path definitions for Promptfoo evaluation
+TMP_EVAL_DIR = get_tmp_folder(__file__)
+CONFIG_FILE = TMP_EVAL_DIR / "promptfoo_cfg.yaml"
+RESULTS_JSON = TMP_EVAL_DIR / "promptfoo_results.json"
+RESULTS_CSV = RESULTS_JSON.with_suffix(".csv")
+NOTEBOOK_PATH = Path(__file__).resolve().parent / "results_analysis.ipynb"
+PROMPTS_DIR = Path(__file__).resolve().parent / "prompts"
 
 PROMPTFOO_CONFIG_TEMPLATE = (
     """
@@ -126,27 +135,32 @@ def get_prompt_files(prompts_dir: Path, baseline_prompt_file: Path) -> list[Path
 def main():
     logger.info("Starting Promptfoo Prompt Evaluation")
 
-    tmp_eval_dir = get_tmp_folder(__file__)
-    tmp_eval_dir.mkdir(parents=True, exist_ok=True)
+    TMP_EVAL_DIR.mkdir(parents=True, exist_ok=True)
 
-    prompts_dir = Path(__file__).resolve().parent / "prompts"
-    prompts_dir.mkdir(parents=True, exist_ok=True)
+    PROMPTS_DIR.mkdir(parents=True, exist_ok=True)
 
     job = DEFAULT_CONFIG.get_jobs()[0]
     baseline_prompt_file = job.llm_prompt_path
 
-    prompt_files = get_prompt_files(prompts_dir, baseline_prompt_file)
+    prompt_files = get_prompt_files(PROMPTS_DIR, baseline_prompt_file)
 
     logger.info(f"Evaluating {len(prompt_files)} prompts:")
     for pf in prompt_files:
         logger.info(f"  - {pf.name}")
 
     gt_file = job.ground_truth_path
-    config_file = tmp_eval_dir / "promptfoo_cfg.yaml"
+    if not gt_file.exists():
+        logger.error(f"Ground truth file not found: {gt_file}")
+        sys.exit(1)
 
-    generate_config(prompt_files, gt_file, config_file)
+    generate_config(prompt_files, gt_file, CONFIG_FILE)
 
-    run_promptfoo_eval(config_file)
+    run_promptfoo_eval(CONFIG_FILE, RESULTS_JSON)
+    convert_json_to_csv(RESULTS_JSON, RESULTS_CSV)
+    
+    # Run the Jupyter Notebook for visual/markdown analysis
+    run_jupyter_notebook(NOTEBOOK_PATH)
+    
     logger.info("Evaluation completed!")
     logger.info("To view results in the dashboard, run: just view-promptfoo")
 

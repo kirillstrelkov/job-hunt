@@ -35,6 +35,6 @@ prepare_llm_prompt_script: "{root_dir}/cv/tools/prepare_llm_prompt.py"
 
 jobs:
   - name: "job_tesla"
-    ground_truth: "{tmp_input_dir}/job_tesla/gt"
+    ground_truth: "{tmp_input_dir}/job_tesla_gt.md"
     description: "{root_dir}/tools/py/job_finder/data/test/tesla_go.txt"
     llm_prompt: "{tmp_output_dir}/job_tesla/llm_prompt.md"
