@@ -1,8 +1,11 @@
 # Run Promptfoo prompt evaluation to compare baseline prompt vs candidate prompt
 eval-prompts:
-	uv run python {{ justfile_directory() }}/run.py
+    uv run python {{ justfile_directory() }}/run.py
 
 # View Promptfoo prompt evaluation dashboard
 view-promptfoo:
-	npx promptfoo view
+    npx promptfoo view
 
+# Convert jupyter notebook to html
+convert2html:
+    uvx jupyter nbconvert ./result_analysis.ipynb --to html --output ./results/result_analysis.html --
