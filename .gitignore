@@ -32,3 +32,5 @@ target/
 .mypy_cache/
 .deepeval/
 tsconfig.tsbuildinfo
+
+.agent/
