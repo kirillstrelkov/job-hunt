@@ -76,6 +76,7 @@ def browser_decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         The wrapped function.
 
     """
+
     @wraps(func)
     def wrapper(*args: Any, **kwargs: Any) -> Any:  # noqa: ANN401
         """Wrap the decorated function and manage its browser instance."""

@@ -19,7 +19,6 @@ from scraper.fetch import get_jobs
 _OUTPUT_PATH = Path(tempfile.gettempdir()) / "job_matches.csv"
 
 
-
 def create_save_df(objects: list[Job | JobMatch], sort_by: str, output: Path, *, ascending: bool = True) -> None:
     """Create a DataFrame from a list of objects, sort, and save it to a CSV file.
 

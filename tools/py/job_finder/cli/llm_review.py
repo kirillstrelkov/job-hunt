@@ -62,9 +62,7 @@ def save_file(df: pd.DataFrame, path: Path, file_type: str) -> None:
 
 def main() -> None:
     """Execute the review CLI."""
-    parser = argparse.ArgumentParser(
-        description="Review and update CV matching results from a CSV, TSV, or ODF file."
-    )
+    parser = argparse.ArgumentParser(description="Review and update CV matching results from a CSV, TSV, or ODF file.")
     parser.add_argument(
         "--path", type=str, required=True, help="Path to the CSV, TSV, or ODF file containing jobs to review"
     )

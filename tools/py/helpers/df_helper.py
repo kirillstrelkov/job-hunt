@@ -80,4 +80,3 @@ class ModelStatsCols:
 
     # Readable display columns in correct order
     DISPLAY_COLUMNS: ClassVar[list[str]] = ModelStatsDisplayCols.COLUMNS
-

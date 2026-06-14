@@ -62,17 +62,13 @@ def get_eval_model(config_manager: ConfigManager = DEFAULT_CONFIG) -> str:
     return eval_model
 
 
-def get_model_options(
-    model: str, config_manager: ConfigManager = DEFAULT_CONFIG
-) -> dict:
+def get_model_options(model: str, config_manager: ConfigManager = DEFAULT_CONFIG) -> dict:
     """Get configuration settings for a given model.
 
     Raises ValueError if the model is not configured.
     """
     try:
-        default_options = (
-            config_manager.get_config_value(".model_default_options") or {}
-        )
+        default_options = config_manager.get_config_value(".model_default_options") or {}
     except ValueError:
         default_options = {}
 
@@ -167,9 +163,7 @@ def run_model(model: str, prompt_content: str, options: dict | None = None) -> d
         gpu_used = gpu_data["gpu_used"]
         max_vram = max(gpu_used)
 
-        gpu_pcts = (
-            [(vram / model_size) * 100.0 for vram in gpu_used] if model_size > 0 else []
-        )
+        gpu_pcts = [(vram / model_size) * 100.0 for vram in gpu_used] if model_size > 0 else []
         avg_gpu = sum(gpu_pcts) / len(gpu_pcts) if gpu_pcts else 0.0
 
         logger.debug(f"Snapshots taken: {len(gpu_used)}")
@@ -177,9 +171,7 @@ def run_model(model: str, prompt_content: str, options: dict | None = None) -> d
         gpu_info = f"{max_vram / (1024**3):.2f} GB / {model_size / (1024**3):.2f} GB"
         logger.debug(f"Max VRAM / Model size: {gpu_info}")
     else:
-        logger.warning(
-            "No snapshots captured. The prompt completed too fast or the model layout wasn't visible."
-        )
+        logger.warning("No snapshots captured. The prompt completed too fast or the model layout wasn't visible.")
 
     response = res.get("response", "")
     total_duration = (res.get("total_duration") or 0) / 1e9
@@ -217,15 +209,11 @@ def generate_response(model: str, prompt: str, options: dict | None = None) -> s
     merged_options = get_model_options(model).copy()
     if options:
         merged_options.update(options)
-    res = ollama.generate(
-        model=model, prompt=prompt, keep_alive=0, options=merged_options
-    )
+    res = ollama.generate(model=model, prompt=prompt, keep_alive=0, options=merged_options)
     return res.get("response", "")
 
 
-def get_model_output(
-    model: str, prompt_content: str, output_file: Path, options: dict | None = None
-) -> str:
+def get_model_output(model: str, prompt_content: str, output_file: Path, options: dict | None = None) -> str:
     """Get the generated CV from a cached file or generate it using Ollama if not present."""
     if output_file.exists():
         return output_file.read_text(encoding="utf-8")

@@ -1,6 +1,5 @@
 """Scraper implementation for StepStone."""
 
-
 from loguru import logger
 
 from .base import Job, Page
