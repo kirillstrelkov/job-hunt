@@ -7,8 +7,8 @@ from loguru import logger
 # Add root directory to path to import shared_config and ollama_helper
 sys.path.append(str(Path(__file__).resolve().parents[2]))
 sys.path.append(str(Path(__file__).resolve().parents[3]))
-from helpers.config import LLM_PROMPT_OUTPUT_FILE
-from helpers.ollama_helper import get_eval_model, get_model_names, get_model_options
+from helpers.config import DEFAULT_CONFIG  # noqa: E402
+from helpers.ollama_helper import get_eval_model, get_model_options  # noqa: E402
 from helpers.promptfoo_helper import run_promptfoo_eval, write_yaml_config  # noqa: E402
 from helpers.tmp_helper import get_root_dir, get_tmp_folder, get_tmp_output_dir  # noqa: E402
 
@@ -70,7 +70,6 @@ tests:
 def generate_config(prompt_files: list[Path], gt_file: Path, output_file: Path) -> None:
     """Load configuration template, resolve placeholder values, and write output config file."""
     eval_model = get_eval_model()
-    models = get_model_names()
 
     template_text = PROMPTFOO_CONFIG_TEMPLATE.replace("{{EVAL_MODEL}}", eval_model)
     template_text = template_text.replace("{{GT_FILE}}", str(gt_file.resolve()))
@@ -78,9 +77,26 @@ def generate_config(prompt_files: list[Path], gt_file: Path, output_file: Path) 
     config = yaml.safe_load(template_text)
     config["prompts"] = [f"file://{pf.resolve()}" for pf in prompt_files]
 
-    # Dynamically build the providers list starting with the EVAL_MODEL provider
-    ordered_models = [eval_model] + [m for m in models if m != eval_model]
-    config["providers"] = [{"id": f"ollama:chat:{m}", "config": get_model_options(m)} for m in ordered_models]
+    base_options = get_model_options(eval_model)
+    option_sets = [
+        {"num_ctx": 16384, "num_predict": -1, "temperature": 0.2},
+        {"num_ctx": 12288, "num_predict": 8192, "temperature": 0.2},
+        {"num_ctx": 12288, "num_predict": 7168, "temperature": 0.1},
+    ]
+
+    providers = []
+    for opts in option_sets:
+        cfg = base_options.copy()
+        cfg.update(opts)
+        label = f"{eval_model} (ctx={opts['num_ctx']}, pred={opts['num_predict']}, temp={opts['temperature']})"
+        providers.append(
+            {
+                "id": f"ollama:chat:{eval_model}",
+                "label": label,
+                "config": cfg,
+            }
+        )
+    config["providers"] = providers
 
     write_yaml_config(config, output_file)
     logger.info(f"Generated Promptfoo config at {output_file.relative_to(get_root_dir())}")
@@ -108,15 +124,16 @@ def get_prompt_files(prompts_dir: Path, baseline_prompt_file: Path) -> list[Path
 
 
 def main():
-    logger.info("=== Starting Promptfoo Prompt Evaluation ===")
+    logger.info("Starting Promptfoo Prompt Evaluation")
 
     tmp_eval_dir = get_tmp_folder(__file__)
     tmp_eval_dir.mkdir(parents=True, exist_ok=True)
 
-    prompts_dir = Path(get_root_dir()) / "tools" / "prompt_eval" / "prompts"
+    prompts_dir = Path(__file__).resolve().parent / "prompts"
     prompts_dir.mkdir(parents=True, exist_ok=True)
 
-    baseline_prompt_file = Path(get_tmp_output_dir()) / "job1" / LLM_PROMPT_OUTPUT_FILE
+    job = DEFAULT_CONFIG.get_jobs()[0]
+    baseline_prompt_file = job.llm_prompt_path
 
     prompt_files = get_prompt_files(prompts_dir, baseline_prompt_file)
 
@@ -124,7 +141,7 @@ def main():
     for pf in prompt_files:
         logger.info(f"  - {pf.name}")
 
-    gt_file = Path(get_root_dir()) / "inputs" / "job1" / "gt.md"
+    gt_file = job.ground_truth_path
     config_file = tmp_eval_dir / "promptfoo_cfg.yaml"
 
     generate_config(prompt_files, gt_file, config_file)

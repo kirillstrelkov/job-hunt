@@ -10,8 +10,7 @@ ROOT_DIR = Path(__file__).resolve().parents[2]
 sys.path.append(str(ROOT_DIR))
 sys.path.append(str(ROOT_DIR.parent))
 
-from helpers.config import DEFAULT_CONFIG, LLM_PROMPT_OUTPUT_FILE  # noqa: E402
-from helpers.tmp_helper import get_tmp_output_dir  # noqa: E402
+from helpers.config import DEFAULT_CONFIG  # noqa: E402
 
 
 def main():
@@ -21,10 +20,8 @@ def main():
         sys.exit(1)
 
     job = DEFAULT_CONFIG.get_jobs()[0]
-    prompt_name = Path(LLM_PROMPT_OUTPUT_FILE).name
-    output_dir = get_tmp_output_dir() / job.name
-    output_dir.mkdir(parents=True, exist_ok=True)
-    output_file = output_dir / prompt_name
+    output_file = Path(job.llm_prompt_path)
+    output_file.parent.mkdir(parents=True, exist_ok=True)
 
     # Resolve prepare script path
     script_path = DEFAULT_CONFIG.get_config_value_as_path(".prepare_llm_prompt_script")

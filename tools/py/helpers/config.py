@@ -15,8 +15,9 @@ class InputJob:
     """Represents a job configuration with ground truth and description paths."""
 
     name: str
-    ground_truth_path: str
-    description_path: str
+    ground_truth_path: Path
+    description_path: Path
+    llm_prompt_path: Path
 
 
 def _resolve_val(val: Any, context: dict[str, str]) -> tuple[Any, bool]:  # noqa: ANN401
@@ -112,8 +113,9 @@ class ConfigManager:
         return [
             InputJob(
                 name=job["name"],
-                ground_truth_path=job["ground_truth"],
-                description_path=job["description"],
+                ground_truth_path=Path(job["ground_truth"]),
+                description_path=Path(job["description"]),
+                llm_prompt_path=Path(job["llm_prompt"]),
             )
             for job in jobs_list
         ]
@@ -179,6 +181,4 @@ class ConfigManager:
 
 
 DEFAULT_CONFIG = ConfigManager(CONFIG_DIR / "config.yaml")
-
-LLM_PROMPT_OUTPUT_FILE = DEFAULT_CONFIG.get_config_value(".llm_prompt_output_file")
 TRULENS_DB_URL = DEFAULT_CONFIG.get_config_value(".trulens_db_url")

@@ -10,8 +10,8 @@ from ragas.metrics import answer_relevancy, faithfulness
 
 sys.path.append(str(Path(__file__).resolve().parents[3]))
 sys.path.append(str(Path(__file__).resolve().parents[4]))
-from helpers.config import LLM_PROMPT_OUTPUT_FILE
-from helpers.ollama_helper import get_eval_model, get_model_names
+from helpers.config import DEFAULT_CONFIG  # noqa: E402
+from helpers.ollama_helper import get_eval_model, get_model_names  # noqa: E402
 from helpers.tmp_helper import get_tmp_output_dir  # noqa: E402
 
 
@@ -21,7 +21,8 @@ def run_eval():
     subfolder = "job1"
     variant = "jd"
     gt_file = Path(f"inputs/{subfolder}/gt.md")
-    prompt_file = get_tmp_output_dir() / subfolder / LLM_PROMPT_OUTPUT_FILE
+    job = DEFAULT_CONFIG.get_jobs()[0]
+    prompt_file = job.llm_prompt_path
 
     if not gt_file.exists():
         logger.error(f"Ground truth file {gt_file} is missing.")

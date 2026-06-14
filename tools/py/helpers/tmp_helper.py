@@ -3,8 +3,6 @@
 import os
 from pathlib import Path
 
-from helpers.config import LLM_PROMPT_OUTPUT_FILE
-
 from .config import DEFAULT_CONFIG, InputJob
 
 
@@ -50,4 +48,4 @@ def get_tmp_output_folder(file_path: str | Path) -> Path:
 
 def get_llm_prompt_for_job(job: InputJob) -> Path:
     """Get the llm prompt for a given job."""
-    return get_tmp_output_dir() / job.name / LLM_PROMPT_OUTPUT_FILE
+    return job.llm_prompt_path

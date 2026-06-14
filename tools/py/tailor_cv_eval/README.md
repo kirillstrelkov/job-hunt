@@ -17,9 +17,8 @@ models:
       num_predict: 3072
   - name: "deepseek-r1:7b"
 eval_model: "llama3.1:8b"
-tmp_output_dir: "tmp/outputs"
-llm_prompt_output_file: "llm_prompt.md"
-trulens_db_url: "sqlite:///tmp/outputs/truelens/default.sqlite"
+  - name: "job_tesla"
+    llm_prompt: "{tmp_output_dir}/job_tesla/llm_prompt.md"
 ```
 
 ---
@@ -75,7 +74,7 @@ The framework is organized into the `tools/models_cmp/` folder, each containing 
 These tools help tune the prompt templates and generation parameters themselves:
 
 ### 1. **Prompt Evaluation** (`tools/prompt_eval/`)
-* **Purpose**: Evaluates modifications to `prepare_llm_prompt.py` by running candidate prompts against the baseline prompt generated in the outputs directory (configured via `LLM_PROMPT_OUTPUT_FILE`).
+* **Purpose**: Evaluates modifications to `prepare_llm_prompt.py` by running candidate prompts against the baseline prompt generated in the outputs directory (configured via `llm_prompt` on the job).
 * **Command**: `just eval-prompts`
 
 ### 2. **Parameter Tuning** (`tools/parameter_eval/`)

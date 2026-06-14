@@ -9,9 +9,9 @@ from loguru import logger
 # Add root directory to path to import shared_config and ollama_helper
 sys.path.append(str(Path(__file__).resolve().parents[2]))
 sys.path.append(str(Path(__file__).resolve().parents[3]))
-from helpers.config import DEFAULT_CONFIG, LLM_PROMPT_OUTPUT_FILE
-from helpers.ollama_helper import get_eval_model
-from helpers.tmp_helper import get_root_dir, get_tmp_folder, get_tmp_output_dir  # noqa: E402
+from helpers.config import DEFAULT_CONFIG  # noqa: E402
+from helpers.ollama_helper import get_eval_model  # noqa: E402
+from helpers.tmp_helper import get_root_dir, get_tmp_folder  # noqa: E402
 
 
 def get_npx_command():
@@ -44,7 +44,8 @@ def main():
     tmp_eval_dir = get_tmp_folder(__file__)
 
     provider_script = Path(get_root_dir()).parent / "helpers" / "ollama_helper.py"
-    llm_prompt_file = Path(get_tmp_output_dir()) / "job1" / LLM_PROMPT_OUTPUT_FILE
+    job = DEFAULT_CONFIG.get_jobs()[0]
+    llm_prompt_file = job.llm_prompt_path
 
     # 2. Generate target prompt if not present
     if not llm_prompt_file.exists():

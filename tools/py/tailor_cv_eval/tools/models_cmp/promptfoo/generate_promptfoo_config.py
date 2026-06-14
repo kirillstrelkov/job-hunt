@@ -5,9 +5,9 @@ from loguru import logger
 
 sys.path.append(str(Path(__file__).resolve().parents[3]))
 sys.path.append(str(Path(__file__).resolve().parents[4]))
-from helpers.config import DEFAULT_CONFIG, LLM_PROMPT_OUTPUT_FILE
+from helpers.config import DEFAULT_CONFIG  # noqa: E402
 from helpers.ollama_helper import get_eval_model, get_model_names
-from helpers.tmp_helper import get_root_dir, get_tmp_output_dir  # noqa: E402
+from helpers.tmp_helper import get_root_dir  # noqa: E402
 
 
 def main():
@@ -30,6 +30,8 @@ def main():
         keep_alive: "0" """)
     providers_yaml = "\n".join(providers_list)
 
+    job = DEFAULT_CONFIG.get_jobs()[0]
+
     # Generate JD config
     jd_config_content = f"""description: 'CV Tailoring Job Description Evaluation'
 
@@ -37,7 +39,7 @@ commandLineOptions:
   maxConcurrency: 1
 
 prompts:
-  - file://{Path(get_tmp_output_dir()).resolve()}/job1/{LLM_PROMPT_OUTPUT_FILE}
+  - file://{job.llm_prompt_path.resolve()}
 
 providers:
 {providers_yaml}
@@ -59,7 +61,7 @@ tests:
 """
 
     # Write config to proper subfolder under get_tmp_output_dir()
-    jd_config_dir = Path(get_tmp_output_dir()) / "job1" / "promptfoo"
+    jd_config_dir = job.llm_prompt_path.parent / "promptfoo"
     jd_config_dir.mkdir(parents=True, exist_ok=True)
 
     jd_config_file = jd_config_dir / "promptfooconfig_jd.yaml"
