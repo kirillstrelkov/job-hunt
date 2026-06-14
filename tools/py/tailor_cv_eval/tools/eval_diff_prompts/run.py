@@ -9,7 +9,7 @@ sys.path.append(str(Path(__file__).resolve().parents[2]))
 sys.path.append(str(Path(__file__).resolve().parents[3]))
 from helpers.config import DEFAULT_CONFIG  # noqa: E402
 from helpers.notebook import run_jupyter_notebook  # noqa: E402
-from helpers.ollama_helper import get_eval_model, get_model_options  # noqa: E402
+from helpers.ollama_helper import get_eval_model, get_model_names, get_model_options  # noqa: E402
 from helpers.promptfoo_helper import PromptfooCsvCols, convert_json_to_csv, run_promptfoo_eval, write_yaml_config  # noqa: E402
 from helpers.tmp_helper import get_root_dir, get_tmp_folder, get_tmp_output_dir  # noqa: E402
 
@@ -18,7 +18,7 @@ TMP_EVAL_DIR = get_tmp_folder(__file__)
 CONFIG_FILE = TMP_EVAL_DIR / "promptfoo_cfg.yaml"
 RESULTS_JSON = TMP_EVAL_DIR / "promptfoo_results.json"
 RESULTS_CSV = RESULTS_JSON.with_suffix(".csv")
-NOTEBOOK_PATH = Path(__file__).resolve().parent / "results_analysis.ipynb"
+NOTEBOOK_PATH = Path(__file__).resolve().parent / "result_analysis.ipynb"
 PROMPTS_DIR = Path(__file__).resolve().parent / "prompts"
 
 PROMPTFOO_CONFIG_TEMPLATE = (
@@ -86,7 +86,7 @@ def generate_config(prompt_files: list[Path], gt_file: Path, output_file: Path) 
     config = yaml.safe_load(template_text)
     config["prompts"] = [f"file://{pf.resolve()}" for pf in prompt_files]
 
-    base_options = get_model_options(eval_model)
+    models = get_model_names()
     option_sets = [
         {"num_ctx": 16384, "num_predict": -1, "temperature": 0.2},
         {"num_ctx": 12288, "num_predict": 8192, "temperature": 0.2},
@@ -94,17 +94,19 @@ def generate_config(prompt_files: list[Path], gt_file: Path, output_file: Path) 
     ]
 
     providers = []
-    for opts in option_sets:
-        cfg = base_options.copy()
-        cfg.update(opts)
-        label = f"{eval_model} (ctx={opts['num_ctx']}, pred={opts['num_predict']}, temp={opts['temperature']})"
-        providers.append(
-            {
-                "id": f"ollama:chat:{eval_model}",
-                "label": label,
-                "config": cfg,
-            }
-        )
+    for model in models:
+        base_options = get_model_options(model)
+        for opts in option_sets:
+            cfg = base_options.copy()
+            cfg.update(opts)
+            label = f"{model} (ctx={opts['num_ctx']}, pred={opts['num_predict']}, temp={opts['temperature']})"
+            providers.append(
+                {
+                    "id": f"ollama:chat:{model}",
+                    "label": label,
+                    "config": cfg,
+                }
+            )
     config["providers"] = providers
 
     write_yaml_config(config, output_file)
@@ -157,10 +159,10 @@ def main():
 
     run_promptfoo_eval(CONFIG_FILE, RESULTS_JSON)
     convert_json_to_csv(RESULTS_JSON, RESULTS_CSV)
-    
+
     # Run the Jupyter Notebook for visual/markdown analysis
     run_jupyter_notebook(NOTEBOOK_PATH)
-    
+
     logger.info("Evaluation completed!")
     logger.info("To view results in the dashboard, run: just view-promptfoo")
 
