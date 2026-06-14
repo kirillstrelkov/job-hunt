@@ -1,5 +1,7 @@
 """Helper constants for Pandas DataFrame columns."""
 
+from typing import ClassVar
+
 
 class ModelStatsDisplayCols:
     """Display column names for Model execution stats DataFrame."""
@@ -16,7 +18,7 @@ class ModelStatsDisplayCols:
     GPU_INFO = "GPU Info"
     OPTIONS = "Options"
 
-    COLUMNS = [
+    COLUMNS: ClassVar[list[str]] = [
         MODEL,
         TOTAL_TIME,
         LOAD_TIME,
@@ -47,7 +49,7 @@ class ModelStatsCols:
     OPTIONS_STR = "options_str"
 
     # Preserved ordering of columns for the dataframe
-    COLUMNS_ORDER = [
+    COLUMNS_ORDER: ClassVar[list[str]] = [
         MODEL,
         TOTAL_TIME,
         LOAD_TIME,
@@ -62,7 +64,7 @@ class ModelStatsCols:
     ]
 
     # Readable display name mappings
-    DISPLAY_MAP = {
+    DISPLAY_MAP: ClassVar[dict[str, str]] = {
         MODEL: ModelStatsDisplayCols.MODEL,
         TOTAL_TIME: ModelStatsDisplayCols.TOTAL_TIME,
         LOAD_TIME: ModelStatsDisplayCols.LOAD_TIME,
@@ -77,5 +79,5 @@ class ModelStatsCols:
     }
 
     # Readable display columns in correct order
-    DISPLAY_COLUMNS = ModelStatsDisplayCols.COLUMNS
+    DISPLAY_COLUMNS: ClassVar[list[str]] = ModelStatsDisplayCols.COLUMNS
 

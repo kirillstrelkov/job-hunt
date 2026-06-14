@@ -10,9 +10,9 @@ ROOT_DIR = Path(__file__).resolve().parents[2]
 sys.path.append(str(ROOT_DIR))
 sys.path.append(str(ROOT_DIR.parent))
 
-from helpers.config import DEFAULT_CONFIG
+from helpers.config import DEFAULT_CONFIG  # noqa: E402
 from helpers.ollama_helper import get_eval_model, get_model_options, run_model  # noqa: E402
-from helpers.tmp_helper import get_llm_prompt_for_job
+from helpers.tmp_helper import get_llm_prompt_for_job  # noqa: E402
 
 
 def main():

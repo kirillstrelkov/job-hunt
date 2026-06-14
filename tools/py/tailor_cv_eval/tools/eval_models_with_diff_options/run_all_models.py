@@ -4,19 +4,21 @@ from pathlib import Path
 
 import pandas as pd
 from loguru import logger
+from tqdm import tqdm
 
 # Find workspace root directory dynamically starting from current file
 ROOT_DIR = Path(__file__).resolve().parents[2]
 sys.path.append(str(ROOT_DIR))
 sys.path.append(str(ROOT_DIR.parent))
 
-from helpers.config import DEFAULT_CONFIG
-from helpers.config import ConfigManager  # noqa: E402
+from helpers.config import (  # noqa: E402
+    DEFAULT_CONFIG,
+    ConfigManager,
+)
 from helpers.config_generator import create_config  # noqa: E402
 from helpers.df_helper import ModelStatsCols  # noqa: E402
 from helpers.ollama_helper import get_model_names, run_model  # noqa: E402
-from helpers.tmp_helper import get_tmp_input_folder, get_tmp_output_folder  # noqa: E402
-from helpers.tmp_helper import get_llm_prompt_for_job
+from helpers.tmp_helper import get_llm_prompt_for_job, get_tmp_input_folder, get_tmp_output_folder  # noqa: E402
 
 RESULTS_DIR = get_tmp_output_folder(__file__)
 CONFIG_DIR = get_tmp_input_folder(__file__)
@@ -67,7 +69,7 @@ def run_evaluation_for_config(config_path: Path, run_name: str | None = None):
         logger.warning(f"Output file already exists at {output}. Skipping evaluation for run: {run_name or 'custom'}.")
         return
 
-    logger.info(f"Loading configuration from: {config_path}")
+    logger.debug(f"Loading configuration from: {config_path}")
     config_manager = ConfigManager(config_path)
     try:
         config = config_manager.get_config()
@@ -86,7 +88,7 @@ def run_evaluation_for_config(config_path: Path, run_name: str | None = None):
         logger.error(f"Prompt file not found at: {prompt_path}")
         return
 
-    logger.info(f"Loaded prompt file from: {prompt_path}")
+    logger.debug(f"Loaded prompt file from: {prompt_path}")
     try:
         prompt_content = prompt_path.read_text(encoding="utf-8")
     except Exception as e:
@@ -100,11 +102,11 @@ def run_evaluation_for_config(config_path: Path, run_name: str | None = None):
         if not model_name:
             continue
 
-        logger.info(f"Running model '{model_name}'...")
+        logger.debug(f"Running model '{model_name}'...")
         try:
             model_stat = run_model(model_name, prompt_content, options=options)
             stats.append(model_stat)
-            logger.info(
+            logger.debug(
                 f"Finished '{model_name}': Total Time: {model_stat['total_time']:.2f}s, "
                 f"Tokens/sec: {model_stat['tokens_per_sec']:.2f}, "
                 f"Response Length: {model_stat['char_count']} chars"
@@ -121,40 +123,39 @@ def run_evaluation_for_config(config_path: Path, run_name: str | None = None):
 
 
 def generate_run_configs() -> list[tuple[Path, str]]:
-    models = get_model_names()
-
+    # fixt to just one model for testing
+    models = [name for name in get_model_names() if name == "gemma4:e2b-it-qat"]
     active_count = len(models)
-    runs_data = [
-        {
-            "run_name": f"m{active_count}_ctx16k_pred3k",
-            "models": models,
-            "models_data": None,
-            "default_options": {
-                "num_ctx": 16384,
-                "num_predict": 3072,
-            },
-        },
-        {
-            "run_name": f"m{active_count}_ctx12k_temp03_pred2k",
-            "models": models,
-            "models_data": None,
-            "default_options": {
-                "num_ctx": 12288,
-                "num_predict": 2560,
-                "temperature": 0.3,
-            },
-        },
-        {
-            "run_name": f"m{active_count}_ctx10k_temp03_pred2k",
-            "models": models,
-            "models_data": None,
-            "default_options": {
-                "num_ctx": 10240,
-                "num_predict": 2560,
-                "temperature": 0.3,
-            },
-        },
-    ]
+    logger.info(f"Number of models to be used: {active_count} ({', '.join(models)})")
+
+    temperatures = [0.0, 0.1, 0.2, 0.3, 0.4, 1.0]
+    num_ctx_values = list(range(4096, 16384 + 1, 2048))
+    num_predict_values = [-2, -1] + list(range(1024, 8192 + 1, 1024))
+
+    runs_data = []
+    for temp in temperatures:
+        for num_ctx in num_ctx_values:
+            for num_predict in num_predict_values:
+                temp_str = f"{temp:.1f}".replace(".", "")
+                ctx_str = f"{num_ctx // 1024}k"
+                if num_predict < 0:
+                    pred_str = f"neg{abs(num_predict)}"
+                else:
+                    pred_str = f"{num_predict // 1024}k"
+
+                run_name = f"m{active_count}_ctx{ctx_str}_temp{temp_str}_pred{pred_str}"
+                runs_data.append(
+                    {
+                        "run_name": run_name,
+                        "models": models,
+                        "models_data": None,
+                        "default_options": {
+                            "num_ctx": num_ctx,
+                            "num_predict": num_predict,
+                            "temperature": temp,
+                        },
+                    }
+                )
 
     configs_to_run = []
     CONFIG_DIR.mkdir(parents=True, exist_ok=True)
@@ -174,15 +175,14 @@ def generate_run_configs() -> list[tuple[Path, str]]:
 
 
 def main():
-    # Generate configs under tmp/ and run all 3
+    # Generate configs under tmp/ and run all
     configs_to_run = generate_run_configs()
     assert len(configs_to_run) == len(set(configs_to_run)), f"Generated duplicate configs: {configs_to_run}"
     if not configs_to_run:
         logger.error("No run configurations could be generated.")
         sys.exit(1)
 
-    for config_path, run_name in configs_to_run:
-        logger.info(f"Executing evaluation for run configuration: {run_name}")
+    for config_path, run_name in tqdm(configs_to_run, desc="Evaluating configurations"):
         run_evaluation_for_config(config_path, run_name)
 
 

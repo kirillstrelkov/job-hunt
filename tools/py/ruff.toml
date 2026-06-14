@@ -28,6 +28,12 @@ unfixable = ["B"]
     "T201",
     "ANN",
 ]
+"**/*.ipynb" = [
+    "E501",
+]
+"*.ipynb" = [
+    "E501",
+]
 
 [format]
 quote-style = "double"

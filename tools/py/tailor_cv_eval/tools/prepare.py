@@ -1,7 +1,8 @@
-import sys
 import os
 import subprocess
+import sys
 from pathlib import Path
+
 from loguru import logger
 
 # Add root directory to path to import helpers
@@ -9,8 +10,8 @@ ROOT_DIR = Path(__file__).resolve().parents[2]
 sys.path.append(str(ROOT_DIR))
 sys.path.append(str(ROOT_DIR.parent))
 
-from helpers.config import DEFAULT_CONFIG, LLM_PROMPT_OUTPUT_FILE
-from helpers.tmp_helper import get_tmp_output_dir
+from helpers.config import DEFAULT_CONFIG, LLM_PROMPT_OUTPUT_FILE  # noqa: E402
+from helpers.tmp_helper import get_tmp_output_dir  # noqa: E402
 
 
 def main():

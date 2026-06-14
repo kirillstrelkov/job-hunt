@@ -8,8 +8,8 @@ from loguru import logger
 sys.path.append(str(Path(__file__).resolve().parents[3]))
 sys.path.append(str(Path(__file__).resolve().parents[4]))
 from helpers.config import LLM_PROMPT_OUTPUT_FILE
-from helpers.tmp_helper import get_tmp_output_dir
 from helpers.ollama_helper import get_eval_model, get_model_names
+from helpers.tmp_helper import get_tmp_output_dir
 
 
 def run_eval():

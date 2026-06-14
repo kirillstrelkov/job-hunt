@@ -1,8 +1,9 @@
 """Input/Output helpers for managing temporary directories."""
 
-from helpers.config import LLM_PROMPT_OUTPUT_FILE
 import os
 from pathlib import Path
+
+from helpers.config import LLM_PROMPT_OUTPUT_FILE
 
 from .config import DEFAULT_CONFIG, InputJob
 

@@ -1,5 +1,7 @@
-from dataclasses import dataclass
+"""Configuration helper utilities for resolving paths and substitutions."""
+
 import re
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -17,49 +19,59 @@ class InputJob:
     description_path: str
 
 
+def _resolve_val(val: Any, context: dict[str, str]) -> tuple[Any, bool]:  # noqa: ANN401
+    """Recursively resolve values using context, returning (new_val, has_changed)."""
+    if isinstance(val, str):
+        try:
+            resolved = val.format(**context)
+            if resolved != val:
+                return resolved, True
+        except (KeyError, ValueError, IndexError):
+            pass
+        return val, False
+    if isinstance(val, dict):
+        has_changed = False
+        new_dict = {}
+        for k, v in val.items():
+            new_v, changed = _resolve_val(v, context)
+            new_dict[k] = new_v
+            if changed:
+                has_changed = True
+        return new_dict, has_changed
+    if isinstance(val, list):
+        has_changed = False
+        new_list = []
+        for item in val:
+            new_item, changed = _resolve_val(item, context)
+            new_list.append(new_item)
+            if changed:
+                has_changed = True
+        return new_list, has_changed
+    return val, False
+
+
 def _resolve_dict_substitutions(config: dict) -> dict:
     """Recursively resolve {key} placeholders in config values using config keys as context."""
     for _ in range(5):
         # Gather current string values as context
-        context = {}
-        for k, v in config.items():
-            if isinstance(v, (str, int, float, bool)):
-                context[k] = str(v)
+        context = {k: str(v) for k, v in config.items() if isinstance(v, (str, int, float, bool))}
 
-        has_changed = False
-
-        def resolve_val(val: Any) -> Any:  # noqa: ANN401
-            nonlocal has_changed
-            if isinstance(val, str):
-                try:
-                    resolved = val.format(**context)
-                    if resolved != val:
-                        has_changed = True
-                        return resolved
-                except (KeyError, ValueError, IndexError):
-                    pass
-            elif isinstance(val, dict):
-                return {k: resolve_val(v) for k, v in val.items()}
-            elif isinstance(val, list):
-                return [resolve_val(item) for item in val]
-            return val
-
-        config = {k: resolve_val(v) for k, v in config.items()}
+        config, has_changed = _resolve_val(config, context)
         if not has_changed:
             break
 
     return config
 
 
-def _make_paths_absolute(val: Any) -> Any:
+def _make_paths_absolute(val: Any) -> Any:  # noqa: ANN401
     """Recursively convert strings starting with ./ or ../ to absolute paths resolved relative to CONFIG_DIR."""
     if isinstance(val, str):
-        if val.startswith("./") or val.startswith("../") or val == "." or val == "..":
+        if val.startswith(("./", "../")) or val in {".", ".."}:
             return str((CONFIG_DIR / val).resolve())
         return val
-    elif isinstance(val, dict):
+    if isinstance(val, dict):
         return {k: _make_paths_absolute(v) for k, v in val.items()}
-    elif isinstance(val, list):
+    if isinstance(val, list):
         return [_make_paths_absolute(item) for item in val]
     return val
 
