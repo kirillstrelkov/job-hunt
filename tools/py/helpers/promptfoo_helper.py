@@ -10,6 +10,8 @@ from typing import ClassVar
 import yaml
 from loguru import logger
 
+_MAX_GOOD_LATENCY_SEC = 60
+
 
 class PromptfooCsvCols:
     """CSV column headers for Promptfoo evaluation results."""
@@ -157,25 +159,34 @@ def convert_json_to_csv(results_json_path: Path, results_csv_path: Path) -> None
                 }
             )
 
-        fieldnames = PromptfooCsvCols.COLUMNS
-        with results_csv_path.open("w", newline="", encoding="utf-8") as f:
-            writer = csv.DictWriter(f, fieldnames=fieldnames)
-            writer.writeheader()
-            writer.writerows(records)
+        import pandas as pd
 
-        # Count passed / total per model
-        model_stats = {}
-        for r in records:
-            m = r[PromptfooCsvCols.PROVIDER_ID]
-            if m not in model_stats:
-                model_stats[m] = {"passed": 0, "total": 0}
-            model_stats[m]["total"] += 1
-            if r["Success"] == "PASS":
-                model_stats[m]["passed"] += 1
+        # Save to CSV using pandas
+        df = pd.DataFrame(records)[PromptfooCsvCols.COLUMNS]
+        df.to_csv(results_csv_path, index=False)
 
-        logger.info("=== Model Performance (Passed / Total) ===")
-        for m, stats in sorted(model_stats.items()):
-            logger.info(f"Model: {m:<30} | Passed: {stats['passed']}/{stats['total']}")
+        # Warn if latency is too big using df
+        slow_runs = df[df[PromptfooCsvCols.LATENCY] > _MAX_GOOD_LATENCY_SEC]
+        for _, row in slow_runs.iterrows():
+            logger.warning(
+                "Latency is too big {} for {}: {}",
+                row[PromptfooCsvCols.LATENCY],
+                row[PromptfooCsvCols.PROVIDER_ID],
+                row[PromptfooCsvCols.PROMPT_LABEL],
+            )
+
+        # Print Provider Performance using pandas DataFrame and grouping
+        perf_df = df.groupby(PromptfooCsvCols.PROVIDER_ID).agg(
+            Passed=(PromptfooCsvCols.PASSED, "sum"),
+            Failed=(PromptfooCsvCols.FAILED, "sum"),
+        )
+        perf_df = (
+            perf_df[[PromptfooCsvCols.PASSED, PromptfooCsvCols.FAILED]]
+            .reset_index()
+            .sort_values(by=PromptfooCsvCols.PASSED, ascending=False)
+        )
+
+        logger.info("Provider Performance (Passed / Failed):\n" + perf_df.to_string(index=False))
 
         logger.info(f"Successfully created: {results_csv_path}")
     except Exception as e:  # noqa: BLE001
