@@ -1,3 +1,5 @@
+import argparse
+import shutil
 import sys
 from pathlib import Path
 
@@ -21,8 +23,7 @@ RESULTS_CSV = RESULTS_JSON.with_suffix(".csv")
 NOTEBOOK_PATH = Path(__file__).resolve().parent / "result_analysis.ipynb"
 PROMPTS_DIR = Path(__file__).resolve().parent / "prompts"
 
-PROMPTFOO_CONFIG_TEMPLATE = (
-    """
+PROMPTFOO_CONFIG_TEMPLATE = """
 description: Evaluation of prepare_llm_prompt.py prompts
 commandLineOptions:
   maxConcurrency: 1
@@ -48,10 +49,8 @@ tests:
       - type: contains
         value: "Certified Kubernetes Application Developer, _Cloud Native Computing Foundation_ | Feb 2026"
       - type: contains
-"""
-    '        value: "**[University of Helsinki DevOps Labs: '
-    'Cloud-Native Microservices](https://github.com/kirillstrelkov/KubernetesSubmissions)** | 2026"\n'
-    """      - type: python
+        value: "**[University of Helsinki DevOps Labs: Cloud-Native Microservices](https://github.com/kirillstrelkov/KubernetesSubmissions)** | 2026"
+      - type: python
         value: len(output) > 4000
       - type: python
         value: len(output.splitlines()) > 70
@@ -73,7 +72,6 @@ tests:
         value: '{{expected}}'
         threshold: 0.3
 """
-)
 
 
 def generate_config(prompt_files: list[Path], gt_file: Path, output_file: Path) -> None:
@@ -86,11 +84,27 @@ def generate_config(prompt_files: list[Path], gt_file: Path, output_file: Path) 
     config = yaml.safe_load(template_text)
     config["prompts"] = [f"file://{pf.resolve()}" for pf in prompt_files]
 
-    models = get_model_names()
+    # models = get_model_names()
+    # restrict only to top models
+    models = [
+        "gemma4:12b-it-qat",
+        "gemma4:e2b",
+        "gemma4:e4b-it-qat",
+        "llama3.1:8b-text-q4_K_M",
+        "qwen3.5:4b-q8_0",
+        "qwen3.5:9b-q4_K_M",
+    ]
+
     option_sets = [
         {"num_ctx": 16384, "num_predict": -1, "temperature": 0.2},
+        {"num_ctx": 16384, "num_predict": -1, "temperature": 0.1},
+        {"num_ctx": 16384, "num_predict": -1, "temperature": 0.0},
         {"num_ctx": 12288, "num_predict": 8192, "temperature": 0.2},
+        {"num_ctx": 12288, "num_predict": 8192, "temperature": 0.1},
+        {"num_ctx": 12288, "num_predict": 8192, "temperature": 0.0},
+        {"num_ctx": 12288, "num_predict": 7168, "temperature": 0.2},
         {"num_ctx": 12288, "num_predict": 7168, "temperature": 0.1},
+        {"num_ctx": 12288, "num_predict": 7168, "temperature": 0.0},
     ]
 
     providers = []
@@ -135,7 +149,16 @@ def get_prompt_files(prompts_dir: Path, baseline_prompt_file: Path) -> list[Path
 
 
 def main():
+    parser = argparse.ArgumentParser(description="Run Promptfoo prompt evaluation")
+    parser.add_argument("--force", action="store_true", help="Remove evaluation temp directory before starting")
+    args = parser.parse_args()
+
     logger.info("Starting Promptfoo Prompt Evaluation")
+
+    if args.force:
+        if TMP_EVAL_DIR.exists():
+            logger.info(f"Removing temporary evaluation directory: {TMP_EVAL_DIR}")
+            shutil.rmtree(TMP_EVAL_DIR)
 
     TMP_EVAL_DIR.mkdir(parents=True, exist_ok=True)
 
