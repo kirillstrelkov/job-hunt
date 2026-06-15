@@ -3,14 +3,14 @@ model_default_options:
   num_predict: -1
   seed: 42
   keep_alive: 0
-  temperature: 0
+  temperature: 0.1
 
 top_models:
   - "gemma4:e2b"
-  - "gemma4:e2b-it-qat"
+  # - "gemma4:e2b-it-qat" # performs worse then e2b in eval_diff_prompts
   - "gemma4:e4b-it-qat"
-  - "qwen3.5:4b-q8_0"
-  - "llama3.1:8b-text-q4_K_M"
+  - "qwen3.5:4b-q8_0" # take more time but works
+  - "llama3.2:3b-instruct-q8_0"
 
 models:
   - name: "llama3.1:8b-text-q4_K_M"
@@ -21,12 +21,10 @@ models:
   - name: "mistral:7b-instruct-v0.3-q4_K_M"
   - name: "qwen3.5:9b-q4_K_M"
     options:
-      num_ctx: 8192
-      num_predict: -1
+      num_ctx: 12288
   - name: "gemma4:12b-it-qat"
     options:
-      num_ctx: 8192
-      num_predict: -1
+      num_ctx: 12288
   - name: "qwen3.5:4b-q8_0"
   - name: "llama3.1:8b-instruct-q6_K"
   - name: "gemma2:9b-instruct-q5_K_M"

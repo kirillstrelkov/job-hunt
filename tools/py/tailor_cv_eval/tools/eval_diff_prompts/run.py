@@ -11,7 +11,7 @@ sys.path.append(str(Path(__file__).resolve().parents[2]))
 sys.path.append(str(Path(__file__).resolve().parents[3]))
 from helpers.config import DEFAULT_CONFIG  # noqa: E402
 from helpers.notebook import run_jupyter_notebook  # noqa: E402
-from helpers.ollama_helper import get_eval_model, get_model_names, get_model_options  # noqa: E402
+from helpers.ollama_helper import get_eval_model, get_model_names, get_model_options, check_if_file_fits_into_ctx_num  # noqa: E402
 from helpers.promptfoo_helper import PromptfooCsvCols, convert_json_to_csv, run_promptfoo_eval, write_yaml_config  # noqa: E402
 from helpers.tmp_helper import get_root_dir, get_tmp_folder, get_tmp_output_dir  # noqa: E402
 
@@ -42,8 +42,7 @@ tests:
           - PART 3"
           - "Additional Options"
       - type: regex
-        value: |
-          (?s)Work Experience.*Projects.*Courses and Certificates
+        value: "Work Experience.*Projects.*Courses and Certificates"
       - type: contains
         value: "**Software Engineer** | _CARIAD SE, Berlin, Germany_ | Oct 2023 - Aug 2025"
       - type: contains
@@ -84,27 +83,13 @@ def generate_config(prompt_files: list[Path], gt_file: Path, output_file: Path) 
     config = yaml.safe_load(template_text)
     config["prompts"] = [f"file://{pf.resolve()}" for pf in prompt_files]
 
-    # models = get_model_names()
-    # restrict only to top models
-    models = [
-        "gemma4:12b-it-qat",
-        "gemma4:e2b",
-        "gemma4:e4b-it-qat",
-        "llama3.1:8b-text-q4_K_M",
-        "qwen3.5:4b-q8_0",
-        "qwen3.5:9b-q4_K_M",
-    ]
+    models = DEFAULT_CONFIG.get_config_value(".top_models")
+    models_str = "\n".join(models)
+    logger.debug(f"Using {len(models)} models:\n{models_str}")
 
     option_sets = [
-        {"num_ctx": 16384, "num_predict": -1, "temperature": 0.2},
         {"num_ctx": 16384, "num_predict": -1, "temperature": 0.1},
         {"num_ctx": 16384, "num_predict": -1, "temperature": 0.0},
-        {"num_ctx": 12288, "num_predict": 8192, "temperature": 0.2},
-        {"num_ctx": 12288, "num_predict": 8192, "temperature": 0.1},
-        {"num_ctx": 12288, "num_predict": 8192, "temperature": 0.0},
-        {"num_ctx": 12288, "num_predict": 7168, "temperature": 0.2},
-        {"num_ctx": 12288, "num_predict": 7168, "temperature": 0.1},
-        {"num_ctx": 12288, "num_predict": 7168, "temperature": 0.0},
     ]
 
     providers = []
@@ -113,7 +98,8 @@ def generate_config(prompt_files: list[Path], gt_file: Path, output_file: Path) 
         for opts in option_sets:
             cfg = base_options.copy()
             cfg.update(opts)
-            label = f"{model} (ctx={opts['num_ctx']}, pred={opts['num_predict']}, temp={opts['temperature']})"
+            ctx_num = cfg["num_ctx"]
+            label = f"{model} (ctx={ctx_num}, pred={cfg['num_predict']}, temp={cfg['temperature']})"
             providers.append(
                 {
                     "id": f"ollama:chat:{model}",
@@ -121,6 +107,11 @@ def generate_config(prompt_files: list[Path], gt_file: Path, output_file: Path) 
                     "config": cfg,
                 }
             )
+
+            for prompt_file in prompt_files:
+                if not check_if_file_fits_into_ctx_num(prompt_file, ctx_num):
+                    raise ValueError(f"File {prompt_file} does not fit into context window of {ctx_num} tokens.")
+
     config["providers"] = providers
 
     write_yaml_config(config, output_file)
@@ -145,12 +136,15 @@ def get_prompt_files(prompts_dir: Path, baseline_prompt_file: Path) -> list[Path
         logger.error(f"Add your prompts to {prompts_dir}")
         sys.exit(1)
 
+    prompt_files.append(baseline_prompt_file)
+
     return prompt_files
 
 
 def main():
     parser = argparse.ArgumentParser(description="Run Promptfoo prompt evaluation")
     parser.add_argument("--force", action="store_true", help="Remove evaluation temp directory before starting")
+    parser.add_argument("--gt-only", action="store_true", help="Use only the baseline ground truth prompt file")
     args = parser.parse_args()
 
     logger.info("Starting Promptfoo Prompt Evaluation")
@@ -167,7 +161,13 @@ def main():
     job = DEFAULT_CONFIG.get_jobs()[0]
     baseline_prompt_file = job.llm_prompt_path
 
-    prompt_files = get_prompt_files(PROMPTS_DIR, baseline_prompt_file)
+    if args.gt_only:
+        if not baseline_prompt_file.exists():
+            logger.error(f"Baseline prompt file not found: {baseline_prompt_file}")
+            sys.exit(1)
+        prompt_files = [baseline_prompt_file]
+    else:
+        prompt_files = get_prompt_files(PROMPTS_DIR, baseline_prompt_file)
 
     logger.info(f"Evaluating {len(prompt_files)} prompts:")
     for pf in prompt_files:

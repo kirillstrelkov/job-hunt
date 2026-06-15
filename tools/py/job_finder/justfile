@@ -22,6 +22,7 @@ test:
 
 # Run linter and formatting checks
 lint:
+    uv run ruff format
     uv run ruff check --fix
     uv run ruff check
 
@@ -32,4 +33,3 @@ eval-prompts:
 # View Promptfoo prompt evaluation dashboard
 view-promptfoo:
     npx promptfoo view
-

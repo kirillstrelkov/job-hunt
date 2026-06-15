@@ -16,6 +16,15 @@ from helpers.config import DEFAULT_CONFIG, ConfigManager
 MIN_EVAL_TIME = 0.001
 
 
+def check_if_file_fits_into_ctx_num(path: str | Path, ctx_num: int) -> bool:
+    tokens = len(Path(path).read_text()) // 4
+    if tokens > ctx_num:
+        logger.error(f"The file {path} has {tokens} tokens, which is less than the context window of {ctx_num} tokens.")
+        return False
+
+    return True
+
+
 @lru_cache
 def __get_ollama_models() -> list[str]:
     return [m.model for m in ollama.list().models]

@@ -142,6 +142,11 @@ def convert_json_to_csv(results_json_path: Path, results_csv_path: Path) -> None
                 if isinstance(fail_reason, str):
                     fail_reason = fail_reason.strip().replace("\n", " ")
 
+            if prompt_tokens + completion_tokens > total_tokens:
+                logger.warning(
+                    f"Prompt tokens {prompt_tokens} + completion tokens {completion_tokens} > total tokens {total_tokens} for {model}."
+                )
+
             records.append(
                 {
                     PromptfooCsvCols.PROVIDER_ID: model,
