@@ -11,7 +11,12 @@ sys.path.append(str(Path(__file__).resolve().parents[2]))
 sys.path.append(str(Path(__file__).resolve().parents[3]))
 from helpers.config import DEFAULT_CONFIG  # noqa: E402
 from helpers.notebook import run_jupyter_notebook  # noqa: E402
-from helpers.ollama_helper import get_eval_model, get_model_names, get_model_options, check_if_file_fits_into_ctx_num  # noqa: E402
+from helpers.ollama_helper import (
+    get_top_model_names,
+    get_eval_model,
+    get_model_options,
+    check_if_file_fits_into_ctx_num,
+)  # noqa: E402
 from helpers.promptfoo_helper import PromptfooCsvCols, convert_json_to_csv, run_promptfoo_eval, write_yaml_config  # noqa: E402
 from helpers.tmp_helper import get_root_dir, get_tmp_folder, get_tmp_output_dir  # noqa: E402
 
@@ -83,7 +88,7 @@ def generate_config(prompt_files: list[Path], gt_file: Path, output_file: Path) 
     config = yaml.safe_load(template_text)
     config["prompts"] = [f"file://{pf.resolve()}" for pf in prompt_files]
 
-    models = DEFAULT_CONFIG.get_config_value(".top_models")
+    models = get_top_model_names()
     models_str = "\n".join(models)
     logger.debug(f"Using {len(models)} models:\n{models_str}")
 

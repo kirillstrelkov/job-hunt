@@ -10,7 +10,7 @@ top_models:
   # - "gemma4:e2b-it-qat" # performs worse then e2b in eval_diff_prompts
   - "gemma4:e4b-it-qat"
   - "qwen3.5:4b-q8_0" # take more time but works
-  - "llama3.2:3b-instruct-q8_0"
+  # - "llama3.2:3b-instruct-q8_0" # too few output tokens
 
 models:
   - name: "llama3.1:8b-text-q4_K_M"

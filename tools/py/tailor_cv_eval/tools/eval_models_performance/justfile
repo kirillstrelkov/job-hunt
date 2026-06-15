@@ -1,3 +1,6 @@
+default:
+    @just -l
+
 # Run a single model against the prompt file
 run model="":
     uv run python {{ justfile_directory() }}/run_single_model.py {{ if model == "" { "" } else { "--model " + model } }}
@@ -6,5 +9,6 @@ run model="":
 run-all:
     uv run python {{ justfile_directory() }}/run_all_models.py
 
+# Convert result analysis notebook to HTML
 convert2html:
     uvx jupyter nbconvert ./result_analysis.ipynb --to html --output ./result_analysis.html --

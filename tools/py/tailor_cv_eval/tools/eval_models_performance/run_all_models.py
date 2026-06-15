@@ -15,9 +15,10 @@ from helpers.config import (  # noqa: E402
     DEFAULT_CONFIG,
     ConfigManager,
 )
+from helpers.notebook import run_jupyter_notebook
 from helpers.config_generator import create_config  # noqa: E402
 from helpers.df_helper import ModelStatsCols  # noqa: E402
-from helpers.ollama_helper import get_model_names, run_model  # noqa: E402
+from helpers.ollama_helper import get_top_model_names, run_model  # noqa: E402
 from helpers.tmp_helper import get_llm_prompt_for_job, get_tmp_input_folder, get_tmp_output_folder  # noqa: E402
 
 RESULTS_DIR = get_tmp_output_folder(__file__)
@@ -123,14 +124,13 @@ def run_evaluation_for_config(config_path: Path, run_name: str | None = None):
 
 
 def generate_run_configs() -> list[tuple[Path, str]]:
-    # fixt to just one model for testing
-    models = [name for name in get_model_names() if name == "gemma4:e2b-it-qat"]
+    models = get_top_model_names()
     active_count = len(models)
     logger.info(f"Number of models to be used: {active_count} ({', '.join(models)})")
 
-    temperatures = [0.0, 0.1, 0.2, 0.3, 0.4, 1.0]
-    num_ctx_values = list(range(4096, 16384 + 1, 2048))
-    num_predict_values = [-2, -1] + list(range(1024, 8192 + 1, 1024))
+    temperatures = [0.0, 0.1]
+    num_ctx_values = [16384]
+    num_predict_values = [-1]
 
     runs_data = []
     for temp in temperatures:
@@ -184,6 +184,8 @@ def main():
 
     for config_path, run_name in tqdm(configs_to_run, desc="Evaluating configurations"):
         run_evaluation_for_config(config_path, run_name)
+
+    run_jupyter_notebook(Path(__file__).parent / "result_analysis.ipynb")
 
 
 if __name__ == "__main__":

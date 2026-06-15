@@ -41,6 +41,13 @@ def __check_models_in_ollama(models: list[str]) -> None:
             raise ValueError(msg)
 
 
+def get_top_model_names(config_manager: ConfigManager = DEFAULT_CONFIG) -> list[str]:
+    """Get top model names."""
+    models = config_manager.get_config_value(".top_models")
+    __check_models_in_ollama(models)
+    return models
+
+
 def get_model_names(config_manager: ConfigManager = DEFAULT_CONFIG) -> list[str]:
     """Get all configured model names."""
     models_list = config_manager.get_config_value(".models")
