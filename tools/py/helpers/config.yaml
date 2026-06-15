@@ -1,9 +1,16 @@
 model_default_options:
   num_ctx: 16384
-  num_predict: 3072
+  num_predict: -1
   seed: 42
   keep_alive: 0
   temperature: 0
+
+top_models:
+  - "gemma4:e2b"
+  - "gemma4:e2b-it-qat"
+  - "gemma4:e4b-it-qat"
+  - "qwen3.5:4b-q8_0"
+  - "llama3.1:8b-text-q4_K_M"
 
 models:
   - name: "llama3.1:8b-text-q4_K_M"
@@ -13,7 +20,13 @@ models:
   - name: "qwen2.5:7b-instruct-q4_K_M"
   - name: "mistral:7b-instruct-v0.3-q4_K_M"
   - name: "qwen3.5:9b-q4_K_M"
+    options:
+      num_ctx: 8192
+      num_predict: -1
   - name: "gemma4:12b-it-qat"
+    options:
+      num_ctx: 8192
+      num_predict: -1
   - name: "qwen3.5:4b-q8_0"
   - name: "llama3.1:8b-instruct-q6_K"
   - name: "gemma2:9b-instruct-q5_K_M"
@@ -26,7 +39,7 @@ models:
   - name: "codegemma:7b-code"
   - name: "deepseek-r1:1.5b"
 
-eval_model: "gemma4:e2b-it-qat"
+eval_model: "gemma4:e2b"
 root_dir: "../../.."
 tmp_output_dir: "{root_dir}/tmp/outputs"
 tmp_input_dir: "{root_dir}/tmp/inputs"
