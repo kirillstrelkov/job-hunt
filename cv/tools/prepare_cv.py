@@ -4,21 +4,21 @@ from pathlib import Path
 
 from loguru import logger
 
+from cfg import DEFAULT_CONFIG
 
-def prepare_cv(
-    folder: str, tailored_cv_body: str | None, llm_prompt: bool = False
-) -> None:
+
+def prepare_cv(folder: str, tailored_cv_body: str | None, llm_prompt: bool = False) -> None:
     folder_path = Path(folder)
+    if not folder_path.exists():
+        raise FileNotFoundError(f"{folder_path} not found")
 
     # inputs
     body = folder_path / "body.md"
 
-    cur_dir = Path(__file__).parent
-    header = cur_dir / ".." / "private/parts/header.md"
-    footer = cur_dir / ".." / "private/parts/footer.md"
-    tailor_for_desc = cur_dir / ".." / "prompts/tailor_for_description.md"
-    tailor_for_title = cur_dir / ".." / "prompts/tailor_for_title.md"
-    mastercv = cur_dir / ".." / "private/parts/body.md"
+    header = DEFAULT_CONFIG.header
+    footer = DEFAULT_CONFIG.footer
+    mastercv = DEFAULT_CONFIG.body
+    tailor_for_desc = DEFAULT_CONFIG.prompt
     jd = folder_path / "jd.txt"
 
     paths_to_check = [
@@ -76,9 +76,7 @@ def prepare_cv(
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Assemble CV from header, body and footer."
-    )
+    parser = argparse.ArgumentParser(description="Assemble CV from header, body and footer.")
     parser.add_argument("folder", help="Path to the CV folder containing body.md")
     parser.add_argument(
         "--tailored-cv-body",
@@ -94,5 +92,4 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-    print(args)
     prepare_cv(args.folder, args.tailored_cv_body, args.llm_prompt)

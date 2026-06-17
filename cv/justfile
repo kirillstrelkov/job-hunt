@@ -48,7 +48,7 @@ gui:
 
 mastercv-pdf:
     tools/.venv/bin/python tools/process_cv.py --fix {{ mastercv }}
-    pandoc -V papersize=a4 -V geometry:margin=1.5cm {{ mastercv }} -o ./tmp/master_cv.pdf
+    @just md2pdf "{{ mastercv }}" "./tmp/master_cv.pdf"
 
 prepare-cv folder:
     # flow:
@@ -60,8 +60,7 @@ prepare-cv folder:
     # ask llm for description
 
     tools/.venv/bin/python tools/prepare_cv.py {{ folder }} --tailored-cv-body "{{ folder }}/body.md"
-    tools/.venv/bin/python tools/process_cv.py --fix "{{ folder }}/gen/cv.md"
-    pandoc -V papersize=a4 -V geometry:margin=1.5cm "{{ folder }}/gen/cv.md" -o "{{ folder }}/gen/cvStrelkov.pdf"
+    @just update-pdf {{ folder }}
 
 prepare-llm folder:
     tools/.venv/bin/python tools/prepare_cv.py --llm-prompt {{ folder }}
@@ -77,3 +76,16 @@ prepare-llm-for-titles:
     # @read -p "Press Enter when done... "
 
     tools/.venv/bin/python tools/create_cv_from_titles.py --folder ./tmp/llm_titles
+
+update-pdf folder:
+    @just md2pdf "{{ folder }}/gen/cv.md" "{{ folder }}/gen/cv.pdf"
+
+md2pdf input output:
+    tools/.venv/bin/python tools/process_cv.py --check --fix "{{ input }}"
+    pandoc -V papersize=a4 -V geometry:margin=1.5cm "{{ input }}" -o "{{ output }}"
+
+auto-tailor-cv folder:
+    @just prepare-llm {{ folder }}
+    tools/.venv/bin/python tools/tailor_cv_body.py --prompt-file "{{ folder }}/gen/llm_prompt.txt" --output "{{ folder }}/body.md"
+    tools/.venv/bin/python tools/prepare_cv.py {{ folder }} --tailored-cv-body "{{ folder }}/body.md"
+    @just md2pdf "{{ folder }}/gen/cv.md" "{{ folder }}/gen/cv.pdf"

@@ -5,6 +5,7 @@ import re
 import sys
 from dataclasses import dataclass
 from typing import List, Optional
+from datetime import datetime
 
 from loguru import logger
 
@@ -37,6 +38,7 @@ RE_LAST_PIPE_REPLACE = re.compile(r"\|([^|]*)$")
 RE_TRAILING_DOT = re.compile(r"\.(\s*)$")
 
 MONTHS_TO_SHORT_RE = {re.compile(rf"\b{full_m}\b"): short_m for full_m, short_m in MONTHS_TO_SHORT.items()}
+_CUR_YEAR = datetime.now().year
 
 
 @dataclass
@@ -95,6 +97,9 @@ def split_into_sections(filepath: str) -> list[Section]:
 
 
 def get_sort_key(date_str):
+    if date_str.endswith("..."):
+        return (_CUR_YEAR, 1)
+
     month_names = [
         "Jan",
         "Feb",
@@ -118,7 +123,7 @@ def get_sort_key(date_str):
     if not matches:
         return (0, 0)
 
-    m_str, y_str = matches[0]
+    m_str, y_str = matches[-1]
     year = int(y_str)
     month = month_map.get(m_str, 1) if m_str else 1
 
@@ -127,6 +132,34 @@ def get_sort_key(date_str):
 
 def do_check(sections: list[Section]) -> list[Error]:
     errors = []
+
+    def check_chronological(line_and_dates: list, section: Section, double_error: bool = False) -> None:
+        for i in range(len(line_and_dates) - 1):
+            line1_obj, (key1, date_str1, line_str1) = line_and_dates[i]
+            line2_obj, (key2, date_str2, line_str2) = line_and_dates[i + 1]
+            if key1 < key2:
+                errors.append(
+                    Error(
+                        msg=f"Chronological order broken in {section.name}: '{line_str1}' is before '{line_str2}'",
+                        filepath=section.filepath,
+                        line_num=line1_obj.number,
+                        line=line1_obj.raw_line,
+                    )
+                )
+                if double_error:
+                    errors.append(
+                        Error(
+                            msg=f"Chronological order broken in {section.name}: '{line_str2}' is after '{line_str1}'",
+                            filepath=section.filepath,
+                            line_num=line2_obj.number,
+                            line=line2_obj.raw_line,
+                        )
+                    )
+
+    def add_entry(lst: list, line_obj: Line, date_str: str, line_str: str) -> None:
+        skey = get_sort_key(date_str)
+        lst.append((line_obj, (skey, date_str, line_str)))
+
     for section in sections:
         heading_title = section.name.lower()
 
@@ -146,25 +179,9 @@ def do_check(sections: list[Section]) -> list[Error]:
                         )
                     else:
                         date_str = RE_PIPE_SPLIT.split(line_str)[-1].strip()
-                        line_and_dates.append(
-                            (
-                                line_obj,
-                                (get_sort_key(date_str), date_str, line_str),
-                            )
-                        )
+                        add_entry(line_and_dates, line_obj, date_str, line_str)
 
-            for i in range(len(line_and_dates) - 1):
-                line1_obj, dates1 = line_and_dates[i]
-                line2_obj, dates2 = line_and_dates[i + 1]
-                if dates1[0] < dates2[0] or (dates1[0] == dates2[0] and dates1[1] < dates2[1]):
-                    errors.append(
-                        Error(
-                            msg=f"Chronological order broken in {section.name}: '{dates1[2]}' is before '{dates2[2]}'",
-                            filepath=section.filepath,
-                            line_num=line1_obj.number,
-                            line=line1_obj.raw_line,
-                        )
-                    )
+            check_chronological(line_and_dates, section)
 
         elif "courses and certificates" in heading_title:
             line_and_dates = []
@@ -188,23 +205,12 @@ def do_check(sections: list[Section]) -> list[Error]:
                         else:
                             match = RE_COURSE_DATE.search(line_str)
                             date_str = match.group(1) if match else line_str
-                        line_and_dates.append((line_obj, (get_sort_key(date_str), date_str, line_str)))
+                        add_entry(line_and_dates, line_obj, date_str, line_str)
                     else:
                         date_str = RE_PIPE_SPLIT.split(line_str)[-1].strip()
-                        line_and_dates.append((line_obj, (get_sort_key(date_str), date_str, line_str)))
+                        add_entry(line_and_dates, line_obj, date_str, line_str)
 
-            for i in range(len(line_and_dates) - 1):
-                line1_obj, dates1 = line_and_dates[i]
-                line2_obj, dates2 = line_and_dates[i + 1]
-                if dates1[0] < dates2[0] or (dates1[0] == dates2[0] and dates1[1] < dates2[1]):
-                    errors.append(
-                        Error(
-                            msg=f"Chronological order broken in {section.name}: '{dates1[2]}' is before '{dates2[2]}'",
-                            filepath=section.filepath,
-                            line_num=line1_obj.number,
-                            line=line1_obj.raw_line,
-                        )
-                    )
+            check_chronological(line_and_dates, section)
 
         elif "personal projects" in heading_title:
             line_and_dates = []
@@ -212,28 +218,25 @@ def do_check(sections: list[Section]) -> list[Error]:
                 line_str = line_obj.raw_line.strip()
                 if line_str.startswith("**["):
                     date_str = RE_PIPE_SPLIT.split(line_str)[-1].strip()
-                    line_and_dates.append((line_obj, (get_sort_key(date_str), date_str, line_str)))
+                    add_entry(line_and_dates, line_obj, date_str, line_str)
 
-            for i in range(len(line_and_dates) - 1):
-                line1_obj, dates1 = line_and_dates[i]
-                line2_obj, dates2 = line_and_dates[i + 1]
-                if dates1[0] < dates2[0] or (dates1[1] < dates2[1]):
-                    errors.append(
-                        Error(
-                            msg=f"Chronological order broken in {section.name}: '{dates1[2]}' is before '{dates2[2]}'",
-                            filepath=section.filepath,
-                            line_num=line1_obj.number,
-                            line=line1_obj.raw_line,
-                        )
-                    )
-                    errors.append(
-                        Error(
-                            msg=f"Chronological order broken in {section.name}: '{dates2[2]}' is after '{dates1[2]}'",
-                            filepath=section.filepath,
-                            line_num=line2_obj.number,
-                            line=line2_obj.raw_line,
-                        )
-                    )
+            check_chronological(line_and_dates, section, double_error=True)
+
+    filepath = sections[0].filepath if sections else ""
+    section_names = [s.name.lower() for s in sections if s.name]
+    required_headers = ["work experience", "personal projects", "courses and certificates"]
+
+    for req in required_headers:
+        if not any(req in name for name in section_names):
+            msg_name = req.title() if req != "courses and certificates" else "Courses and Certificates"
+            errors.append(
+                Error(
+                    msg=f"Missing '{msg_name}' section in headers",
+                    filepath=filepath,
+                    line_num=1,
+                    line="",
+                )
+            )
 
     return errors
 

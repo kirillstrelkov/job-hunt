@@ -4,11 +4,37 @@
 from __future__ import annotations
 
 import argparse
+from dataclasses import dataclass
 import sys
 from pathlib import Path
 
 import yaml
 from loguru import logger
+
+
+@dataclass
+class Config:
+    header: Path
+    body: Path
+    footer: Path
+    prompt: Path
+
+
+def load_config(path: Path = Path(__file__).resolve().parent.parent / "tmp/config.yml") -> Config:
+    """Load config from YAML file and verify all paths exist."""
+    data = load(path)
+    config = Config(
+        header=Path(data["header"]),
+        body=Path(data["body"]),
+        footer=Path(data["footer"]),
+        prompt=Path(data["prompt"]),
+    )
+    for p in (config.header, config.body, config.footer, config.prompt):
+        if not p.is_file():
+            raise FileNotFoundError(f"Configured file path does not exist: {p}")
+    return config
+
+
 
 
 def load(config_path: str | Path) -> dict[str, str]:
@@ -49,6 +75,9 @@ def load(config_path: str | Path) -> dict[str, str]:
         resolved[key] = str(resolved_path)
 
     return resolved
+
+
+DEFAULT_CONFIG = load_config()
 
 
 def create_default_config(dest_path: Path) -> None:
