@@ -42,12 +42,12 @@ tests:
         value: "PART 1"
       - type: contains
         value: "PART 2"
-      - type: contains-any
+      - type: icontains-any
         value:
-          - PART 3"
-          - "Additional Options"
-      - type: regex
-        value: "Work Experience.*Projects.*Courses and Certificates"
+          - "PART 3"
+          - "ADDITIONAL OPTIONS"
+      - type: javascript
+        value: /Work Experience.*Projects.*Courses and Certificates/is.test(output)
       - type: contains
         value: "**Software Engineer** | _CARIAD SE, Berlin, Germany_ | Oct 2023 - Aug 2025"
       - type: contains
@@ -61,7 +61,10 @@ tests:
       - type: similar
         value: '{{expected}}'
         threshold: 0.7
-        provider: ollama:embeddings:{{EVAL_MODEL}} # Dynamically resolved evaluation model for embeddings
+        provider: 
+          id: ollama:embeddings:qwen3-embedding:0.6b
+          config:
+            num_ctx: 32768
       - type: llm-rubric
         value: |
           Compare the actual output to the expected output: {{expected}}.
@@ -75,6 +78,9 @@ tests:
       - type: rouge-n
         value: '{{expected}}'
         threshold: 0.3
+      - type: factuality
+        value: '{{expected}}'
+        provider: ollama:chat:{{EVAL_MODEL}} # Dynamically resolved evaluation model for grading
 """
 
 
@@ -94,7 +100,7 @@ def generate_config(prompt_files: list[Path], gt_file: Path, output_file: Path) 
 
     option_sets = [
         {"num_ctx": 16384, "num_predict": -1, "temperature": 0.1},
-        {"num_ctx": 16384, "num_predict": -1, "temperature": 0.0},
+        {"num_ctx": 32768, "num_predict": -1, "temperature": 0.1},
     ]
 
     providers = []
