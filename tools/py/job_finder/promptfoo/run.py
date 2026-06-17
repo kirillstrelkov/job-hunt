@@ -11,11 +11,11 @@ sys.path.append(str(PRJ_ROOT_DIR.parent))
 from reviewer.llm import CV_PROMPT, JD_PROMPT, SYSTEM_PROMPT_CANDIDATE  # noqa: E402
 
 from helpers.notebook import run_jupyter_notebook  # noqa: E402
-from helpers.ollama_helper import get_model_names, get_model_options  # noqa: E402
+from helpers.ollama_helper import get_top_model_names, get_model_options  # noqa: E402
 from helpers.promptfoo_helper import convert_json_to_csv, run_promptfoo_eval, write_yaml_config  # noqa: E402
-from helpers.tmp_helper import get_tmp_folder  # noqa: E402
+from helpers.tmp_helper import get_root_dir, get_tmp_folder  # noqa: E402
 
-MODELS = get_model_names()
+MODELS = get_top_model_names()
 
 
 def generate_config(models: list[str], tests: list[dict], output_file: Path) -> None:
@@ -85,19 +85,19 @@ def generate_prompts_and_test_cases(cv_text: str, jd_files: list[Path], tmp_dir:
         # Save prompt under tmp/promptfoo/
         prompt_out_file = tmp_dir / f"{jd_file.stem}_prompt.txt"
         prompt_out_file.write_text(combined_prompt, encoding="utf-8")
-        logger.info(f"Generated prompt for {jd_file.name} at {prompt_out_file.relative_to(PRJ_ROOT_DIR)}")
+        logger.info(f"Generated prompt for {jd_file.name} at {prompt_out_file}")
 
         # Fetch assertions metadata
         meta = test_metadata.get(jd_file.name, {"min_match": 0})
 
-        # Build test case
+        assert_path = (PRJ_ROOT_DIR / "promptfoo" / "assert_llm.py").resolve()
         tests.append(
             {
                 "vars": {
                     "prompt_content": f"file://{jd_file.stem}_prompt.txt",
                     "min_match": meta["min_match"],
                 },
-                "assert": [{"type": "python", "value": "file://../../promptfoo/assert_llm.py"}],
+                "assert": [{"type": "python", "value": f"file://{assert_path}"}],
             }
         )
 
@@ -118,8 +118,7 @@ def main() -> None:
     skip_eval = results_json_path.exists()
     if skip_eval:
         logger.warning(
-            f"Evaluation results JSON already exists at {results_json_path.relative_to(PRJ_ROOT_DIR)}. "
-            "Skipping Promptfoo evaluation step."
+            f"Evaluation results JSON already exists at {results_json_path}. Skipping Promptfoo evaluation step."
         )
 
     tmp_dir.mkdir(parents=True, exist_ok=True)
@@ -129,7 +128,7 @@ def main() -> None:
 
     config_file = tmp_dir / "promptfoo_config.yaml"
     generate_config(MODELS, tests, config_file)
-    logger.info(f"Generated promptfoo_config.yaml config at {config_file.relative_to(PRJ_ROOT_DIR)}")
+    logger.info(f"Generated promptfoo_config.yaml config at {config_file}")
 
     if not skip_eval:
         run_promptfoo_eval(config_file, results_json_path)
