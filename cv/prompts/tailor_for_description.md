@@ -110,8 +110,8 @@ Briefly explain the strategic decisions you made:
 Provide highly relevant overflow content that was cut due to strict length limits:
 
 - **Work Experience:** Provide 2 additional strong bullet points for the most recent/relevant roles that didn't make the top 5 cut but contain strong ATS keyword matches.
-- **Courses & Certificates:** List 2 to 3 additional relevant courses/certificates that were omitted.
-- **Projects:** Mention 1 additional relevant project with a single-line summary.
+- **Courses & Certificates:** List 3 to 5 additional relevant courses/certificates that were omitted.
+- **Projects:** Mention 1-2 additional relevant project with a single-line summary.
 
 ## MERGING EXAMPLE (HOW YOU MUST WRITE)
 

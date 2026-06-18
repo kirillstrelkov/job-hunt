@@ -46,6 +46,17 @@ tests:
         value:
           - "PART 3"
           - "ADDITIONAL OPTIONS"
+      - type: icontains-all
+        value:
+          - "CARIAD SE"
+          - "Argo AI GmbH"
+          - "Airbus Operations GmbH"
+          - "ESR Labs AG"
+          - "HERE Deutschland GmbH"
+          - "Helpling GmbH"
+          - "Satprof"
+          - "Betsson Group"
+          - "Ixonos Estonia OÜ"
       - type: not-icontains-all
         value:
           - "Spearhead"
