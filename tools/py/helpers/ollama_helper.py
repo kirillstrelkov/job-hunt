@@ -188,6 +188,7 @@ def run_model(model: str, prompt_content: str, options: dict | None = None) -> d
         logger.debug(f"Max VRAM / Model size: {gpu_info}")
     else:
         logger.warning("No snapshots captured. The prompt completed too fast or the model layout wasn't visible.")
+    logger.debug(f"Time for generation: {elapsed:.2f} s")
 
     response = res.get("response", "")
     total_duration = (res.get("total_duration") or 0) / 1e9
