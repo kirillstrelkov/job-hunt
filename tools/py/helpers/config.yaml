@@ -4,7 +4,7 @@ model_default_options:
   seed: 42
   keep_alive: 0
   temperature: 0.1
-  repeat_penalty: 1.05
+  repeat_penalty: 1.1
 
 top_models:
   - "gemma4:e2b"
