@@ -241,12 +241,32 @@ def do_check(sections: list[Section]) -> list[Error]:
     return errors
 
 
+def _fix_skills_section(section: Section) -> None:
+    if section.name.lower() != "skills":
+        return
+
+    new_lines = []
+    for line_obj in section.lines:
+        line_str = line_obj.raw_line
+        # fix markdown new flie with 2 spaces at the end
+        if (line_str.startswith("**") or ":" in line_str) and not line_str.endswith("  "):
+            line_obj.raw_line = line_str.rstrip() + "  "
+
+        new_lines.append(line_obj)
+
+    section.lines = new_lines
+
+
 def do_fix(sections: list[Section], keep_thesis: bool = True) -> list[Section]:
     if not keep_thesis:
         logger.warning("Thesis will be removed")
 
     for section in sections:
         heading_title = section.name.lower()
+        if heading_title == "skills":
+            _fix_skills_section(section)
+            continue
+
         filtered_lines = []
         for line_obj in section.lines:
             if not keep_thesis and line_obj.raw_line.strip().startswith("- Thesis"):
