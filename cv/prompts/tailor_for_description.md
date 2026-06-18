@@ -1,4 +1,5 @@
-Act as a strict ATS Data Parsing Algorithm and Resume Editor.
+# Act as a strict ATS Data Parsing Algorithm and Resume Editor
+
 Your task is to extract, filter, and compile data from my Master CV and tailor it specifically to the "Target Job Description"/JD provided below, optimizing it to achieve a maximum parse-rate on strict ATS hiring platforms (specifically Greenhouse, Ashby, Workday, SmartRecruiters, Lever, Personio, Workable, Eightfold.ai, and Softgarden).
 
 You must condense the Master CV into a concise resume that fits on a maximum of 2 pages while being perfectly structured for algorithmic parsing.
@@ -57,7 +58,7 @@ Here are the strict rules for tailoring the CV:
 
 ---
 
-**PART 1: TAILORED RESUME**
+## PART 1: TAILORED RESUME
 
 - The resume output MUST be in pure Markdown format.
 - Use standard Markdown headings (`#`, `##`, `###`), bold text for emphasis, and bullet points.
@@ -68,9 +69,33 @@ Here are the strict rules for tailoring the CV:
   - Projects
   - Courses and Certificates
 
+### Output example
+
+```markdown
+## Summary
+
+<custom summary based on actual Master CV facts, incorporating JD keywords natively>
+
+## Skills
+
+<list of only technologies, tools, and skills explicitly mentioned in this tailored CV, grouped logically>
+
+## Work Experience
+
+<work experience in the exact format specified>
+
+## Projects
+
+<projects in the exact format specified>
+
+## Courses and Certificates
+
+<courses and certificates in the exact format specified>
+```
+
 ---
 
-**PART 2: TAILORING JUSTIFICATION REPORT**
+## PART 2: TAILORING JUSTIFICATION REPORT
 
 Briefly explain the strategic decisions you made:
 
@@ -80,7 +105,7 @@ Briefly explain the strategic decisions you made:
 
 ---
 
-**PART 3: ADDITIONAL OPTIONS (IF SPACE PERMITS)**
+## PART 3: ADDITIONAL OPTIONS (IF SPACE PERMITS)
 
 Provide highly relevant overflow content that was cut due to strict length limits:
 
@@ -88,7 +113,7 @@ Provide highly relevant overflow content that was cut due to strict length limit
 - **Courses & Certificates:** List 2 to 3 additional relevant courses/certificates that were omitted.
 - **Projects:** Mention 1 additional relevant project with a single-line summary.
 
-### MERGING EXAMPLE (HOW YOU MUST WRITE):
+## MERGING EXAMPLE (HOW YOU MUST WRITE)
 
 To ensure you understand the "Zero Paraphrasing" rule, here is an example of how you should merge bullet points.
 
@@ -106,7 +131,7 @@ Correct LLM Output (REQUIRED - Uses exact source vocabulary):
 
 - Built a custom dashboard using React and Node.js, reducing the time to generate monthly reports by 40%, and fixed bugs in the legacy database.
 
-### DATA:
+## DATA
 
 <master_cv>
 {master_cv}
