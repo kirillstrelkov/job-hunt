@@ -46,6 +46,11 @@ tests:
         value:
           - "PART 3"
           - "ADDITIONAL OPTIONS"
+      - type: not-icontains-all
+        value:
+          - "Spearhead"
+          - "Streamline"
+          - "Adept"
       - type: javascript
         value: /Work Experience.*Projects.*Courses and Certificates/is.test(output)
       - type: contains
@@ -98,30 +103,22 @@ def generate_config(prompt_files: list[Path], gt_file: Path, output_file: Path) 
     models_str = "\n".join(models)
     logger.debug(f"Using {len(models)} models:\n{models_str}")
 
-    option_sets = [
-        {"num_ctx": 16384, "num_predict": -1, "temperature": 0.1},
-        {"num_ctx": 32768, "num_predict": -1, "temperature": 0.1},
-    ]
-
     providers = []
     for model in models:
         base_options = get_model_options(model)
-        for opts in option_sets:
-            cfg = base_options.copy()
-            cfg.update(opts)
-            ctx_num = cfg["num_ctx"]
-            label = f"{model} (ctx={ctx_num}, pred={cfg['num_predict']}, temp={cfg['temperature']})"
-            providers.append(
-                {
-                    "id": f"ollama:chat:{model}",
-                    "label": label,
-                    "config": cfg,
-                }
-            )
+        ctx_num = base_options["num_ctx"]
+        label = f"{model} (ctx={ctx_num}, pred={base_options['num_predict']}, temp={base_options['temperature']})"
+        providers.append(
+            {
+                "id": f"ollama:chat:{model}",
+                "label": label,
+                "config": base_options,
+            }
+        )
 
-            for prompt_file in prompt_files:
-                if not check_if_file_fits_into_ctx_num(prompt_file, ctx_num):
-                    raise ValueError(f"File {prompt_file} does not fit into context window of {ctx_num} tokens.")
+        for prompt_file in prompt_files:
+            if not check_if_file_fits_into_ctx_num(prompt_file, ctx_num):
+                raise ValueError(f"File {prompt_file} does not fit into context window of {ctx_num} tokens.")
 
     config["providers"] = providers
 
@@ -156,6 +153,13 @@ def main():
     parser = argparse.ArgumentParser(description="Run Promptfoo prompt evaluation")
     parser.add_argument("--force", action="store_true", help="Remove evaluation temp directory before starting")
     parser.add_argument("--gt-only", action="store_true", help="Use only the baseline ground truth prompt file")
+    parser.add_argument(
+        "--prompt",
+        action="extend",
+        nargs="+",
+        type=Path,
+        help="Path(s) to candidate prompt files to evaluate. Supports multiple paths.",
+    )
     args = parser.parse_args()
 
     logger.info("Starting Promptfoo Prompt Evaluation")
@@ -172,7 +176,17 @@ def main():
     job = DEFAULT_CONFIG.get_jobs()[0]
     baseline_prompt_file = job.llm_prompt_path
 
-    if args.gt_only:
+    if args.prompt:
+        if args.gt_only:
+            logger.error("Cannot specify both --prompt and --gt-only")
+            sys.exit(1)
+        prompt_files = []
+        for pf in args.prompt:
+            if not pf.exists():
+                logger.error(f"Prompt file not found: {pf}")
+                sys.exit(1)
+            prompt_files.append(pf)
+    elif args.gt_only:
         if not baseline_prompt_file.exists():
             logger.error(f"Baseline prompt file not found: {baseline_prompt_file}")
             sys.exit(1)

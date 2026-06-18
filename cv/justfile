@@ -82,7 +82,7 @@ update-pdf folder:
 
 md2pdf input output:
     tools/.venv/bin/python tools/process_cv.py --check --fix "{{ input }}"
-    pandoc -V papersize=a4 -V geometry:margin=1.5cm "{{ input }}" -o "{{ output }}"
+    pandoc -V papersize=a4  -V geometry:left=1.5cm -V geometry:right=1.5cm -V geometry:top=1.2cm -V geometry:bottom=1.2cm "{{ input }}" -o "{{ output }}"
 
 auto-tailor-cv folder:
     @just prepare-llm {{ folder }}

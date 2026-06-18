@@ -7811,7 +7811,7 @@ a.anchor-link {
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [1]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [8]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
@@ -7832,9 +7832,11 @@ a.anchor-link {
 <span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s1">'max_colwidth'</span><span class="p">,</span> <span class="mi">120</span><span class="p">)</span>
 
 <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">RESULTS_CSV</span><span class="p">)</span>
-<span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="n">PromptfooCsvCols</span><span class="o">.</span><span class="n">SCORE</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"Number of models:"</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">PromptfooCsvCols</span><span class="o">.</span><span class="n">PROVIDER_ID</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()))</span>
-<span class="n">display</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">PromptfooCsvCols</span><span class="o">.</span><span class="n">PROVIDER_ID</span><span class="p">]</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span><span class="o">.</span><span class="n">sort_values</span><span class="p">()</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+
+<span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="p">[</span><span class="n">PromptfooCsvCols</span><span class="o">.</span><span class="n">PROVIDER_ID</span><span class="p">,</span> <span class="n">PromptfooCsvCols</span><span class="o">.</span><span class="n">PROVIDER_LABEL</span><span class="p">]:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Column '</span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s2">': unique values:"</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()),</span> <span class="s2">"NOTE: listing only head:"</span><span class="p">)</span>
+    <span class="n">display</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span><span class="o">.</span><span class="n">sort_values</span><span class="p">()</span><span class="o">.</span><span class="n">head</span><span class="p">()</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+
 <span class="nb">print</span><span class="p">(</span><span class="s2">"Shape:"</span><span class="p">,</span> <span class="n">df</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -7848,23 +7850,43 @@ a.anchor-link {
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Number of models: 3
+<pre>Column 'Provider Id': unique values: 8 NOTE: listing only head:
 </pre>
 </div>
 </div>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>0           ollama:chat:gemma4:e2b
-1    ollama:chat:gemma4:e4b-it-qat
-2      ollama:chat:qwen3.5:4b-q8_0
+<pre>0               ollama:chat:deepseek-r1:7b
+1    ollama:chat:gemma2:9b-instruct-q5_K_M
+2            ollama:chat:gemma4:12b-it-qat
+3                   ollama:chat:gemma4:e2b
+4            ollama:chat:gemma4:e4b-it-qat
 Name: Provider Id, dtype: str</pre>
 </div>
 </div>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Shape: (6, 12)
+<pre>Column 'Provider Label': unique values: 8 NOTE: listing only head:
+</pre>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>0             deepseek-r1:7b (ctx=16384, pred=8192, temp=0.1)
+1    gemma2:9b-instruct-q5_K_M (ctx=16384, pred=-1, temp=0.1)
+2            gemma4:12b-it-qat (ctx=16384, pred=-1, temp=0.1)
+3                   gemma4:e2b (ctx=16384, pred=-1, temp=0.1)
+4            gemma4:e4b-it-qat (ctx=16384, pred=-1, temp=0.1)
+Name: Provider Label, dtype: str</pre>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>Shape: (40, 12)
 </pre>
 </div>
 </div>
@@ -7875,10 +7897,15 @@ Name: Provider Id, dtype: str</pre>
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [2]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [9]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># fix long prompt label - leave only file name</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span>
+    <span class="n">by</span><span class="o">=</span><span class="p">[</span><span class="n">PromptfooCsvCols</span><span class="o">.</span><span class="n">SCORE</span><span class="p">,</span> <span class="n">PromptfooCsvCols</span><span class="o">.</span><span class="n">COMPLETION_TOKENS</span><span class="p">,</span> <span class="n">PromptfooCsvCols</span><span class="o">.</span><span class="n">LATENCY</span><span class="p">],</span> 
+    <span class="n">ascending</span><span class="o">=</span><span class="p">[</span><span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">]</span>
+<span class="p">)</span>
+
+<span class="c1"># fix long prompt label - leave only file name</span>
 <span class="n">df</span><span class="p">[</span><span class="n">PromptfooCsvCols</span><span class="o">.</span><span class="n">PROMPT_LABEL</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">PromptfooCsvCols</span><span class="o">.</span><span class="n">PROMPT_LABEL</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s1">'\w+\.md'</span><span class="p">,</span> <span class="n">x</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
 
 <span class="n">df</span><span class="p">[[</span>
@@ -7902,7 +7929,7 @@ Name: Provider Id, dtype: str</pre>
 </div>
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[2]:</div>
+<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[9]:</div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
 <div>
 <style scoped="">
@@ -7936,75 +7963,243 @@ Name: Provider Id, dtype: str</pre>
 <tbody>
 <tr>
 <th>0</th>
-<td>gemma4:e2b (ctx=16384, pred=-1, temp=0.1)</td>
-<td>llm_prompt.md</td>
-<td>FAIL</td>
-<td>0.687211</td>
-<td>8</td>
-<td>4</td>
-<td>31.646</td>
-<td>3318</td>
-<td>ROUGE-N score 0.25 is less than threshold 0.3</td>
+<td>gemma4:e4b-it-qat (ctx=16384, pred=-1, temp=0.1)</td>
+<td>voc_from_cv.md</td>
+<td>PASS</td>
+<td>0.966275</td>
+<td>14</td>
+<td>0</td>
+<td>58.141</td>
+<td>3374</td>
+<td>NaN</td>
 </tr>
 <tr>
 <th>1</th>
-<td>gemma4:e2b (ctx=16384, pred=-1, temp=0.0)</td>
-<td>llm_prompt.md</td>
-<td>FAIL</td>
-<td>0.603254</td>
-<td>7</td>
-<td>5</td>
-<td>22.454</td>
-<td>2989</td>
-<td>ROUGE-N score 0.24 is less than threshold 0.3</td>
+<td>gemma4:e2b (ctx=16384, pred=-1, temp=0.1)</td>
+<td>voc_from_cv.md</td>
+<td>PASS</td>
+<td>0.964980</td>
+<td>14</td>
+<td>0</td>
+<td>29.754</td>
+<td>3035</td>
+<td>NaN</td>
 </tr>
 <tr>
 <th>2</th>
-<td>qwen3.5:4b-q8_0 (ctx=16384, pred=-1, temp=0.0)</td>
-<td>llm_prompt.md</td>
-<td>FAIL</td>
-<td>0.520738</td>
-<td>6</td>
-<td>6</td>
-<td>136.380</td>
-<td>7085</td>
-<td>ROUGE-N score 0.25 is less than threshold 0.3</td>
+<td>qwen3.5:4b-q8_0 (ctx=16384, pred=-1, temp=0.1)</td>
+<td>voc_from_cv.md</td>
+<td>PASS</td>
+<td>0.957572</td>
+<td>14</td>
+<td>0</td>
+<td>133.592</td>
+<td>6886</td>
+<td>NaN</td>
 </tr>
 <tr>
 <th>3</th>
-<td>qwen3.5:4b-q8_0 (ctx=16384, pred=-1, temp=0.1)</td>
-<td>llm_prompt.md</td>
+<td>qwen3.5:9b-q4_K_M (ctx=16384, pred=-1, temp=0.1)</td>
+<td>not_fancy.md</td>
 <td>FAIL</td>
-<td>0.520519</td>
-<td>6</td>
-<td>6</td>
-<td>121.831</td>
-<td>6010</td>
-<td>ROUGE-N score 0.25 is less than threshold 0.3</td>
+<td>0.896828</td>
+<td>13</td>
+<td>1</td>
+<td>178.262</td>
+<td>6535</td>
+<td>Expected output to contain "PART 1"</td>
 </tr>
 <tr>
 <th>4</th>
-<td>gemma4:e4b-it-qat (ctx=16384, pred=-1, temp=0.1)</td>
-<td>llm_prompt.md</td>
+<td>gemma4:12b-it-qat (ctx=16384, pred=-1, temp=0.1)</td>
+<td>tone_style_part3_add_options.md</td>
 <td>FAIL</td>
-<td>0.519998</td>
-<td>6</td>
-<td>6</td>
-<td>61.709</td>
-<td>3807</td>
-<td>ROUGE-N score 0.24 is less than threshold 0.3</td>
+<td>0.894734</td>
+<td>13</td>
+<td>1</td>
+<td>494.080</td>
+<td>6875</td>
+<td>Expected output to contain "PART 2"</td>
 </tr>
 <tr>
 <th>5</th>
-<td>gemma4:e4b-it-qat (ctx=16384, pred=-1, temp=0.0)</td>
+<td>gemma4:e2b (ctx=16384, pred=-1, temp=0.1)</td>
+<td>tone_style_part3_add_options.md</td>
+<td>FAIL</td>
+<td>0.894495</td>
+<td>13</td>
+<td>1</td>
+<td>22.757</td>
+<td>2653</td>
+<td>Expected output to contain "**[University of Helsinki DevOps Labs: Cloud-Native Microservices](https://github.com/ki...</td>
+</tr>
+<tr>
+<th>6</th>
+<td>gemma4:e2b (ctx=16384, pred=-1, temp=0.1)</td>
+<td>not_fancy.md</td>
+<td>FAIL</td>
+<td>0.892923</td>
+<td>13</td>
+<td>1</td>
+<td>25.139</td>
+<td>3187</td>
+<td>Expected output to contain "Certified Kubernetes Application Developer, _Cloud Native Computing Foundation_ | Feb 2026"</td>
+</tr>
+<tr>
+<th>7</th>
+<td>llama3.1:8b-instruct-q6_K (ctx=16384, pred=-1, temp=0.1)</td>
+<td>tone_style_part3_add_options.md</td>
+<td>FAIL</td>
+<td>0.876144</td>
+<td>13</td>
+<td>1</td>
+<td>92.590</td>
+<td>1049</td>
+<td>Expected output to contain "**[University of Helsinki DevOps Labs: Cloud-Native Microservices](https://github.com/ki...</td>
+</tr>
+<tr>
+<th>8</th>
+<td>llama3.1:8b-instruct-q6_K (ctx=16384, pred=-1, temp=0.1)</td>
+<td>not_fancy.md</td>
+<td>FAIL</td>
+<td>0.870784</td>
+<td>13</td>
+<td>1</td>
+<td>86.440</td>
+<td>1014</td>
+<td>Expected output to contain "**[University of Helsinki DevOps Labs: Cloud-Native Microservices](https://github.com/ki...</td>
+</tr>
+<tr>
+<th>9</th>
+<td>gemma4:e4b-it-qat (ctx=16384, pred=-1, temp=0.1)</td>
+<td>tone_style_part3_add_options.md</td>
+<td>FAIL</td>
+<td>0.825487</td>
+<td>12</td>
+<td>2</td>
+<td>43.190</td>
+<td>3371</td>
+<td>Expected output to contain "PART 2"</td>
+</tr>
+<tr>
+<th>10</th>
+<td>gemma4:e4b-it-qat (ctx=16384, pred=-1, temp=0.1)</td>
 <td>llm_prompt.md</td>
 <td>FAIL</td>
-<td>0.435739</td>
-<td>5</td>
-<td>7</td>
-<td>57.019</td>
-<td>3569</td>
-<td>ROUGE-N score 0.23 is less than threshold 0.3</td>
+<td>0.824436</td>
+<td>12</td>
+<td>2</td>
+<td>48.206</td>
+<td>3763</td>
+<td>Expected output to contain "PART 2"</td>
+</tr>
+<tr>
+<th>11</th>
+<td>gemma4:12b-it-qat (ctx=16384, pred=-1, temp=0.1)</td>
+<td>llm_prompt.md</td>
+<td>FAIL</td>
+<td>0.824250</td>
+<td>12</td>
+<td>2</td>
+<td>407.099</td>
+<td>5660</td>
+<td>Expected output to contain "PART 2"</td>
+</tr>
+<tr>
+<th>12</th>
+<td>qwen3.5:9b-q4_K_M (ctx=16384, pred=-1, temp=0.1)</td>
+<td>llm_prompt.md</td>
+<td>FAIL</td>
+<td>0.823985</td>
+<td>12</td>
+<td>2</td>
+<td>156.963</td>
+<td>5726</td>
+<td>Expected output to contain "PART 2"</td>
+</tr>
+<tr>
+<th>13</th>
+<td>gemma4:e4b-it-qat (ctx=16384, pred=-1, temp=0.1)</td>
+<td>not_fancy.md</td>
+<td>FAIL</td>
+<td>0.822789</td>
+<td>12</td>
+<td>2</td>
+<td>43.588</td>
+<td>3287</td>
+<td>Expected output to contain "Certified Kubernetes Application Developer, _Cloud Native Computing Foundation_ | Feb 2026"</td>
+</tr>
+<tr>
+<th>14</th>
+<td>qwen3.5:9b-q4_K_M (ctx=16384, pred=-1, temp=0.1)</td>
+<td>tone_style_part3_add_options.md</td>
+<td>FAIL</td>
+<td>0.821307</td>
+<td>12</td>
+<td>2</td>
+<td>144.792</td>
+<td>5310</td>
+<td>Expected output to contain "PART 2"</td>
+</tr>
+<tr>
+<th>15</th>
+<td>gemma4:e2b (ctx=16384, pred=-1, temp=0.1)</td>
+<td>previous.md</td>
+<td>FAIL</td>
+<td>0.819238</td>
+<td>12</td>
+<td>2</td>
+<td>20.231</td>
+<td>2473</td>
+<td>Expected output to contain "**[University of Helsinki DevOps Labs: Cloud-Native Microservices](https://github.com/ki...</td>
+</tr>
+<tr>
+<th>16</th>
+<td>qwen3.5:4b-q8_0 (ctx=16384, pred=-1, temp=0.1)</td>
+<td>not_fancy.md</td>
+<td>FAIL</td>
+<td>0.819174</td>
+<td>12</td>
+<td>2</td>
+<td>130.467</td>
+<td>7568</td>
+<td>Expected output to contain "Certified Kubernetes Application Developer, _Cloud Native Computing Foundation_ | Feb 2026"</td>
+</tr>
+<tr>
+<th>17</th>
+<td>llama3.1:8b-instruct-q6_K (ctx=16384, pred=-1, temp=0.1)</td>
+<td>llm_prompt.md</td>
+<td>FAIL</td>
+<td>0.804950</td>
+<td>12</td>
+<td>2</td>
+<td>112.535</td>
+<td>1216</td>
+<td>Expected output to contain "**[University of Helsinki DevOps Labs: Cloud-Native Microservices](https://github.com/ki...</td>
+</tr>
+<tr>
+<th>18</th>
+<td>llama3.1:8b-instruct-q6_K (ctx=16384, pred=-1, temp=0.1)</td>
+<td>voc_from_cv.md</td>
+<td>FAIL</td>
+<td>0.803819</td>
+<td>12</td>
+<td>2</td>
+<td>128.668</td>
+<td>1330</td>
+<td>Expected output to contain "**[University of Helsinki DevOps Labs: Cloud-Native Microservices](https://github.com/ki...</td>
+</tr>
+<tr>
+<th>19</th>
+<td>qwen3.5:9b-q4_K_M (ctx=16384, pred=-1, temp=0.1)</td>
+<td>previous.md</td>
+<td>FAIL</td>
+<td>0.752810</td>
+<td>11</td>
+<td>3</td>
+<td>166.766</td>
+<td>6133</td>
+<td>Expected output to contain one of "PART 3, ADDITIONAL OPTIONS"</td>
 </tr>
 </tbody>
 </table>
