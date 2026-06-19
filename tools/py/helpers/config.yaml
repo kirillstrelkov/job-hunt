@@ -7,14 +7,19 @@ model_default_options:
   repeat_penalty: 1.1
 
 top_models:
-  - "gemma4:e2b"
   - "gemma4:e4b-it-qat"
   - "qwen3.5:4b-q8_0"
-  - "gemma4:12b-it-qat"
-  - "gemma2:9b-instruct-q5_K_M"
-  - "llama3.1:8b-instruct-q6_K"
   - "qwen3.5:9b-q4_K_M"
-  - "deepseek-r1:7b"
+  - "llama3.1:8b-text-q4_K_M"
+  - "gemma4:e2b"
+  # - "phi4-mini:3.8b-q8_0" # Passed: 5, Failed: 18
+  # - "falcon3:7b" # Passed: 13, Failed: 10
+  # - "llama3.2:3b-instruct-q8_0" # Passed: 7, Failed: 16
+  # - "gemma4:12b-it-qat" # gpu not full, not engough content, 32k might be useds but slow!
+  # - "gemma2:9b-instruct-q5_K_M" # gpu not full, empty response, to get anything - ctx should be small and it does follows prompt
+  # - "llama3.1:8b-instruct-q6_K" # gpu not full, not good output
+  # - "qwen3.5:9b-q4_K_M" # strange GPU, slow, but long output
+  # - "deepseek-r1:7b" # strange output
 
 models:
   - name: "llama3.1:8b-text-q4_K_M"
@@ -25,9 +30,6 @@ models:
   - name: "mistral:7b-instruct-v0.3-q4_K_M"
 
   - name: "qwen3.5:9b-q4_K_M"
-    options:
-      num_predict: 4000
-      repeat_penalty: 1.15
   - name: "gemma4:12b-it-qat"
     options:
       num_predict: 4000
@@ -46,11 +48,12 @@ models:
     options:
       num_predict: 8192
 
-  - name: "qwen2.5:7b"
   - name: "qwen2.5-coder:7b"
   - name: "llama3.1:8b"
   - name: "codegemma:7b-code"
   - name: "deepseek-r1:1.5b"
+  - name: "phi4-mini:3.8b-q8_0"
+  - name: "falcon3:7b"
 
 eval_model: "gemma4:e2b"
 root_dir: "../../.."

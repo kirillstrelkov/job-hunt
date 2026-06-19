@@ -16,6 +16,7 @@ from helpers.promptfoo_helper import convert_json_to_csv, run_promptfoo_eval, wr
 from helpers.tmp_helper import get_root_dir, get_tmp_folder  # noqa: E402
 
 MODELS = get_top_model_names()
+TMP_DIR = get_tmp_folder(__file__)
 
 
 def generate_config(models: list[str], tests: list[dict], output_file: Path) -> None:
@@ -109,10 +110,9 @@ def generate_prompts_and_test_cases(cv_text: str, jd_files: list[Path], tmp_dir:
 
 def main() -> None:
     """Generate prompts, execute Promptfoo evaluation, and run Jupyter notebook."""
-    logger.info("=== Generating Prompts and Running Promptfoo Evaluation ===")
+    logger.info("Generating Prompts and Running Promptfoo Evaluation")
 
-    tmp_dir = get_tmp_folder(__file__)
-    results_json_path = tmp_dir / f"eval_results_for_{len(MODELS)}_models.json"
+    results_json_path = TMP_DIR / f"eval_results_for_{len(MODELS)}_models.json"
     results_csv_path = results_json_path.with_suffix(".csv")
 
     skip_eval = results_json_path.exists()
@@ -121,12 +121,12 @@ def main() -> None:
             f"Evaluation results JSON already exists at {results_json_path}. Skipping Promptfoo evaluation step."
         )
 
-    tmp_dir.mkdir(parents=True, exist_ok=True)
+    TMP_DIR.mkdir(parents=True, exist_ok=True)
 
     cv_text, test_jds = load_data()
-    tests = generate_prompts_and_test_cases(cv_text, test_jds, tmp_dir)
+    tests = generate_prompts_and_test_cases(cv_text, test_jds, TMP_DIR)
 
-    config_file = tmp_dir / "promptfoo_config.yaml"
+    config_file = TMP_DIR / "promptfoo_config.yaml"
     generate_config(MODELS, tests, config_file)
     logger.info(f"Generated promptfoo_config.yaml config at {config_file}")
 

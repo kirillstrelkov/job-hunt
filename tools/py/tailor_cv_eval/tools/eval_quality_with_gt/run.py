@@ -46,17 +46,24 @@ tests:
         value:
           - "PART 3"
           - "ADDITIONAL OPTIONS"
-      - type: icontains-all
-        value:
-          - "CARIAD SE"
-          - "Argo AI GmbH"
-          - "Airbus Operations GmbH"
-          - "ESR Labs AG"
-          - "HERE Deutschland GmbH"
-          - "Helpling GmbH"
-          - "Satprof"
-          - "Betsson Group"
-          - "Ixonos Estonia OÜ"
+      - type: contains
+        value: "CARIAD SE"
+      - type: contains
+        value: "Argo AI GmbH"
+      - type: contains
+        value: "Airbus Operations GmbH"
+      - type: contains
+        value: "ESR Labs AG"
+      - type: contains
+        value: "HERE Deutschland GmbH"
+      - type: contains
+        value: "Helpling GmbH"
+      - type: contains
+        value: "Satprof"
+      - type: contains
+        value: "Betsson Group"
+      - type: contains
+        value: "Ixonos Estonia OÜ"
       - type: not-icontains-all
         value:
           - "Spearhead"

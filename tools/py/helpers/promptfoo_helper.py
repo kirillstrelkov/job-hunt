@@ -6,7 +6,7 @@ import subprocess
 import sys
 from pathlib import Path
 from typing import ClassVar
-
+import re
 import yaml
 from loguru import logger
 
@@ -115,6 +115,9 @@ def convert_json_to_csv(results_json_path: Path, results_csv_path: Path) -> None
 
             prompt_info = run.get("prompt", {})
             prompt_label = prompt_info.get("label", "")
+            if "{{" in prompt_label:
+                vars = run["testCase"]["vars"]
+                prompt_label = prompt_label.replace("{{", "{").replace("}}", "}").format(**vars)
 
             success = run.get("success", False)
             latency = run.get("latencyMs", 0) / 1000.0
