@@ -1,0 +1,10 @@
+default:
+    @just -l
+
+# Generate consolidated configuration file. Example: just gen-config [path]
+gen-config path="":
+    uv run python app.py --generate-config {{ if path == "" { "" } else { path } }}
+
+# Run the Tailored CV Streamlit UI. Example: just ui
+ui:
+    uv run streamlit run app.py

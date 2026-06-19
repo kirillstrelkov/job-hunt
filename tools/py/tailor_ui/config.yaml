@@ -1,0 +1,36 @@
+header: /home/kirill/prj/gl/job-hunt/cv/private/parts/header.md
+body: /home/kirill/prj/gl/job-hunt/cv/private/parts/body.md
+footer: /home/kirill/prj/gl/job-hunt/cv/private/parts/footer.md
+prompt: /home/kirill/prj/gh/job-hunt/cv/prompts/tailor_for_description.md
+ollama:
+  eval_model: gemma4:e2b
+  models:
+  - name: llama3.1:8b-text-q4_K_M
+  - name: gemma4:e4b-it-qat
+  - name: llama3.2:3b-instruct-q8_0
+  - name: qwen2.5:3b-instruct-q8_0
+  - name: qwen2.5:7b-instruct-q4_K_M
+  - name: mistral:7b-instruct-v0.3-q4_K_M
+  - name: qwen3.5:9b-q4_K_M
+    options:
+      num_ctx: 12288
+  - name: gemma4:12b-it-qat
+    options:
+      num_ctx: 12288
+  - name: qwen3.5:4b-q8_0
+  - name: llama3.1:8b-instruct-q6_K
+  - name: gemma2:9b-instruct-q5_K_M
+  - name: gemma4:e2b
+  - name: gemma4:e2b-it-qat
+  - name: deepseek-r1:7b
+  - name: qwen2.5:7b
+  - name: qwen2.5-coder:7b
+  - name: llama3.1:8b
+  - name: codegemma:7b-code
+  - name: deepseek-r1:1.5b
+  model_default_options:
+    num_ctx: 16384
+    num_predict: -1
+    seed: 42
+    keep_alive: 0
+    temperature: 0.1
