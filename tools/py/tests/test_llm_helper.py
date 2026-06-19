@@ -73,6 +73,7 @@ def test_run_model(mock_agent_class, mock_gemini_model_class, monkeypatch):
     assert res_dict["total_time"] >= 0.0
     assert res_dict["char_count"] == len("Detailed test response")
     assert res_dict["word_count"] == 3
+    mock_gemini_model_class.assert_called_once_with("gemini-2.0-flash", api_key="fake-key")
 
 
 def test_generate_response_missing_api_key(monkeypatch):

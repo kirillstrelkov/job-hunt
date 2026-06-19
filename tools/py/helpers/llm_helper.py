@@ -16,6 +16,7 @@ MIN_EVAL_TIME = 0.001
 
 
 def check_if_file_fits_into_ctx_num(path: str | Path, ctx_num: int) -> bool:
+    """Check if a file's estimated tokens fit within a context window constraint."""
     tokens = len(Path(path).read_text(encoding="utf-8")) // 4
     if tokens > ctx_num:
         logger.error(f"The file {path} has {tokens} tokens, which is less than the context window of {ctx_num} tokens.")
@@ -57,8 +58,8 @@ def get_top_model_names(config_manager: ConfigManager = DEFAULT_CONFIG) -> list[
         if gemini_models:
             __check_models_supported(gemini_models)
             return gemini_models
-    except Exception:
-        pass
+    except Exception as e:  # noqa: BLE001
+        logger.debug(f"Error fetching top models: {e}")
     return ["gemini-2.0-flash", "gemini-1.5-flash"]
 
 
@@ -71,8 +72,8 @@ def get_model_names(config_manager: ConfigManager = DEFAULT_CONFIG) -> list[str]
         if gemini_models:
             __check_models_supported(gemini_models)
             return gemini_models
-    except Exception:
-        pass
+    except Exception as e:  # noqa: BLE001
+        logger.debug(f"Error fetching model names: {e}")
     return ["gemini-2.0-flash", "gemini-1.5-flash"]
 
 
@@ -97,18 +98,20 @@ def get_eval_model(config_manager: ConfigManager = DEFAULT_CONFIG) -> str:
         eval_model = config_manager.get_config_value(".eval_model")
         if eval_model.startswith("gemini"):
             return eval_model
-    except Exception:
-        pass
+    except Exception as e:  # noqa: BLE001
+        logger.debug(f"Error fetching evaluation model: {e}")
     return "gemini-2.0-flash"
 
 
 def get_model_options(model: str, config_manager: ConfigManager = DEFAULT_CONFIG) -> dict:
     """Get configuration settings for a given model.
+
     If the model is not explicitly configured in config.yaml, returns default options.
     """
     try:
         default_options = config_manager.get_config_value(".model_default_options") or {}
-    except Exception:
+    except Exception as e:  # noqa: BLE001
+        logger.debug(f"Failed to get default model options: {e}")
         default_options = {}
 
     try:
@@ -119,8 +122,8 @@ def get_model_options(model: str, config_manager: ConfigManager = DEFAULT_CONFIG
                 if model_options := item.get("options"):
                     options.update(model_options)
                 return options
-    except Exception:
-        pass
+    except Exception as e:  # noqa: BLE001
+        logger.debug(f"Failed to get options for model {model}: {e}")
 
     return default_options.copy()
 
@@ -132,9 +135,17 @@ def dict_to_model_settings(options: dict | None) -> ModelSettings:
 
     settings = {}
 
-    # Map temperature
-    if "temperature" in options:
-        settings["temperature"] = float(options["temperature"])
+    # Define mapping of option keys to types for straightforward properties
+    float_keys = ["temperature", "top_p", "presence_penalty", "frequency_penalty", "timeout"]
+    int_keys = ["top_k", "seed"]
+
+    for k in float_keys:
+        if k in options:
+            settings[k] = float(options[k])
+
+    for k in int_keys:
+        if k in options:
+            settings[k] = int(options[k])
 
     # Map max_tokens / num_predict
     if "max_tokens" in options:
@@ -143,30 +154,6 @@ def dict_to_model_settings(options: dict | None) -> ModelSettings:
         num_predict = int(options["num_predict"])
         if num_predict > 0:
             settings["max_tokens"] = num_predict
-
-    # Map top_p
-    if "top_p" in options:
-        settings["top_p"] = float(options["top_p"])
-
-    # Map top_k
-    if "top_k" in options:
-        settings["top_k"] = int(options["top_k"])
-
-    # Map seed
-    if "seed" in options:
-        settings["seed"] = int(options["seed"])
-
-    # Map presence_penalty
-    if "presence_penalty" in options:
-        settings["presence_penalty"] = float(options["presence_penalty"])
-
-    # Map frequency_penalty
-    if "frequency_penalty" in options:
-        settings["frequency_penalty"] = float(options["frequency_penalty"])
-
-    # Map timeout
-    if "timeout" in options:
-        settings["timeout"] = float(options["timeout"])
 
     return ModelSettings(**settings)
 
@@ -196,7 +183,8 @@ def run_model(model: str, prompt_content: str, options: dict | None = None) -> d
 
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
-        raise RuntimeError("GEMINI_API_KEY environment variable is not set")
+        msg = "GEMINI_API_KEY environment variable is not set"
+        raise RuntimeError(msg)
 
     model_settings = dict_to_model_settings(options)
     gemini_model = GeminiModel(model, api_key=api_key)
@@ -242,7 +230,8 @@ def generate_response(model: str, prompt: str, options: dict | None = None) -> s
 
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
-        raise RuntimeError("GEMINI_API_KEY environment variable is not set")
+        msg = "GEMINI_API_KEY environment variable is not set"
+        raise RuntimeError(msg)
 
     model_settings = dict_to_model_settings(merged_options)
     gemini_model = GeminiModel(model, api_key=api_key)

@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 from typing import ClassVar
 
+import pandas as pd
 import yaml
 from loguru import logger
 
@@ -90,6 +91,72 @@ def run_promptfoo_eval(config_file: Path, results_json_path: Path) -> None:
         sys.exit(res.returncode)
 
 
+def _parse_run_to_record(run: dict) -> dict:
+    """Parse a single run dictionary from evaluation results."""
+    provider = run.get("provider", {})
+    provider_id = provider.get("id", "unknown")
+    provider_label = provider.get("label", "")
+
+    # Set model as provider id
+    model = provider_id
+
+    prompt_info = run.get("prompt", {})
+    prompt_label = prompt_info.get("label", "")
+    if "{{" in prompt_label:
+        tc_vars = run.get("testCase", {}).get("vars", {})
+        prompt_label = prompt_label.replace("{{", "{").replace("}}", "}").format(**tc_vars)
+
+    success = run.get("success", False)
+    latency = run.get("latencyMs", 0) / 1000.0
+
+    token_usage = run.get("tokenUsage") or run.get("response", {}).get("tokenUsage") or {}
+    prompt_tokens = token_usage.get("prompt", 0)
+    completion_tokens = token_usage.get("completion", 0)
+    total_tokens = token_usage.get("total", 0)
+
+    score = run.get("score")
+    grading_result = run.get("gradingResult") or {}
+    if score is None:
+        score = grading_result.get("score", 0.0)
+
+    # Analyze componentResults for Passed and Failed counts
+    component_results = grading_result.get("componentResults") or []
+    passed_count = sum(1 for res in component_results if isinstance(res, dict) and res.get("pass") is True)
+    failed_count = sum(1 for res in component_results if isinstance(res, dict) and res.get("pass") is False)
+
+    fail_reason = ""
+    if not success:
+        grading_reason = grading_result.get("reason")
+        fail_reason = grading_reason or run.get("failureReason") or "Unknown Assertion Error"
+        # Strip excessive whitespace or newlines if any
+        if isinstance(fail_reason, str):
+            fail_reason = fail_reason.strip().replace("\n", " ")
+
+    if prompt_tokens + completion_tokens > total_tokens:
+        logger.warning(
+            "Prompt tokens {} + completion tokens {} > total tokens {} for {}.",
+            prompt_tokens,
+            completion_tokens,
+            total_tokens,
+            model,
+        )
+
+    return {
+        PromptfooCsvCols.PROVIDER_ID: model,
+        PromptfooCsvCols.PROVIDER_LABEL: provider_label,
+        PromptfooCsvCols.PROMPT_LABEL: prompt_label,
+        PromptfooCsvCols.SUCCESS: "PASS" if success else "FAIL",
+        PromptfooCsvCols.SCORE: score,
+        PromptfooCsvCols.PASSED: passed_count,
+        PromptfooCsvCols.FAILED: failed_count,
+        PromptfooCsvCols.LATENCY: latency,
+        PromptfooCsvCols.PROMPT_TOKENS: prompt_tokens,
+        PromptfooCsvCols.COMPLETION_TOKENS: completion_tokens,
+        PromptfooCsvCols.TOTAL_TOKENS: total_tokens,
+        PromptfooCsvCols.FAILURE_REASON: fail_reason,
+    }
+
+
 def convert_json_to_csv(results_json_path: Path, results_csv_path: Path) -> None:
     """Parse output JSON results and write them as simplified CSV table."""
     logger.info("Evaluation completed. Processing results to CSV...")
@@ -103,70 +170,7 @@ def convert_json_to_csv(results_json_path: Path, results_csv_path: Path) -> None
             data = json.load(f)
 
         results_list = data.get("results", {}).get("results", [])
-        records = []
-        for run in results_list:
-            provider = run.get("provider", {})
-            provider_id = provider.get("id", "unknown")
-            provider_label = provider.get("label", "")
-
-            # Set model as provider id
-            model = provider_id
-
-            prompt_info = run.get("prompt", {})
-            prompt_label = prompt_info.get("label", "")
-            if "{{" in prompt_label:
-                vars = run["testCase"]["vars"]
-                prompt_label = prompt_label.replace("{{", "{").replace("}}", "}").format(**vars)
-
-            success = run.get("success", False)
-            latency = run.get("latencyMs", 0) / 1000.0
-
-            token_usage = run.get("tokenUsage") or run.get("response", {}).get("tokenUsage") or {}
-            prompt_tokens = token_usage.get("prompt", 0)
-            completion_tokens = token_usage.get("completion", 0)
-            total_tokens = token_usage.get("total", 0)
-
-            score = run.get("score")
-            grading_result = run.get("gradingResult") or {}
-            if score is None:
-                score = grading_result.get("score", 0.0)
-
-            # Analyze componentResults for Passed and Failed counts
-            component_results = grading_result.get("componentResults") or []
-            passed_count = sum(1 for res in component_results if isinstance(res, dict) and res.get("pass") is True)
-            failed_count = sum(1 for res in component_results if isinstance(res, dict) and res.get("pass") is False)
-
-            fail_reason = ""
-            if not success:
-                grading_reason = grading_result.get("reason")
-                fail_reason = grading_reason or run.get("failureReason") or "Unknown Assertion Error"
-                # Strip excessive whitespace or newlines if any
-                if isinstance(fail_reason, str):
-                    fail_reason = fail_reason.strip().replace("\n", " ")
-
-            if prompt_tokens + completion_tokens > total_tokens:
-                logger.warning(
-                    f"Prompt tokens {prompt_tokens} + completion tokens {completion_tokens} > total tokens {total_tokens} for {model}."
-                )
-
-            records.append(
-                {
-                    PromptfooCsvCols.PROVIDER_ID: model,
-                    PromptfooCsvCols.PROVIDER_LABEL: provider_label,
-                    PromptfooCsvCols.PROMPT_LABEL: prompt_label,
-                    PromptfooCsvCols.SUCCESS: "PASS" if success else "FAIL",
-                    PromptfooCsvCols.SCORE: score,
-                    PromptfooCsvCols.PASSED: passed_count,
-                    PromptfooCsvCols.FAILED: failed_count,
-                    PromptfooCsvCols.LATENCY: latency,
-                    PromptfooCsvCols.PROMPT_TOKENS: prompt_tokens,
-                    PromptfooCsvCols.COMPLETION_TOKENS: completion_tokens,
-                    PromptfooCsvCols.TOTAL_TOKENS: total_tokens,
-                    PromptfooCsvCols.FAILURE_REASON: fail_reason,
-                }
-            )
-
-        import pandas as pd
+        records = [_parse_run_to_record(run) for run in results_list]
 
         # Save to CSV using pandas
         df = pd.DataFrame(records)[PromptfooCsvCols.COLUMNS]

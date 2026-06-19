@@ -17,7 +17,8 @@ MIN_EVAL_TIME = 0.001
 
 
 def check_if_file_fits_into_ctx_num(path: str | Path, ctx_num: int) -> bool:
-    tokens = len(Path(path).read_text()) // 4
+    """Check if a file fits into the specified context window size."""
+    tokens = len(Path(path).read_text(encoding="utf-8")) // 4
     if tokens > ctx_num:
         logger.error(f"The file {path} has {tokens} tokens, which is less than the context window of {ctx_num} tokens.")
         return False

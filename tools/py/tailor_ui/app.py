@@ -1,6 +1,14 @@
+"""Streamlit user interface for CV tailoring, editing, checking and PDF conversion."""
+
 import argparse
-import os
+import base64
+import contextlib
+import io
+import shutil
+import subprocess
 import sys
+import tempfile
+from datetime import UTC, datetime
 from pathlib import Path
 
 import yaml
@@ -16,7 +24,8 @@ if str(cv_tools_dir) not in sys.path:
     sys.path.insert(0, str(cv_tools_dir))
 
 
-def generate_config(output_path: str):
+def generate_config(output_path: str) -> None:
+    """Generate consolidated configuration file from CV and helper configs."""
     logger.info(f"Generating consolidated config at {output_path}")
 
     cv_config_path = cv_tools_dir.parent / "tmp" / "config.yml"
@@ -26,7 +35,7 @@ def generate_config(output_path: str):
 
     # Read CV config
     if cv_config_path.exists():
-        with open(cv_config_path, encoding="utf-8") as f:
+        with cv_config_path.open(encoding="utf-8") as f:
             cv_config = yaml.safe_load(f)
             if cv_config:
                 # Resolve paths relative to cv/tmp
@@ -41,7 +50,7 @@ def generate_config(output_path: str):
 
     # Read Helpers config
     if helpers_config_path.exists():
-        with open(helpers_config_path, encoding="utf-8") as f:
+        with helpers_config_path.open(encoding="utf-8") as f:
             helpers_config = yaml.safe_load(f)
             if helpers_config:
                 consolidated["ollama"] = {
@@ -54,13 +63,14 @@ def generate_config(output_path: str):
 
     out_p = Path(output_path)
     out_p.parent.mkdir(parents=True, exist_ok=True)
-    with open(out_p, "w", encoding="utf-8") as f:
+    with out_p.open("w", encoding="utf-8") as f:
         yaml.safe_dump(consolidated, f, default_flow_style=False, sort_keys=False)
 
     logger.info("Done!")
 
 
-def main_cli():
+def main_cli() -> None:
+    """Parse command line arguments and execute CLI operations."""
     parser = argparse.ArgumentParser(description="Tailored CV UI / CLI")
     parser.add_argument(
         "--generate-config", type=str, nargs="?", const="./config.yaml", help="Generate a consolidated config file"
@@ -83,20 +93,18 @@ except ImportError:
     logger.error("Streamlit is not installed. Please install it using `uv add streamlit`.")
     sys.exit(1)
 
-import base64
-import subprocess
-import tempfile
+import process_cv  # noqa: E402
 
-import process_cv
-
-from helpers.ollama_helper import run_model
+from helpers.ollama_helper import run_model  # noqa: E402
 
 
-def compile_pdf(md_path: str, pdf_path: str):
+def compile_pdf(md_path: str, pdf_path: str) -> None:
+    """Compile Markdown file to PDF using pandoc."""
+    pandoc_path = shutil.which("pandoc") or "pandoc"
     try:
-        subprocess.run(
+        subprocess.run(  # noqa: S603
             [
-                "pandoc",
+                pandoc_path,
                 "--pdf-engine=xelatex",
                 "-V",
                 "papersize=a4",
@@ -108,38 +116,33 @@ def compile_pdf(md_path: str, pdf_path: str):
             ],
             check=True,
         )
-    except Exception as e:
+    except (subprocess.CalledProcessError, OSError) as e:
         logger.warning(f"xelatex failed, falling back to default pdf engine: {e}")
-        subprocess.run(
-            ["pandoc", "-V", "papersize=a4", "-V", "geometry:margin=1.5cm", md_path, "-o", pdf_path], check=True
+        subprocess.run(  # noqa: S603
+            [pandoc_path, "-V", "papersize=a4", "-V", "geometry:margin=1.5cm", md_path, "-o", pdf_path], check=True
         )
 
 
 def get_temp_generation_dir() -> Path:
-    from datetime import datetime
-
-    dt_str = datetime.now().strftime("%Y%m%d_%H%M%S")
+    """Create and return a new timestamped temporary directory for file operations."""
+    dt_str = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
     temp_dir = Path(tempfile.gettempdir()) / "tmp_tailor_cv" / f"{dt_str}"
     temp_dir.mkdir(parents=True, exist_ok=True)
     return temp_dir
 
 
 def run_check_on_text(md_content: str) -> list[str]:
+    """Execute validation checks on the given markdown resume text."""
     with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False, encoding="utf-8") as temp_file:
         temp_file.write(md_content)
         temp_path = temp_file.name
     try:
         sections = process_cv.split_into_sections(temp_path)
         errors = process_cv.do_check(sections)
-        err_messages = []
-        for err in errors:
-            err_messages.append(f"Line {err.line_num}: {err.msg} (content: `{err.line}`)")
-        return err_messages
+        return [f"Line {err.line_num}: {err.msg} (content: `{err.line}`)" for err in errors]
     finally:
-        try:
-            os.remove(temp_path)
-        except Exception:
-            pass
+        with contextlib.suppress(Exception):
+            Path(temp_path).unlink()
 
 
 st.set_page_config(layout="wide", page_title="Tailored CV UI")
@@ -172,11 +175,12 @@ st.markdown(
 
 
 @st.cache_data
-def load_unified_config(path: str):
+def load_unified_config(path: str) -> dict:
+    """Load and parse the consolidated YAML config file."""
     p = Path(path)
     if not p.exists():
         return {}
-    with open(p, encoding="utf-8") as f:
+    with p.open(encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
@@ -199,21 +203,27 @@ if "jd_manual" not in st.session_state:
     st.session_state["jd_manual"] = ""
 
 
-def on_jd_local_change():
+def on_jd_local_change() -> None:
+    """Sync the local tab JD with the shared session state JD."""
     st.session_state["shared_jd"] = st.session_state["jd_local"]
 
 
-def on_jd_manual_change():
+def on_jd_manual_change() -> None:
+    """Sync the manual tab JD with the shared session state JD."""
     st.session_state["shared_jd"] = st.session_state["jd_manual"]
 
 
 cfg = st.session_state["config"]
 
 
-def read_file(path):
-    if not path or not Path(path).exists():
+def read_file(path: str | Path | None) -> str:
+    """Read and return string content of a file path."""
+    if not path:
         return ""
-    with open(path, encoding="utf-8") as f:
+    p = Path(path)
+    if not p.exists():
+        return ""
+    with p.open(encoding="utf-8") as f:
         return f.read()
 
 
@@ -323,7 +333,9 @@ with tabs[0]:
         if not tailored_body:
             full_cv_md = ""
         else:
-            full_cv_md = f"{st.session_state['master_texts']['header']}\n\n{tailored_body}\n\n{st.session_state['master_texts']['footer']}"
+            header = st.session_state["master_texts"]["header"]
+            footer = st.session_state["master_texts"]["footer"]
+            full_cv_md = f"{header}\n\n{tailored_body}\n\n{footer}"
 
         # Apply any pending update from PDF handler (must happen before widget is rendered)
         if "_edited_cv_local_pending" in st.session_state:
@@ -411,18 +423,15 @@ with tabs[0]:
                         opts["temperature"] = temperature
                         opts["repeat_penalty"] = repeat_penalty
 
-                        import contextlib
-                        import io
-
-                        f = io.StringIO()
-                        handler_id = logger.add(f, format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}")
+                        f_out = io.StringIO()
+                        handler_id = logger.add(f_out, format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}")
 
                         try:
-                            with contextlib.redirect_stdout(f), contextlib.redirect_stderr(f):
+                            with contextlib.redirect_stdout(f_out), contextlib.redirect_stderr(f_out):
                                 result = run_model(model=selected_model, prompt_content=hydrated, options=opts)
                         finally:
                             logger.remove(handler_id)
-                            st.session_state["local_llm_stdout"] = f.getvalue()
+                            st.session_state["local_llm_stdout"] = f_out.getvalue()
 
                         response_text = result.get("response", "")
 
@@ -442,26 +451,26 @@ with tabs[0]:
 
                         st.session_state["tailored_body"] = trimmed_text
                         # Fix the assembled CV and display the fixed version
-                        full_cv_md = f"{st.session_state['master_texts']['header']}\n\n{trimmed_text}\n\n{st.session_state['master_texts']['footer']}"
+                        header = st.session_state["master_texts"]["header"]
+                        footer = st.session_state["master_texts"]["footer"]
+                        full_cv_md = f"{header}\n\n{trimmed_text}\n\n{footer}"
                         with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False, encoding="utf-8") as _tf:
                             _tf.write(full_cv_md)
                             _tf_path = _tf.name
                         try:
                             process_cv.fix_file(_tf_path)
-                            with open(_tf_path, encoding="utf-8") as _tf:
+                            with Path(_tf_path).open(encoding="utf-8") as _tf:
                                 full_cv_md = _tf.read()
                         finally:
-                            try:
-                                os.remove(_tf_path)
-                            except Exception:
-                                pass
+                            with contextlib.suppress(Exception):
+                                Path(_tf_path).unlink()
                         st.session_state["edited_cv_local"] = full_cv_md
                         st.session_state.pop("pdf_bytes", None)
                         st.session_state.pop("local_cv_errors", None)
                         st.session_state.pop("local_cv_checked", None)
                         st.session_state["local_tailor_note"] = "CV Tailored successfully!"
                         st.rerun()
-                    except Exception as e:
+                    except Exception as e:  # noqa: BLE001
                         st.session_state["local_tailor_error"] = f"LLM Generation Failed: {e}"
                         st.rerun()
 
@@ -518,24 +527,25 @@ with tabs[0]:
                     pdf_name = str(run_dir / "cv.pdf")
 
                     try:
-                        with open(f_md_name, "w", encoding="utf-8") as f_md:
+                        with Path(f_md_name).open("w", encoding="utf-8") as f_md:
                             f_md.write(edited_full_cv)
 
                         # Convert to PDF
                         compile_pdf(f_md_name, pdf_name)
 
-                        with open(pdf_name, "rb") as f_pdf:
+                        with Path(pdf_name).open("rb") as f_pdf:
                             st.session_state["pdf_bytes"] = f_pdf.read()
                         st.session_state["local_pdf_note"] = f"PDF Generated and stored at {pdf_name}!"
                         st.rerun()
-                    except Exception as e:
+                    except Exception as e:  # noqa: BLE001
                         st.session_state["local_pdf_error"] = f"PDF generation failed: {e}"
                         st.rerun()
 
             if "pdf_bytes" in st.session_state:
                 # Display PDF
                 base64_pdf = base64.b64encode(st.session_state["pdf_bytes"]).decode("utf-8")
-                pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="800" type="application/pdf"></iframe>'
+                iframe_style = 'width="100%" height="800" type="application/pdf"'
+                pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" {iframe_style}></iframe>'
                 st.markdown(pdf_display, unsafe_allow_html=True)
             else:
                 st.info("Click 'Convert Markdown CV to PDF' to preview.")
@@ -556,7 +566,7 @@ with tabs[1]:
         try:
             hydrated = prompt_template.format(master_cv=master_cv, job_description=jd_manual)
             st.session_state["hydrated_prompt"] = hydrated
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             st.error(f"Error formatting prompt: {e}")
 
     if "hydrated_prompt" in st.session_state:
@@ -576,7 +586,9 @@ with tabs[1]:
     if not tailored_body:
         full_cv_md = ""
     else:
-        full_cv_md = f"{st.session_state['master_texts']['header']}\n\n{tailored_body}\n\n{st.session_state['master_texts']['footer']}"
+        header = st.session_state["master_texts"]["header"]
+        footer = st.session_state["master_texts"]["footer"]
+        full_cv_md = f"{header}\n\n{tailored_body}\n\n{footer}"
 
     # Apply any pending update from PDF handler (must happen before widget is rendered)
     if "_edited_cv_manual_pending" in st.session_state:
@@ -655,19 +667,19 @@ with tabs[1]:
                 st.rerun()
             else:
                 st.session_state["tailored_body"] = manual_body
-                full_cv_md = f"{st.session_state['master_texts']['header']}\n\n{manual_body}\n\n{st.session_state['master_texts']['footer']}"
+                header = st.session_state["master_texts"]["header"]
+                footer = st.session_state["master_texts"]["footer"]
+                full_cv_md = f"{header}\n\n{manual_body}\n\n{footer}"
                 with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False, encoding="utf-8") as _tf:
                     _tf.write(full_cv_md)
                     _tf_path = _tf.name
                 try:
                     process_cv.fix_file(_tf_path)
-                    with open(_tf_path, encoding="utf-8") as _tf:
+                    with Path(_tf_path).open(encoding="utf-8") as _tf:
                         full_cv_md = _tf.read()
                 finally:
-                    try:
-                        os.remove(_tf_path)
-                    except Exception:
-                        pass
+                    with contextlib.suppress(Exception):
+                        Path(_tf_path).unlink()
                 st.session_state["edited_cv_manual"] = full_cv_md
                 st.session_state.pop("pdf_bytes", None)
                 st.session_state.pop("manual_cv_errors", None)
@@ -726,24 +738,25 @@ with tabs[1]:
                     pdf_name = str(run_dir / "cv.pdf")
 
                     try:
-                        with open(f_md_name, "w", encoding="utf-8") as f_md:
+                        with Path(f_md_name).open("w", encoding="utf-8") as f_md:
                             f_md.write(edited_full_cv)
 
                         # Convert to PDF
                         compile_pdf(f_md_name, pdf_name)
 
-                        with open(pdf_name, "rb") as f_pdf:
+                        with Path(pdf_name).open("rb") as f_pdf:
                             st.session_state["pdf_bytes"] = f_pdf.read()
                         st.session_state["manual_pdf_note"] = f"PDF Generated and stored at {pdf_name}!"
                         st.rerun()
-                    except Exception as e:
+                    except Exception as e:  # noqa: BLE001
                         st.session_state["manual_pdf_error"] = f"PDF generation failed: {e}"
                         st.rerun()
 
             if "pdf_bytes" in st.session_state:
                 # Display PDF
                 base64_pdf = base64.b64encode(st.session_state["pdf_bytes"]).decode("utf-8")
-                pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="800" type="application/pdf"></iframe>'
+                iframe_style = 'width="100%" height="800" type="application/pdf"'
+                pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" {iframe_style}></iframe>'
                 st.markdown(pdf_display, unsafe_allow_html=True)
             else:
                 st.info("Click 'Convert Markdown CV to PDF' to preview.")
@@ -773,25 +786,25 @@ with tabs[2]:
                 pdf_name = str(run_dir / "document.pdf")
 
                 try:
-                    with open(f_md_name, "w", encoding="utf-8") as f_md:
+                    with Path(f_md_name).open("w", encoding="utf-8") as f_md:
                         f_md.write(arbitrary_md)
 
                     # Fix CV markdown using process_cv
                     process_cv.fix_file(f_md_name)
 
                     # Read back the fixed content to update the UI
-                    with open(f_md_name, encoding="utf-8") as f_md:
+                    with Path(f_md_name).open(encoding="utf-8") as f_md:
                         fixed_content = f_md.read()
                     st.session_state["arbitrary_md"] = fixed_content
 
                     # Convert to PDF
                     compile_pdf(f_md_name, pdf_name)
 
-                    with open(pdf_name, "rb") as f_pdf:
+                    with Path(pdf_name).open("rb") as f_pdf:
                         st.session_state["arbitrary_pdf_bytes"] = f_pdf.read()
                     st.success(f"PDF Generated and stored at {pdf_name}!")
                     st.rerun()
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     st.error(f"PDF generation failed: {e}")
 
         if "arbitrary_pdf_bytes" in st.session_state:
@@ -804,7 +817,8 @@ with tabs[2]:
 
             # Display PDF
             base64_pdf = base64.b64encode(st.session_state["arbitrary_pdf_bytes"]).decode("utf-8")
-            pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="800" type="application/pdf"></iframe>'
+            iframe_style = 'width="100%" height="800" type="application/pdf"'
+            pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" {iframe_style}></iframe>'
             st.markdown(pdf_display, unsafe_allow_html=True)
         else:
             st.info("Click 'Generate PDF' to preview.")
@@ -849,18 +863,18 @@ with tabs[3]:
     st.header("Master Data")
 
     # Auto-save callbacks for master sections
-    def _save_master_section(key, path_key):
+    def _save_master_section(key: str, path_key: str) -> None:
         """Save the content of a master textarea to its file."""
         content = st.session_state.get(key, "")
         file_path = cfg.get(path_key)
         if file_path:
             try:
-                with open(file_path, "w", encoding="utf-8") as f:
+                with Path(file_path).open("w", encoding="utf-8") as f:
                     f.write(content)
                 logger.info(f"Saved {key} to {file_path}")
                 # Update in-memory master_texts dict
                 st.session_state["master_texts"][path_key] = content
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Failed to save {key} to {file_path}: {e}")
 
     # Header

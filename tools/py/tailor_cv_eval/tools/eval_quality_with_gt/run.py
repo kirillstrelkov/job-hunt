@@ -32,6 +32,11 @@ RESULTS_CSV = RESULTS_JSON.with_suffix(".csv")
 NOTEBOOK_PATH = Path(__file__).resolve().parent / "result_analysis.ipynb"
 PROMPTS_DIR = Path(__file__).resolve().parent / "prompts"
 
+HELSINKI_VAL = (
+    "**[University of Helsinki DevOps Labs: Cloud-Native Microservices]"
+    "(https://github.com/kirillstrelkov/KubernetesSubmissions)** | 2026"
+)
+
 PROMPTFOO_CONFIG_TEMPLATE = """
 description: Evaluation of prepare_llm_prompt.py prompts
 commandLineOptions:
@@ -80,7 +85,7 @@ tests:
       - type: contains
         value: "Certified Kubernetes Application Developer, _Cloud Native Computing Foundation_ | Feb 2026"
       - type: contains
-        value: "**[University of Helsinki DevOps Labs: Cloud-Native Microservices](https://github.com/kirillstrelkov/KubernetesSubmissions)** | 2026"
+        value: "{{HELSINKI_VAL}}"
       - type: python
         value: len(output) > 4000
       - type: python
@@ -97,9 +102,9 @@ tests:
           Compare the actual output to the expected output: {{expected}}.
           Ensure that:
           1. The 'PART 1' tailored resume is factually aligned with the expected
-          resume, without hallucinating jobs or skills.
+             resume, without hallucinating jobs or skills.
           2. The justifications and additional options (PART 2 and 3)
-          make logical sense and match the expected reasoning.
+             make logical sense and match the expected reasoning.
           3. The output is in pure Markdown without conversational filler.
         provider: ollama:chat:{{EVAL_MODEL}} # Dynamically resolved evaluation model for grading
       - type: rouge-n
@@ -117,6 +122,7 @@ def generate_config(prompt_files: list[Path], gt_file: Path, output_file: Path) 
 
     template_text = PROMPTFOO_CONFIG_TEMPLATE.replace("{{EVAL_MODEL}}", eval_model)
     template_text = template_text.replace("{{GT_FILE}}", str(gt_file.resolve()))
+    template_text = template_text.replace("{{HELSINKI_VAL}}", HELSINKI_VAL)
 
     config = yaml.safe_load(template_text)
     config["prompts"] = [f"file://{pf.resolve()}" for pf in prompt_files]

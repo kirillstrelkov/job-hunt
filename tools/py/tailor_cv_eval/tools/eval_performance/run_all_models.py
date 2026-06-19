@@ -17,7 +17,7 @@ from helpers.config import (  # noqa: E402
 )
 from helpers.config_generator import create_config  # noqa: E402
 from helpers.df_helper import ModelStatsCols  # noqa: E402
-from helpers.notebook import run_jupyter_notebook
+from helpers.notebook import run_jupyter_notebook  # noqa: E402
 from helpers.ollama_helper import get_top_model_names, run_model  # noqa: E402
 from helpers.tmp_helper import get_llm_prompt_for_job, get_tmp_input_folder, get_tmp_output_folder  # noqa: E402
 

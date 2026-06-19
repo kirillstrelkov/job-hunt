@@ -1,3 +1,5 @@
+"""Script to run Promptfoo evaluation across different models and generate performance reports."""
+
 import sys
 from pathlib import Path
 
