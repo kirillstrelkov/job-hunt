@@ -319,8 +319,8 @@ with tabs[0]:
                 timeout = st.number_input(
                     "Timeout (seconds)",
                     min_value=1,
-                    max_value=600,
-                    value=120,
+                    max_value=1200,
+                    value=600,
                     step=10,
                     key=f"timeout_{model_key_suffix}",
                 )
@@ -521,9 +521,11 @@ with tabs[0]:
                                         "seed": seed,
                                         "timeout": timeout,
                                     }
+
                                     result = run_gemini_model(
                                         model=selected_model, prompt_content=hydrated, options=opts
                                     )
+
                                 else:
                                     # Extract options for selected model
                                     options = {}
