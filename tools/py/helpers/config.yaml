@@ -21,6 +21,12 @@ top_models:
   # - "qwen3.5:9b-q4_K_M" # strange GPU, slow, but long output
   # - "deepseek-r1:7b" # strange output
 
+gemini_models:
+  - "gemini-3.1-flash-lite"
+  - "gemini-3.5-flash"
+  - "gemma-4-26b-a4b-it"
+  - "gemma-4-31b-it"
+
 models:
   - name: "llama3.1:8b-text-q4_K_M"
   - name: "gemma4:e4b-it-qat"

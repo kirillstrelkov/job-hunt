@@ -2,7 +2,6 @@
 
 import os
 import time
-from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
@@ -15,66 +14,9 @@ from helpers.config import DEFAULT_CONFIG, ConfigManager
 MIN_EVAL_TIME = 0.001
 
 
-def check_if_file_fits_into_ctx_num(path: str | Path, ctx_num: int) -> bool:
-    """Check if a file's estimated tokens fit within a context window constraint."""
-    tokens = len(Path(path).read_text(encoding="utf-8")) // 4
-    if tokens > ctx_num:
-        logger.error(f"The file {path} has {tokens} tokens, which is less than the context window of {ctx_num} tokens.")
-        return False
-
-    return True
-
-
-@lru_cache
-def __get_supported_models() -> list[str]:
-    """Get list of supported Gemini models."""
-    return [
-        "gemini-2.5-flash",
-        "gemini-2.5-pro",
-        "gemini-2.0-flash",
-        "gemini-2.0-flash-lite",
-        "gemini-2.0-pro-exp-02-05",
-        "gemini-1.5-flash",
-        "gemini-1.5-pro",
-        "gemini-1.5-flash-8b",
-    ]
-
-
-def __check_models_supported(models: list[str]) -> None:
-    supported = __get_supported_models()
-    for model in models:
-        # Lenient prefix check: allow if it matches a known model or starts with gemini
-        if model not in supported and not model.startswith("gemini"):
-            msg = f"Model '{model}' is not a recognized Gemini model. Supported models are: {', '.join(supported)}"
-            raise ValueError(msg)
-
-
-def get_top_model_names(config_manager: ConfigManager = DEFAULT_CONFIG) -> list[str]:
-    """Get top model names."""
-    try:
-        models = config_manager.get_config_value(".top_models")
-        # Filter for gemini models
-        gemini_models = [m for m in models if m.startswith("gemini")]
-        if gemini_models:
-            __check_models_supported(gemini_models)
-            return gemini_models
-    except Exception as e:  # noqa: BLE001
-        logger.debug(f"Error fetching top models: {e}")
-    return ["gemini-2.0-flash", "gemini-1.5-flash"]
-
-
 def get_model_names(config_manager: ConfigManager = DEFAULT_CONFIG) -> list[str]:
     """Get all configured model names."""
-    try:
-        models_list = config_manager.get_config_value(".models")
-        models = [item["name"] for item in models_list]
-        gemini_models = [m for m in models if m.startswith("gemini")]
-        if gemini_models:
-            __check_models_supported(gemini_models)
-            return gemini_models
-    except Exception as e:  # noqa: BLE001
-        logger.debug(f"Error fetching model names: {e}")
-    return ["gemini-2.0-flash", "gemini-1.5-flash"]
+    return config_manager.get_config_value(".gemini_models")
 
 
 def get_models_with_options(
@@ -90,17 +32,6 @@ def get_models_with_options(
         }
         for model in model_names
     ]
-
-
-def get_eval_model(config_manager: ConfigManager = DEFAULT_CONFIG) -> str:
-    """Get the configured evaluation model name."""
-    try:
-        eval_model = config_manager.get_config_value(".eval_model")
-        if eval_model.startswith("gemini"):
-            return eval_model
-    except Exception as e:  # noqa: BLE001
-        logger.debug(f"Error fetching evaluation model: {e}")
-    return "gemini-2.0-flash"
 
 
 def get_model_options(model: str, config_manager: ConfigManager = DEFAULT_CONFIG) -> dict:
@@ -181,20 +112,19 @@ def run_model(model: str, prompt_content: str, options: dict | None = None) -> d
         options = get_model_options(model)
     start_time = time.time()
 
-    api_key = os.environ.get("GEMINI_API_KEY")
-    if not api_key:
+    if not os.environ.get("GEMINI_API_KEY"):
         msg = "GEMINI_API_KEY environment variable is not set"
         raise RuntimeError(msg)
 
     model_settings = dict_to_model_settings(options)
-    gemini_model = GeminiModel(model, api_key=api_key)
+    gemini_model = GeminiModel(model)
     agent = Agent(gemini_model)
 
     result = agent.run_sync(prompt_content, model_settings=model_settings)
     elapsed = time.time() - start_time
 
-    response = result.data
-    usage = result.usage()
+    response = result.output
+    usage = result.usage
     prompt_tokens = usage.request_tokens or 0
     gen_tokens = usage.response_tokens or 0
 
@@ -228,17 +158,16 @@ def generate_response(model: str, prompt: str, options: dict | None = None) -> s
     if options:
         merged_options.update(options)
 
-    api_key = os.environ.get("GEMINI_API_KEY")
-    if not api_key:
+    if not os.environ.get("GEMINI_API_KEY"):
         msg = "GEMINI_API_KEY environment variable is not set"
         raise RuntimeError(msg)
 
     model_settings = dict_to_model_settings(merged_options)
-    gemini_model = GeminiModel(model, api_key=api_key)
+    gemini_model = GeminiModel(model)
     agent = Agent(gemini_model)
 
     result = agent.run_sync(prompt, model_settings=model_settings)
-    return result.data
+    return result.output
 
 
 def get_model_output(model: str, prompt_content: str, output_file: Path, options: dict | None = None) -> str:
@@ -256,7 +185,9 @@ def get_model_output(model: str, prompt_content: str, output_file: Path, options
 def call_api(prompt: str, options: dict, _context: Any = None) -> dict:  # noqa: ANN401
     """Promptfoo custom Python provider call API interface."""
     config = options.get("config", {})
-    model = config.get("model", get_eval_model())
+    gemini_models = get_model_names()
+    default_model = gemini_models[0] if gemini_models else "gemini-2.5-flash"
+    model = config.get("model", default_model)
 
     # Extract all other parameters as options
     model_options = {key: val for key, val in config.items() if key != "model"}

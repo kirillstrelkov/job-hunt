@@ -3,17 +3,17 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from helpers.llm_helper import (
-    __get_supported_models,
     dict_to_model_settings,
     generate_response,
+    get_model_names,
     run_model,
 )
 
 
-def test_get_supported_models():
-    models = __get_supported_models()
+def test_get_model_names():
+    models = get_model_names()
     assert isinstance(models, list)
-    assert "gemini-2.0-flash" in models
+    assert "gemini-3.5-flash" in models
 
 
 def test_dict_to_model_settings():
@@ -35,14 +35,14 @@ def test_generate_response(mock_agent_class, mock_gemini_model_class, monkeypatc
 
     mock_agent = MagicMock()
     mock_run_result = MagicMock()
-    mock_run_result.data = "Test response text"
+    mock_run_result.output = "Test response text"
     mock_agent.run_sync.return_value = mock_run_result
     mock_agent_class.return_value = mock_agent
 
     response = generate_response("gemini-2.0-flash", "What is the meaning of life?")
 
     assert response == "Test response text"
-    mock_gemini_model_class.assert_called_once_with("gemini-2.0-flash", api_key="fake-key")
+    mock_gemini_model_class.assert_called_once_with("gemini-2.0-flash")
     mock_agent.run_sync.assert_called_once()
 
 
@@ -53,13 +53,13 @@ def test_run_model(mock_agent_class, mock_gemini_model_class, monkeypatch):
 
     mock_agent = MagicMock()
     mock_run_result = MagicMock()
-    mock_run_result.data = "Detailed test response"
+    mock_run_result.output = "Detailed test response"
 
     # Mocking usage
     mock_usage = MagicMock()
     mock_usage.request_tokens = 15
     mock_usage.response_tokens = 25
-    mock_run_result.usage.return_value = mock_usage
+    mock_run_result.usage = mock_usage
 
     mock_agent.run_sync.return_value = mock_run_result
     mock_agent_class.return_value = mock_agent
@@ -73,7 +73,7 @@ def test_run_model(mock_agent_class, mock_gemini_model_class, monkeypatch):
     assert res_dict["total_time"] >= 0.0
     assert res_dict["char_count"] == len("Detailed test response")
     assert res_dict["word_count"] == 3
-    mock_gemini_model_class.assert_called_once_with("gemini-2.0-flash", api_key="fake-key")
+    mock_gemini_model_class.assert_called_once_with("gemini-2.0-flash")
 
 
 def test_generate_response_missing_api_key(monkeypatch):

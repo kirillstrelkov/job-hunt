@@ -3,7 +3,9 @@
 import argparse
 import base64
 import contextlib
+import hashlib
 import io
+import os
 import shutil
 import subprocess
 import sys
@@ -58,6 +60,8 @@ def generate_config(output_path: str) -> None:
                     "models": helpers_config.get("models"),
                     "model_default_options": helpers_config.get("model_default_options"),
                 }
+                if "gemini_models" in helpers_config:
+                    consolidated["gemini_models"] = helpers_config["gemini_models"]
     else:
         logger.warning(f"Warning: {helpers_config_path} not found.")
 
@@ -95,7 +99,19 @@ except ImportError:
 
 import process_cv  # noqa: E402
 
-from helpers.ollama_helper import run_model  # noqa: E402
+from helpers.llm_helper import (  # noqa: E402
+    get_model_names as get_gemini_models,
+)
+from helpers.llm_helper import (  # noqa: E402
+    run_model as run_gemini_model,
+)
+from helpers.ollama_helper import (  # noqa: E402
+    run_model as run_ollama_model,
+)
+
+# Load API Key from session state if stored
+if st.session_state.get("gemini_api_key_val"):
+    os.environ["GEMINI_API_KEY"] = st.session_state["gemini_api_key_val"]
 
 
 def compile_pdf(md_path: str, pdf_path: str) -> None:
@@ -123,12 +139,17 @@ def compile_pdf(md_path: str, pdf_path: str) -> None:
         )
 
 
-def get_temp_generation_dir() -> Path:
-    """Create and return a new timestamped temporary directory for file operations."""
+def get_temp_generation_dir(jd_text: str | None = None) -> tuple[Path, str]:
+    """Create and return a temporary directory path and a timestamp string."""
     dt_str = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
-    temp_dir = Path(tempfile.gettempdir()) / "tmp_tailor_cv" / f"{dt_str}"
+    if jd_text and jd_text.strip():
+        jd_hash = hashlib.md5(jd_text.strip().encode("utf-8"), usedforsecurity=False).hexdigest()
+        temp_dir = Path(tempfile.gettempdir()) / "tmp_tailor_cv" / jd_hash
+    else:
+        temp_dir = Path(tempfile.gettempdir()) / "tmp_tailor_cv" / "default"
+
     temp_dir.mkdir(parents=True, exist_ok=True)
-    return temp_dir
+    return temp_dir, dt_str
 
 
 def run_check_on_text(md_content: str) -> list[str]:
@@ -242,74 +263,148 @@ if "ollama" in cfg and "models" in cfg["ollama"]:
 eval_model = cfg.get("ollama", {}).get("eval_model", "")
 
 # Main layout
-tabs = st.tabs(["Tailor with local LLM", "Tailor manually", "MD to PDF Converter", "Configuration / Master Data"])
+tabs = st.tabs(["Tailor with LLM", "Tailor manually", "MD to PDF Converter", "Configuration / Master Data"])
 
 with tabs[0]:
-    # 1. Expandable/Collapsible Local LLM Settings
-    with st.expander("Local LLM Settings", expanded=False):
-        selected_model = st.selectbox(
-            "Ollama Model", options=models, index=models.index(eval_model) if eval_model in models else 0
-        )
-        # Resolve default values for the selected model from config
-        model_opts = {}
-        if "ollama" in cfg:
-            for m in cfg["ollama"].get("models", []):
-                if m["name"] == selected_model:
-                    model_opts = m.get("options", {}).copy()
-                    break
-            default_opts = cfg["ollama"].get("model_default_options", {})
-            resolved_opts = default_opts.copy()
-            resolved_opts.update(model_opts)
-        else:
-            resolved_opts = {}
+    # Toggle between Local and Cloud LLM
+    use_cloud = st.toggle(
+        "Use Cloud LLM (Gemini)", value=st.session_state.get("use_cloud_llm", False), key="use_cloud_llm"
+    )
 
-        init_num_ctx = resolved_opts.get("num_ctx", 16384)
-        init_num_predict = resolved_opts.get("num_predict", -1)
-        init_temp = resolved_opts.get("temperature", 0.1)
-        init_repeat_penalty = resolved_opts.get("repeat_penalty", 1.1)
+    if use_cloud:
+        # Cloud LLM Settings
+        with st.expander("Cloud LLM (Gemini) Settings", expanded=False):
+            gemini_models = list(get_gemini_models())
+            selected_model = st.selectbox(
+                "Gemini Model",
+                options=gemini_models,
+                index=0 if gemini_models else None,
+                key="gemini_model_selectbox",
+            )
+            if not selected_model:
+                selected_model = "gemini-2.5-flash"
+            model_key_suffix = selected_model
 
-        col_opts1, col_opts2 = st.columns([1, 1])
-        with col_opts1:
-            num_ctx = st.number_input(
-                "Context Window (num_ctx)",
-                min_value=1024,
-                max_value=128000,
-                value=int(init_num_ctx),
-                step=1024,
-                key=f"num_ctx_{selected_model}",
-            )
-            num_predict = st.number_input(
-                "Max Tokens (num_predict)",
-                min_value=-2,
-                max_value=32768,
-                value=int(init_num_predict),
-                step=1,
-                key=f"num_predict_{selected_model}",
-            )
-        with col_opts2:
-            temperature = st.slider(
-                "Temperature",
-                min_value=0.0,
-                max_value=2.0,
-                value=float(init_temp),
-                step=0.01,
-                key=f"temperature_{selected_model}",
-            )
-            repeat_penalty = st.slider(
-                "Repeat Penalty (repeat_penalty)",
-                min_value=0.5,
-                max_value=2.0,
-                value=float(init_repeat_penalty),
-                step=0.01,
-                key=f"repeat_penalty_{selected_model}",
-            )
+            if not os.environ.get("GEMINI_API_KEY"):
+                st.warning("⚠️ GEMINI_API_KEY is not set. Please set it in the 'Configuration / Master Data' tab.")
 
-        st.text_area(
-            "Log Output",
-            value=st.session_state.get("local_llm_stdout", ""),
-            height=150,
-            disabled=True,
-        )
+            init_max_tokens = 10240
+            init_temp = 0.1
+            init_seed = 42
+
+            col_opts1, col_opts2 = st.columns([1, 1])
+            with col_opts1:
+                max_tokens = st.number_input(
+                    "Max Tokens (max_tokens)",
+                    min_value=1,
+                    max_value=128000,
+                    value=int(init_max_tokens),
+                    step=1024,
+                    key=f"max_tokens_{model_key_suffix}",
+                )
+                seed = st.number_input(
+                    "Seed",
+                    value=int(init_seed),
+                    key=f"seed_{model_key_suffix}",
+                )
+            with col_opts2:
+                temperature = st.slider(
+                    "Temperature",
+                    min_value=0.0,
+                    max_value=2.0,
+                    value=float(init_temp),
+                    step=0.01,
+                    key=f"temperature_{model_key_suffix}",
+                )
+                timeout = st.number_input(
+                    "Timeout (seconds)",
+                    min_value=1,
+                    max_value=600,
+                    value=120,
+                    step=10,
+                    key=f"timeout_{model_key_suffix}",
+                )
+
+            st.text_area(
+                "Log Output",
+                value=st.session_state.get("local_llm_stdout", ""),
+                height=150,
+                disabled=True,
+            )
+    else:
+        # Local LLM Settings
+        with st.expander("Local LLM (Ollama) Settings", expanded=False):
+            models_list = list(models)
+            selected_model = st.selectbox(
+                "Ollama Model",
+                options=models_list,
+                index=models_list.index(eval_model) if eval_model in models_list else (0 if models_list else None),
+                key="ollama_model_selectbox",
+            )
+            if not selected_model:
+                selected_model = eval_model or "llama3"
+            model_key_suffix = selected_model
+
+            # Resolve default values for the selected model from config
+            model_opts = {}
+            if "ollama" in cfg:
+                for m in cfg["ollama"].get("models", []):
+                    if m["name"] == selected_model:
+                        model_opts = m.get("options", {}).copy()
+                        break
+                default_opts = cfg["ollama"].get("model_default_options", {})
+                resolved_opts = default_opts.copy()
+                resolved_opts.update(model_opts)
+            else:
+                resolved_opts = {}
+
+            init_num_ctx = resolved_opts.get("num_ctx", 16384)
+            init_num_predict = resolved_opts.get("num_predict", -1)
+            init_temp = resolved_opts.get("temperature", 0.1)
+            init_repeat_penalty = resolved_opts.get("repeat_penalty", 1.1)
+
+            col_opts1, col_opts2 = st.columns([1, 1])
+            with col_opts1:
+                num_ctx = st.number_input(
+                    "Context Window (num_ctx)",
+                    min_value=1024,
+                    max_value=128000,
+                    value=int(init_num_ctx),
+                    step=1024,
+                    key=f"num_ctx_{model_key_suffix}",
+                )
+                num_predict = st.number_input(
+                    "Max Tokens (num_predict)",
+                    min_value=-2,
+                    max_value=32768,
+                    value=int(init_num_predict),
+                    step=1,
+                    key=f"num_predict_{model_key_suffix}",
+                )
+            with col_opts2:
+                temperature = st.slider(
+                    "Temperature",
+                    min_value=0.0,
+                    max_value=2.0,
+                    value=float(init_temp),
+                    step=0.01,
+                    key=f"temperature_{model_key_suffix}",
+                )
+                repeat_penalty = st.slider(
+                    "Repeat Penalty (repeat_penalty)",
+                    min_value=0.5,
+                    max_value=2.0,
+                    value=float(init_repeat_penalty),
+                    step=0.01,
+                    key=f"repeat_penalty_{model_key_suffix}",
+                )
+
+            st.text_area(
+                "Log Output",
+                value=st.session_state.get("local_llm_stdout", ""),
+                height=150,
+                disabled=True,
+            )
 
     st.subheader("Step 1: Enter Job Description")
     with st.expander("Show/Hide Job Description", expanded=True):
@@ -349,7 +444,7 @@ with tabs[0]:
         col_btn1, col_btn2, col_btn3 = st.columns([1, 1, 1])
         with col_btn1:
             btn_gen_local_clicked = st.button(
-                "Tailor CV with Local LLM", use_container_width=True, key="btn_gen_local", type="primary"
+                "Tailor CV with LLM", use_container_width=True, key="btn_gen_local", type="primary"
             )
         with col_btn2:
             btn_check_local_clicked = st.button(
@@ -363,6 +458,8 @@ with tabs[0]:
                 key="dl_md_local",
                 use_container_width=True,
             )
+
+        fix_markdown = st.checkbox("Fix Markdown", value=True, key="fix_markdown_local")
 
         # Message placeholders directly after buttons
         if st.session_state.get("local_tailor_error"):
@@ -398,37 +495,56 @@ with tabs[0]:
             if not jd_local.strip():
                 st.session_state["local_tailor_warning"] = "Please paste a Job Description first."
                 st.rerun()
+            elif use_cloud and not os.environ.get("GEMINI_API_KEY"):
+                st.session_state["local_tailor_error"] = "GEMINI_API_KEY environment variable is not set"
+                st.rerun()
             else:
                 st.session_state["local_llm_stdout"] = "Tailoring...\n"
                 prompt_template = st.session_state["master_texts"]["prompt"]
                 master_cv = st.session_state["master_texts"]["body"]
                 hydrated = prompt_template.format(master_cv=master_cv, job_description=jd_local)
 
-                with st.spinner(f"Running Ollama ({selected_model})..."):
+                spinner_msg = (
+                    f"Running Gemini ({selected_model})..." if use_cloud else f"Running Ollama ({selected_model})..."
+                )
+                with st.spinner(spinner_msg):
                     try:
-                        # Extract options for selected model
-                        options = {}
-                        for m in cfg.get("ollama", {}).get("models", []):
-                            if m["name"] == selected_model:
-                                options = m.get("options", {})
-                                break
-
-                        default_opts = cfg.get("ollama", {}).get("model_default_options", {})
-                        opts = default_opts.copy()
-                        opts.update(options)
-
-                        # Overwrite with overrides
-                        opts["num_ctx"] = num_ctx
-                        opts["num_predict"] = num_predict
-                        opts["temperature"] = temperature
-                        opts["repeat_penalty"] = repeat_penalty
-
                         f_out = io.StringIO()
                         handler_id = logger.add(f_out, format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}")
 
                         try:
                             with contextlib.redirect_stdout(f_out), contextlib.redirect_stderr(f_out):
-                                result = run_model(model=selected_model, prompt_content=hydrated, options=opts)
+                                if use_cloud:
+                                    opts = {
+                                        "max_tokens": max_tokens,
+                                        "temperature": temperature,
+                                        "seed": seed,
+                                        "timeout": timeout,
+                                    }
+                                    result = run_gemini_model(
+                                        model=selected_model, prompt_content=hydrated, options=opts
+                                    )
+                                else:
+                                    # Extract options for selected model
+                                    options = {}
+                                    for m in cfg.get("ollama", {}).get("models", []):
+                                        if m["name"] == selected_model:
+                                            options = m.get("options", {})
+                                            break
+
+                                    default_opts = cfg.get("ollama", {}).get("model_default_options", {})
+                                    opts = default_opts.copy()
+                                    opts.update(options)
+
+                                    # Overwrite with overrides
+                                    opts["num_ctx"] = num_ctx
+                                    opts["num_predict"] = num_predict
+                                    opts["temperature"] = temperature
+                                    opts["repeat_penalty"] = repeat_penalty
+
+                                    result = run_ollama_model(
+                                        model=selected_model, prompt_content=hydrated, options=opts
+                                    )
                         finally:
                             logger.remove(handler_id)
                             st.session_state["local_llm_stdout"] = f_out.getvalue()
@@ -450,20 +566,23 @@ with tabs[0]:
                         trimmed_text = "\n".join(lines[start_idx:end_idx]).strip()
 
                         st.session_state["tailored_body"] = trimmed_text
-                        # Fix the assembled CV and display the fixed version
                         header = st.session_state["master_texts"]["header"]
                         footer = st.session_state["master_texts"]["footer"]
                         full_cv_md = f"{header}\n\n{trimmed_text}\n\n{footer}"
-                        with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False, encoding="utf-8") as _tf:
-                            _tf.write(full_cv_md)
-                            _tf_path = _tf.name
-                        try:
-                            process_cv.fix_file(_tf_path)
-                            with Path(_tf_path).open(encoding="utf-8") as _tf:
-                                full_cv_md = _tf.read()
-                        finally:
-                            with contextlib.suppress(Exception):
-                                Path(_tf_path).unlink()
+                        if fix_markdown:
+                            # Fix the assembled CV and display the fixed version
+                            with tempfile.NamedTemporaryFile(
+                                mode="w", suffix=".md", delete=False, encoding="utf-8"
+                            ) as _tf:
+                                _tf.write(full_cv_md)
+                                _tf_path = _tf.name
+                            try:
+                                process_cv.fix_file(_tf_path)
+                                with Path(_tf_path).open(encoding="utf-8") as _tf:
+                                    full_cv_md = _tf.read()
+                            finally:
+                                with contextlib.suppress(Exception):
+                                    Path(_tf_path).unlink()
                         st.session_state["edited_cv_local"] = full_cv_md
                         st.session_state.pop("pdf_bytes", None)
                         st.session_state.pop("local_cv_errors", None)
@@ -522,9 +641,10 @@ with tabs[0]:
                 st.session_state.pop("local_pdf_warning", None)
                 st.session_state.pop("local_pdf_note", None)
                 with st.spinner("Generating PDF..."):
-                    run_dir = get_temp_generation_dir()
-                    f_md_name = str(run_dir / "cv.md")
-                    pdf_name = str(run_dir / "cv.pdf")
+                    jd_local_val = st.session_state.get("jd_local", "")
+                    run_dir, dt_str = get_temp_generation_dir(jd_local_val)
+                    f_md_name = str(run_dir / f"cv_{dt_str}.md")
+                    pdf_name = str(run_dir / f"cv_{dt_str}.pdf")
 
                     try:
                         with Path(f_md_name).open("w", encoding="utf-8") as f_md:
@@ -733,9 +853,10 @@ with tabs[1]:
                 st.session_state.pop("manual_pdf_warning", None)
                 st.session_state.pop("manual_pdf_note", None)
                 with st.spinner("Generating PDF..."):
-                    run_dir = get_temp_generation_dir()
-                    f_md_name = str(run_dir / "cv.md")
-                    pdf_name = str(run_dir / "cv.pdf")
+                    jd_manual_val = st.session_state.get("jd_manual", "")
+                    run_dir, dt_str = get_temp_generation_dir(jd_manual_val)
+                    f_md_name = str(run_dir / f"cv_{dt_str}.md")
+                    pdf_name = str(run_dir / f"cv_{dt_str}.pdf")
 
                     try:
                         with Path(f_md_name).open("w", encoding="utf-8") as f_md:
@@ -781,9 +902,10 @@ with tabs[2]:
         )
         if btn_gen_arb_clicked:
             with st.spinner("Generating PDF..."):
-                run_dir = get_temp_generation_dir()
-                f_md_name = str(run_dir / "document.md")
-                pdf_name = str(run_dir / "document.pdf")
+                jd_context = st.session_state.get("shared_jd", "")
+                run_dir, dt_str = get_temp_generation_dir(jd_context)
+                f_md_name = str(run_dir / f"document_{dt_str}.md")
+                pdf_name = str(run_dir / f"document_{dt_str}.pdf")
 
                 try:
                     with Path(f_md_name).open("w", encoding="utf-8") as f_md:
@@ -830,6 +952,16 @@ with tabs[3]:
         value=st.session_state.get("config_path_input_val", "./config.yaml"),
         key="config_path_input_val",
     )
+
+    # Gemini API Key configuration
+    gemini_api_key_input = st.text_input(
+        "Gemini API Key (GEMINI_API_KEY)",
+        value=st.session_state.get("gemini_api_key_val", os.environ.get("GEMINI_API_KEY", "")),
+        type="password",
+        key="gemini_api_key_val",
+    )
+    if gemini_api_key_input:
+        os.environ["GEMINI_API_KEY"] = gemini_api_key_input
     if st.button("Load Config", key="btn_load_config_tabs"):
         st.session_state["config"] = load_unified_config(config_path_input)
         st.session_state.pop("master_texts", None)
