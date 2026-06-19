@@ -44,10 +44,7 @@ def __check_models_supported(models: list[str]) -> None:
     for model in models:
         # Lenient prefix check: allow if it matches a known model or starts with gemini
         if model not in supported and not model.startswith("gemini"):
-            msg = (
-                f"Model '{model}' is not a recognized Gemini model. "
-                f"Supported models are: {', '.join(supported)}"
-            )
+            msg = f"Model '{model}' is not a recognized Gemini model. Supported models are: {', '.join(supported)}"
             raise ValueError(msg)
 
 

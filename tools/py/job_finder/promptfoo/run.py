@@ -11,9 +11,9 @@ sys.path.append(str(PRJ_ROOT_DIR.parent))
 from reviewer.llm import CV_PROMPT, JD_PROMPT, SYSTEM_PROMPT_CANDIDATE  # noqa: E402
 
 from helpers.notebook import run_jupyter_notebook  # noqa: E402
-from helpers.ollama_helper import get_top_model_names, get_model_options  # noqa: E402
+from helpers.ollama_helper import get_model_options, get_top_model_names  # noqa: E402
 from helpers.promptfoo_helper import convert_json_to_csv, run_promptfoo_eval, write_yaml_config  # noqa: E402
-from helpers.tmp_helper import get_root_dir, get_tmp_folder  # noqa: E402
+from helpers.tmp_helper import get_tmp_folder  # noqa: E402
 
 MODELS = get_top_model_names()
 TMP_DIR = get_tmp_folder(__file__)

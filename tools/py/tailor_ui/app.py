@@ -1,8 +1,9 @@
+import argparse
 import os
 import sys
-import argparse
-import yaml
 from pathlib import Path
+
+import yaml
 from loguru import logger
 
 # Add required paths
@@ -25,7 +26,7 @@ def generate_config(output_path: str):
 
     # Read CV config
     if cv_config_path.exists():
-        with open(cv_config_path, "r", encoding="utf-8") as f:
+        with open(cv_config_path, encoding="utf-8") as f:
             cv_config = yaml.safe_load(f)
             if cv_config:
                 # Resolve paths relative to cv/tmp
@@ -40,7 +41,7 @@ def generate_config(output_path: str):
 
     # Read Helpers config
     if helpers_config_path.exists():
-        with open(helpers_config_path, "r", encoding="utf-8") as f:
+        with open(helpers_config_path, encoding="utf-8") as f:
             helpers_config = yaml.safe_load(f)
             if helpers_config:
                 consolidated["ollama"] = {
@@ -82,11 +83,13 @@ except ImportError:
     logger.error("Streamlit is not installed. Please install it using `uv add streamlit`.")
     sys.exit(1)
 
-import subprocess
 import base64
+import subprocess
 import tempfile
+
 import process_cv
-from helpers.ollama_helper import run_model, get_model_options
+
+from helpers.ollama_helper import run_model
 
 
 def compile_pdf(md_path: str, pdf_path: str):
@@ -173,7 +176,7 @@ def load_unified_config(path: str):
     p = Path(path)
     if not p.exists():
         return {}
-    with open(p, "r", encoding="utf-8") as f:
+    with open(p, encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
@@ -210,7 +213,7 @@ cfg = st.session_state["config"]
 def read_file(path):
     if not path or not Path(path).exists():
         return ""
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         return f.read()
 
 
@@ -408,8 +411,8 @@ with tabs[0]:
                         opts["temperature"] = temperature
                         opts["repeat_penalty"] = repeat_penalty
 
-                        import io
                         import contextlib
+                        import io
 
                         f = io.StringIO()
                         handler_id = logger.add(f, format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}")
@@ -445,7 +448,7 @@ with tabs[0]:
                             _tf_path = _tf.name
                         try:
                             process_cv.fix_file(_tf_path)
-                            with open(_tf_path, "r", encoding="utf-8") as _tf:
+                            with open(_tf_path, encoding="utf-8") as _tf:
                                 full_cv_md = _tf.read()
                         finally:
                             try:
@@ -658,7 +661,7 @@ with tabs[1]:
                     _tf_path = _tf.name
                 try:
                     process_cv.fix_file(_tf_path)
-                    with open(_tf_path, "r", encoding="utf-8") as _tf:
+                    with open(_tf_path, encoding="utf-8") as _tf:
                         full_cv_md = _tf.read()
                 finally:
                     try:
@@ -777,7 +780,7 @@ with tabs[2]:
                     process_cv.fix_file(f_md_name)
 
                     # Read back the fixed content to update the UI
-                    with open(f_md_name, "r", encoding="utf-8") as f_md:
+                    with open(f_md_name, encoding="utf-8") as f_md:
                         fixed_content = f_md.read()
                     st.session_state["arbitrary_md"] = fixed_content
 

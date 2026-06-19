@@ -1,11 +1,12 @@
-import pytest
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 from helpers.llm_helper import (
     __get_supported_models,
+    dict_to_model_settings,
     generate_response,
     run_model,
-    dict_to_model_settings,
 )
 
 

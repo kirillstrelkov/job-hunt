@@ -12,13 +12,17 @@ sys.path.append(str(Path(__file__).resolve().parents[3]))
 from helpers.config import DEFAULT_CONFIG  # noqa: E402
 from helpers.notebook import run_jupyter_notebook  # noqa: E402
 from helpers.ollama_helper import (
-    get_top_model_names,
+    check_if_file_fits_into_ctx_num,
     get_eval_model,
     get_model_options,
-    check_if_file_fits_into_ctx_num,
+    get_top_model_names,
 )  # noqa: E402
-from helpers.promptfoo_helper import PromptfooCsvCols, convert_json_to_csv, run_promptfoo_eval, write_yaml_config  # noqa: E402
-from helpers.tmp_helper import get_root_dir, get_tmp_folder, get_tmp_output_dir  # noqa: E402
+from helpers.promptfoo_helper import (  # noqa: E402
+    convert_json_to_csv,
+    run_promptfoo_eval,
+    write_yaml_config,
+)
+from helpers.tmp_helper import get_root_dir, get_tmp_folder  # noqa: E402
 
 # Global path definitions for Promptfoo evaluation
 TMP_EVAL_DIR = get_tmp_folder(__file__)

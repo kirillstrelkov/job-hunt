@@ -1,12 +1,11 @@
 """Helper functions for Promptfoo integration and evaluation execution."""
 
-import csv
 import json
 import subprocess
 import sys
 from pathlib import Path
 from typing import ClassVar
-import re
+
 import yaml
 from loguru import logger
 
