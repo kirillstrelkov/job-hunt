@@ -27,8 +27,8 @@ lint:
     uv run ruff check
 
 # Run Promptfoo prompt evaluation to compare baseline prompt vs candidate prompts
-eval-prompts:
-    uv run python promptfoo/run.py
+eval-prompts *args:
+    uv run python promptfoo/run.py {{ args }}
 
 # View Promptfoo prompt evaluation dashboard
 view-promptfoo:

@@ -561,13 +561,20 @@ with tabs[0]:
                                 start_idx = i
                                 break
                         end_idx = len(lines)
+                        notes_idx = -1
                         for i in range(start_idx, len(lines)):
                             if "TAILORING JUSTIFICATION REPORT" in lines[i]:
                                 end_idx = i
+                                notes_idx = i
                                 break
                         trimmed_text = "\n".join(lines[start_idx:end_idx]).strip()
+                        notes_text = ""
+                        if notes_idx != -1:
+                            notes_text = "\n".join(lines[notes_idx:]).strip()
 
                         st.session_state["tailored_body"] = trimmed_text
+                        st.session_state["tailored_notes"] = notes_text
+                        st.session_state["edited_notes_local"] = notes_text
                         header = st.session_state["master_texts"]["header"]
                         footer = st.session_state["master_texts"]["footer"]
                         full_cv_md = f"{header}\n\n{trimmed_text}\n\n{footer}"
@@ -671,6 +678,24 @@ with tabs[0]:
                 st.markdown(pdf_display, unsafe_allow_html=True)
             else:
                 st.info("Click 'Convert Markdown CV to PDF' to preview.")
+
+    # Render Notes expander for tabs[0]
+    notes_text_local = st.session_state.get("tailored_notes", "")
+    if "edited_notes_local" not in st.session_state:
+        st.session_state["edited_notes_local"] = notes_text_local
+
+    st.markdown("---")
+    with st.expander("Notes", expanded=True):
+        notes_edit_tab_local, notes_preview_tab_local = st.tabs(["Edit", "Preview"])
+        with notes_edit_tab_local:
+            st.text_area(
+                "Notes Edit Local",
+                height=300,
+                key="edited_notes_local",
+                label_visibility="collapsed",
+            )
+        with notes_preview_tab_local:
+            st.markdown(st.session_state.get("edited_notes_local", ""))
 
 with tabs[1]:
     # Step 1: Enter Job Description
@@ -788,10 +813,32 @@ with tabs[1]:
                 st.session_state["manual_tailor_warning"] = "Please paste the manual tailored body from Step 3 first."
                 st.rerun()
             else:
-                st.session_state["tailored_body"] = manual_body
+                # Extract tailored_notes from manual_body if present
+                lines = manual_body.splitlines()
+                start_idx = 0
+                for i, line in enumerate(lines):
+                    if "Summary" in line:
+                        start_idx = i
+                        break
+                end_idx = len(lines)
+                notes_idx = -1
+                for i in range(start_idx, len(lines)):
+                    if "TAILORING JUSTIFICATION REPORT" in lines[i]:
+                        end_idx = i
+                        notes_idx = i
+                        break
+                trimmed_text = "\n".join(lines[start_idx:end_idx]).strip()
+                notes_text = ""
+                if notes_idx != -1:
+                    notes_text = "\n".join(lines[notes_idx:]).strip()
+
+                st.session_state["tailored_body"] = trimmed_text
+                st.session_state["tailored_notes"] = notes_text
+                st.session_state["edited_notes_manual"] = notes_text
+
                 header = st.session_state["master_texts"]["header"]
                 footer = st.session_state["master_texts"]["footer"]
-                full_cv_md = f"{header}\n\n{manual_body}\n\n{footer}"
+                full_cv_md = f"{header}\n\n{trimmed_text}\n\n{footer}"
                 with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False, encoding="utf-8") as _tf:
                     _tf.write(full_cv_md)
                     _tf_path = _tf.name
@@ -883,6 +930,24 @@ with tabs[1]:
                 st.markdown(pdf_display, unsafe_allow_html=True)
             else:
                 st.info("Click 'Convert Markdown CV to PDF' to preview.")
+
+    # Render Notes expander for tabs[1]
+    notes_text_man = st.session_state.get("tailored_notes", "")
+    if "edited_notes_manual" not in st.session_state:
+        st.session_state["edited_notes_manual"] = notes_text_man
+
+    st.markdown("---")
+    with st.expander("Notes", expanded=True):
+        notes_edit_tab_man, notes_preview_tab_man = st.tabs(["Edit", "Preview"])
+        with notes_edit_tab_man:
+            st.text_area(
+                "Notes Edit Manual",
+                height=300,
+                key="edited_notes_manual",
+                label_visibility="collapsed",
+            )
+        with notes_preview_tab_man:
+            st.markdown(st.session_state.get("edited_notes_manual", ""))
 
 with tabs[2]:
     st.header("MD to PDF Converter")

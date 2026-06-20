@@ -19,6 +19,7 @@ from helpers.ollama_helper import (
 )  # noqa: E402
 from helpers.promptfoo_helper import (  # noqa: E402
     convert_json_to_csv,
+    get_provider_id,
     run_promptfoo_eval,
     write_yaml_config,
 )
@@ -106,21 +107,22 @@ tests:
           2. The justifications and additional options (PART 2 and 3)
              make logical sense and match the expected reasoning.
           3. The output is in pure Markdown without conversational filler.
-        provider: ollama:chat:{{EVAL_MODEL}} # Dynamically resolved evaluation model for grading
+        provider: {{EVAL_PROVIDER_ID}} # Dynamically resolved evaluation model for grading
       - type: rouge-n
         value: '{{expected}}'
         threshold: 0.3
       - type: factuality
         value: '{{expected}}'
-        provider: ollama:chat:{{EVAL_MODEL}} # Dynamically resolved evaluation model for grading
+        provider: {{EVAL_PROVIDER_ID}} # Dynamically resolved evaluation model for grading
 """
 
 
 def generate_config(prompt_files: list[Path], gt_file: Path, output_file: Path) -> None:
     """Load configuration template, resolve placeholder values, and write output config file."""
     eval_model = get_eval_model()
+    eval_provider_id = get_provider_id(eval_model)
 
-    template_text = PROMPTFOO_CONFIG_TEMPLATE.replace("{{EVAL_MODEL}}", eval_model)
+    template_text = PROMPTFOO_CONFIG_TEMPLATE.replace("{{EVAL_PROVIDER_ID}}", eval_provider_id)
     template_text = template_text.replace("{{GT_FILE}}", str(gt_file.resolve()))
     template_text = template_text.replace("{{HELSINKI_VAL}}", HELSINKI_VAL)
 
@@ -138,7 +140,7 @@ def generate_config(prompt_files: list[Path], gt_file: Path, output_file: Path) 
         label = f"{model} (ctx={ctx_num}, pred={base_options['num_predict']}, temp={base_options['temperature']})"
         providers.append(
             {
-                "id": f"ollama:chat:{model}",
+                "id": get_provider_id(model),
                 "label": label,
                 "config": base_options,
             }

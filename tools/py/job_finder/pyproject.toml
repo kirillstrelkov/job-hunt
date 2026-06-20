@@ -12,6 +12,7 @@ dependencies = [
     "odfpy>=1.4.1",
     "ollama>=0.6.2",
     "pandas>=2.2.0",
+    "pydantic-ai>=1.107.0",
     "pytest>=9.0.3",
     "pyyaml>=6.0.1",
     "ruff>=0.15.16",

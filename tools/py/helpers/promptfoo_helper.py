@@ -10,6 +10,8 @@ import pandas as pd
 import yaml
 from loguru import logger
 
+from helpers.config import DEFAULT_CONFIG
+
 _MAX_GOOD_LATENCY_SEC = 60
 
 
@@ -203,3 +205,20 @@ def convert_json_to_csv(results_json_path: Path, results_csv_path: Path) -> None
     except Exception as e:  # noqa: BLE001
         logger.error(f"Failed to process JSON results: {e}")
         sys.exit(1)
+
+
+def get_provider_id(model_name: str) -> str:
+    """Resolve the Promptfoo provider ID for a given model name from the configuration.
+
+    Args:
+        model_name: The name of the model to resolve.
+
+    Returns:
+        The provider ID string.
+
+    """
+    gemini_models = DEFAULT_CONFIG.get_config_value(".gemini_models") or []
+    if model_name in gemini_models:
+        return f"google:{model_name}"
+
+    return f"ollama:chat:{model_name}"

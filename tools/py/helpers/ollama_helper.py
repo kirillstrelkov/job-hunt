@@ -49,11 +49,12 @@ def get_top_model_names(config_manager: ConfigManager = DEFAULT_CONFIG) -> list[
     return models
 
 
-def get_model_names(config_manager: ConfigManager = DEFAULT_CONFIG) -> list[str]:
+def get_model_names(config_manager: ConfigManager = DEFAULT_CONFIG, check: bool = True) -> list[str]:
     """Get all configured model names."""
     models_list = config_manager.get_config_value(".models")
     models = [item["name"] for item in models_list]
-    __check_models_in_ollama(models)
+    if check:
+        __check_models_in_ollama(models)
     return models
 
 
@@ -89,7 +90,7 @@ def get_model_options(model: str, config_manager: ConfigManager = DEFAULT_CONFIG
     except ValueError:
         default_options = {}
 
-    model_names = get_model_names(config_manager=config_manager)
+    model_names = get_model_names(config_manager=config_manager, check=False)
     if model not in model_names:
         msg = f"Model '{model}' is not configured."
         raise ValueError(msg)

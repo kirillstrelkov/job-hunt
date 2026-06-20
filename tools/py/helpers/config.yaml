@@ -60,6 +60,19 @@ models:
   - name: "deepseek-r1:1.5b"
   - name: "phi4-mini:3.8b-q8_0"
   - name: "falcon3:7b"
+  # cloud models
+  - name: "gemini-3.1-flash-lite"
+    options:
+      num_ctx: 32768
+  - name: "gemini-3.5-flash"
+    options:
+      num_ctx: 32768
+  - name: "gemma-4-26b-a4b-it"
+    options:
+      num_ctx: 65536
+  - name: "gemma-4-31b-it"
+    options:
+      num_ctx: 65536
 
 eval_model: "gemma4:e2b"
 root_dir: "../../.."

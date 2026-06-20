@@ -1,0 +1,19 @@
+from helpers.promptfoo_helper import get_provider_id
+
+
+def test_get_provider_id_gemini():
+    # gemini-3.5-flash is configured in gemini_models
+    provider = get_provider_id("gemini-3.5-flash")
+    assert provider == "google:gemini-3.5-flash"
+
+
+def test_get_provider_id_ollama():
+    # gemma4:e4b-it-qat is configured in models
+    provider = get_provider_id("gemma4:e4b-it-qat")
+    assert provider == "ollama:chat:gemma4:e4b-it-qat"
+
+
+def test_get_provider_id_unknown():
+    # An unknown model should default to ollama:chat:
+    provider = get_provider_id("unknown-model-123")
+    assert provider == "ollama:chat:unknown-model-123"

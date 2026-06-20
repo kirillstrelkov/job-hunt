@@ -11,6 +11,7 @@ sys.path.append(str(Path(__file__).resolve().parents[2]))
 sys.path.append(str(Path(__file__).resolve().parents[3]))
 from helpers.config import DEFAULT_CONFIG  # noqa: E402
 from helpers.ollama_helper import get_eval_model  # noqa: E402
+from helpers.promptfoo_helper import get_provider_id  # noqa: E402
 from helpers.tmp_helper import get_root_dir, get_tmp_folder  # noqa: E402
 
 
@@ -124,7 +125,7 @@ tests:
         provider: ollama:embeddings:{eval_model}
       - type: llm-rubric
         value: "Determine whether the actual output is factually correct based on the expected output: {{{{expected}}}}"
-        provider: ollama:chat:{eval_model}
+        provider: {get_provider_id(eval_model)}
       - type: rouge-n
         value: "{{{{expected}}}}"
         threshold: 0.3

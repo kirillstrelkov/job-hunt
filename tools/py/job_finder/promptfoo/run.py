@@ -1,5 +1,7 @@
 """Script to run Promptfoo evaluation across different models and generate performance reports."""
 
+import argparse
+import shutil
 import sys
 from pathlib import Path
 
@@ -14,10 +16,18 @@ from reviewer.llm import CV_PROMPT, JD_PROMPT, SYSTEM_PROMPT_CANDIDATE  # noqa: 
 
 from helpers.notebook import run_jupyter_notebook  # noqa: E402
 from helpers.ollama_helper import get_model_options, get_top_model_names  # noqa: E402
-from helpers.promptfoo_helper import convert_json_to_csv, run_promptfoo_eval, write_yaml_config  # noqa: E402
+from helpers.llm_helper import get_model_names as get_gemini_model_names  # noqa: E402
+
+
+from helpers.promptfoo_helper import (
+    convert_json_to_csv,
+    get_provider_id,
+    run_promptfoo_eval,
+    write_yaml_config,
+)  # noqa: E402
 from helpers.tmp_helper import get_tmp_folder  # noqa: E402
 
-MODELS = get_top_model_names()
+MODELS = get_gemini_model_names()
 TMP_DIR = get_tmp_folder(__file__)
 
 
@@ -28,7 +38,7 @@ def generate_config(models: list[str], tests: list[dict], output_file: Path) -> 
         "prompts": ["{{prompt_content}}"],
         "providers": [
             {
-                "id": f"ollama:chat:{model}",
+                "id": get_provider_id(model),
                 "config": get_model_options(model),
             }
             for model in models
@@ -112,7 +122,17 @@ def generate_prompts_and_test_cases(cv_text: str, jd_files: list[Path], tmp_dir:
 
 def main() -> None:
     """Generate prompts, execute Promptfoo evaluation, and run Jupyter notebook."""
+    parser = argparse.ArgumentParser(description="Run Promptfoo evaluation across different models.")
+    parser.add_argument("--force", action="store_true", help="Force evaluation by deleting TMP_DIR first.")
+    args = parser.parse_args()
+
+    if args.force and TMP_DIR.exists():
+        logger.info(f"Force option specified. Deleting temporary directory: {TMP_DIR}")
+        shutil.rmtree(TMP_DIR)
+
     logger.info("Generating Prompts and Running Promptfoo Evaluation")
+
+    logger.info(f"Models to test: {', '.join(MODELS)}")
 
     results_json_path = TMP_DIR / f"eval_results_for_{len(MODELS)}_models.json"
     results_csv_path = results_json_path.with_suffix(".csv")
