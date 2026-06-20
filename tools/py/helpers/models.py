@@ -150,7 +150,7 @@ class AdditionalOptions(BaseModel):
     }
 
 
-class TailoredCV(BaseModel):
+class TailoredCVBody(BaseModel):
     """The root model representing the complete tailored CV output of LLM request."""
 
     summary: str = Field(

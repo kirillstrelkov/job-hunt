@@ -9,7 +9,7 @@ from helpers.models import (
     WorkExperienceOverflow,
     CourseCertificateOverflow,
     AdditionalOptions,
-    TailoredCV,
+    TailoredCVBody,
 )
 
 __all__ = [
@@ -21,5 +21,5 @@ __all__ = [
     "WorkExperienceOverflow",
     "CourseCertificateOverflow",
     "AdditionalOptions",
-    "TailoredCV",
+    "TailoredCVBody",
 ]

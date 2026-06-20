@@ -1,6 +1,9 @@
 """Tests for CV tailoring Pydantic models."""
 
-from helpers.models import TailoredCV
+from helpers.models import TailoredCVBody
+from helpers.llm.gemini import get_agent as get_gemini_agent
+from helpers.llm.ollama import get_agent as get_ollama_agent
+from pydantic_ai import Agent
 
 
 def test_tailored_cv_parsing() -> None:
@@ -84,7 +87,7 @@ def test_tailored_cv_parsing() -> None:
     }
 
     # Verify parsing works without exceptions
-    cv = TailoredCV(**sample_cv_data)
+    cv = TailoredCVBody(**sample_cv_data)
 
     # Asset fields match
     assert cv.summary.startswith("Highly motivated Software Engineer")
@@ -94,3 +97,17 @@ def test_tailored_cv_parsing() -> None:
     assert cv.courses_and_certificates[0].provider == "Confluent"
     assert len(cv.justification_report.reductions_and_omissions) == 1
     assert cv.additional_options.courses_and_certificates_overflow[0].name == "Apache Flink Fundamentals"
+
+
+def test_get_agent_gemini() -> None:
+    """Test that get_agent for Gemini returns a valid Agent."""
+    agent = get_gemini_agent("gemini-2.5-flash")
+    assert isinstance(agent, Agent)
+    assert agent.output_type == TailoredCVBody
+
+
+def test_get_agent_ollama() -> None:
+    """Test that get_agent for Ollama returns a valid Agent."""
+    agent = get_ollama_agent("gemma4:e2b")
+    assert isinstance(agent, Agent)
+    assert agent.output_type == TailoredCVBody

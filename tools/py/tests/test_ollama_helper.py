@@ -1,10 +1,9 @@
-from .ollama_helper import get_model_options
+from helpers.ollama_helper import get_model_options
 
 
 def test_get_model_options_no_defaults():
     model = "gemma-4-26b-a4b-it"
     options = get_model_options(model)
-    print(options)
     assert "num_ctx" not in options
 
 
