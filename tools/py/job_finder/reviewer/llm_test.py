@@ -18,7 +18,9 @@ from reviewer.llm import (
 __DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 
 
-def assert_llm_response(result: JobMatchResult, min_match: int, fail_reason: str | None = None) -> None:
+def assert_llm_response(
+    result: JobMatchResult, min_match: int = 0, fail_reason: str | None = None, max_match: int = 100
+) -> None:
     """Assert that LLM response matches expected screening and fit thresholds."""
     if fail_reason:
         assert result.screening is not None
@@ -27,7 +29,8 @@ def assert_llm_response(result: JobMatchResult, min_match: int, fail_reason: str
 
     if result.screening:
         assert get_checked_passed(result), f"Failed : {pformat(result.screening)}"
-    assert get_match_percentage(result) > min_match
+    assert get_match_percentage(result) >= min_match
+    assert get_match_percentage(result) <= max_match
 
 
 def _run_and_assert(sub_path: str, min_match: int, fail_reason: str | None = None) -> None:

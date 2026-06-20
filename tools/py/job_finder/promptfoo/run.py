@@ -79,7 +79,7 @@ def generate_prompts_and_test_cases(cv_text: str, jd_files: list[Path], tmp_dir:
         "tesla_go.txt": {"min_match": 60},
         "moia.txt": {"min_match": 60},
         "not_manager.txt": {"min_match": 60},
-        "manager.txt": {"min_match": 30},
+        "manager.txt": {"min_match": 0, "max_match": 20},
         "staff.txt": {"min_match": 30},
         "contract.txt": {"min_match": 60},
         "sen_qa.txt": {"min_match": 70},
@@ -101,7 +101,7 @@ def generate_prompts_and_test_cases(cv_text: str, jd_files: list[Path], tmp_dir:
         logger.info(f"Generated prompt for {jd_file.name} at {prompt_out_file}")
 
         # Fetch assertions metadata
-        meta = test_metadata.get(jd_file.name, {"min_match": 0})
+        meta = test_metadata[jd_file.name]
 
         assert_path = (PRJ_ROOT_DIR / "promptfoo" / "assert_llm.py").resolve()
         tests.append(
@@ -109,6 +109,7 @@ def generate_prompts_and_test_cases(cv_text: str, jd_files: list[Path], tmp_dir:
                 "vars": {
                     "prompt_content": f"file://{jd_file.stem}_prompt.txt",
                     "min_match": meta["min_match"],
+                    "max_match": meta.get("max_match", 100),
                 },
                 "assert": [{"type": "python", "value": f"file://{assert_path}"}],
             }

@@ -63,16 +63,24 @@ models:
   # cloud models
   - name: "gemini-3.1-flash-lite"
     options:
-      num_ctx: 32768
+      use_default: False
+      temperature: 0.1
+      maxRetries: 3
   - name: "gemini-3.5-flash"
     options:
-      num_ctx: 32768
+      use_default: False
+      temperature: 0.1
+      maxRetries: 3
   - name: "gemma-4-26b-a4b-it"
     options:
-      num_ctx: 65536
+      use_default: False
+      temperature: 0.1
+      maxRetries: 3
   - name: "gemma-4-31b-it"
     options:
-      num_ctx: 65536
+      use_default: False
+      temperature: 0.1
+      maxRetries: 3
 
 eval_model: "gemma4:e2b"
 root_dir: "../../.."

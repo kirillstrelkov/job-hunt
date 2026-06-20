@@ -100,6 +100,9 @@ def get_model_options(model: str, config_manager: ConfigManager = DEFAULT_CONFIG
         if item["name"] == model:
             options = default_options.copy()
             if model_options := item.get("options"):
+                use_default = model_options.pop("use_default", True)
+                if not use_default:
+                    return model_options
                 options.update(model_options)
             return options
 

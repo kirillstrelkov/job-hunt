@@ -133,16 +133,6 @@ class ConfigManager:
             raw_config = _resolve_dict_substitutions(raw_config)
             raw_config = _make_paths_absolute(raw_config)
 
-            # Merge model_default_options into models list options
-            defaults = raw_config.get("model_default_options", {})
-            models = raw_config.get("models", [])
-            for model in models:
-                opts = model.get("options", {})
-                merged = defaults.copy()
-                if opts:
-                    merged.update(opts)
-                model["options"] = merged
-
             self._config = raw_config
         return self._config
 
