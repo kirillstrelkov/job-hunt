@@ -8,7 +8,7 @@ def test_get_model_options_no_defaults():
 
 
 def test_get_model_options_with_defaults():
-    model = "gemini-3.1-flash-lite"
+    model = "gemma4:e4b-it-qat"
     options = get_model_options(model)
     assert "num_ctx" in options
     assert "temperature" in options
