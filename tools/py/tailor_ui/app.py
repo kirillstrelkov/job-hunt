@@ -18,7 +18,7 @@ from loguru import logger
 
 # Add required paths
 tools_py_dir = Path(__file__).resolve().parent.parent
-cv_tools_dir = tools_py_dir.parent.parent / "cv" / "tools"
+cv_tools_dir = tools_py_dir / "cv" / "tools"
 
 if str(tools_py_dir) not in sys.path:
     sys.path.insert(0, str(tools_py_dir))
