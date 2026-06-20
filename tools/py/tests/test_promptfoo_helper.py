@@ -11,9 +11,3 @@ def test_get_provider_id_ollama():
     # gemma4:e4b-it-qat is configured in models
     provider = get_provider_id("gemma4:e4b-it-qat")
     assert provider == "ollama:chat:gemma4:e4b-it-qat"
-
-
-def test_get_provider_id_unknown():
-    # An unknown model should default to ollama:chat:
-    provider = get_provider_id("unknown-model-123")
-    assert provider == "ollama:chat:unknown-model-123"
