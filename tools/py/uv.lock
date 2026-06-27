@@ -359,6 +359,18 @@ wheels = [
 ]
 
 [[package]]
+name = "attrdict3"
+version = "2.0.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "six" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/9b/a9/c3f5f498295317c8be62bbe5d1adc1a2864db1720b2a0b4a39e0448d51e4/attrdict3-2.0.2.tar.gz", hash = "sha256:004c171ca1120cc1755701db99d7fa4944afb1e68950434efdaa542513335fe8", size = 10917, upload-time = "2022-04-01T08:21:18.041Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d7/3c/a7d33166f92b50ca0e154411c351430700c21d8115b93c515ae9137a91f6/attrdict3-2.0.2-py2.py3-none-any.whl", hash = "sha256:a98b72de6a3f20b0997cc7efbba3555af6558ed9a97de4468a3f81cac11595dc", size = 10071, upload-time = "2022-04-01T08:21:15.994Z" },
+]
+
+[[package]]
 name = "attrs"
 version = "26.1.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1111,6 +1123,23 @@ dependencies = [
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/b2/b7/545d2c10c1fc15e48653c91efde329a790f2eecfbbf2bd16003b5db2bab0/dotenv-0.9.9-py2.py3-none-any.whl", hash = "sha256:29cf74a087b31dafdb5a446b6d7e11cbce8ed2741540e2339c69fbef92c94ce9", size = 1892, upload-time = "2025-02-19T22:15:01.647Z" },
+]
+
+[[package]]
+name = "easelenium"
+version = "0.8.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "attrdict3" },
+    { name = "loguru" },
+    { name = "pytest" },
+    { name = "pytest-html" },
+    { name = "selenium" },
+    { name = "webdriver-manager" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/2e/5b/8e728c8573cb36cef2f91749705e2eeb0dd24a3a4d94b5d10ebd28fe47d7/easelenium-0.8.1.tar.gz", hash = "sha256:fef373d23deab467c2ffe739105e1788a43c08c6c05065669551a09858a30aee", size = 91170, upload-time = "2026-05-09T18:12:33.367Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/4a/ce/6e7bbbf8c075441df3310dd4263cfc43e25f0339fc9dca0c933f277fe8e4/easelenium-0.8.1-py3-none-any.whl", hash = "sha256:061cb6821cf93ea6555aa5af5efecabf1fc8948d232dc4a45cb0dabb2756837a", size = 58103, upload-time = "2026-05-09T18:12:32.205Z" },
 ]
 
 [[package]]
@@ -4346,6 +4375,7 @@ dependencies = [
     { name = "datasets" },
     { name = "deepeval" },
     { name = "dotenv" },
+    { name = "easelenium" },
     { name = "giskard" },
     { name = "griffe" },
     { name = "jupyter" },
@@ -4390,6 +4420,7 @@ requires-dist = [
     { name = "datasets", specifier = ">=2.14.0" },
     { name = "deepeval", specifier = ">=1.2.0" },
     { name = "dotenv", specifier = ">=0.9.9" },
+    { name = "easelenium", specifier = ">=0.8.1" },
     { name = "giskard", specifier = ">=2.0.0" },
     { name = "griffe", specifier = ">=2.0.0" },
     { name = "jupyter", specifier = ">=1.1.1" },
@@ -4876,6 +4907,32 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/43/7c/d36d04db312ecf4298932ef77e6e4a9e8ad017906e24e34f0b0c361a2473/pytest_asyncio-1.4.0.tar.gz", hash = "sha256:c6c0d2259945122819f171a32ecea2c349ead889ee28176caaf492143424be42", size = 58514, upload-time = "2026-05-26T09:56:04.083Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/03/e2/08a497ef684b88559c9cc5f4ad53a37e7b99e727094a86d6ea32536d5d3c/pytest_asyncio-1.4.0-py3-none-any.whl", hash = "sha256:933ca923a23075a87fb7070c0ec272a6848489824d887c85c812670932835aa1", size = 16930, upload-time = "2026-05-26T09:56:02.576Z" },
+]
+
+[[package]]
+name = "pytest-html"
+version = "4.2.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "jinja2" },
+    { name = "pytest" },
+    { name = "pytest-metadata" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/c4/08/2076aa09507e51c1119d16a84c6307354d16270558f1a44fc9a2c99fdf1d/pytest_html-4.2.0.tar.gz", hash = "sha256:b6a88cba507500d8709959201e2e757d3941e859fd17cfd4ed87b16fc0c67912", size = 108634, upload-time = "2026-01-19T11:25:26.471Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/84/47/07046e0acedc12fe2bae79cf6c73ad67f51ae9d67df64d06b0f3eac73d36/pytest_html-4.2.0-py3-none-any.whl", hash = "sha256:ff5caf3e17a974008e5816edda61168e6c3da442b078a44f8744865862a85636", size = 23801, upload-time = "2026-01-19T11:25:25.008Z" },
+]
+
+[[package]]
+name = "pytest-metadata"
+version = "3.1.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pytest" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/a6/85/8c969f8bec4e559f8f2b958a15229a35495f5b4ce499f6b865eac54b878d/pytest_metadata-3.1.1.tar.gz", hash = "sha256:d2a29b0355fbc03f168aa96d41ff88b1a3b44a3b02acbe491801c98a048017c8", size = 9952, upload-time = "2024-02-12T19:38:44.887Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/3e/43/7e7b2ec865caa92f67b8f0e9231a798d102724ca4c0e1f414316be1c1ef2/pytest_metadata-3.1.1-py3-none-any.whl", hash = "sha256:c8e0844db684ee1c798cfa38908d20d67d0463ecb6137c72e91f418558dd5f4b", size = 11428, upload-time = "2024-02-12T19:38:42.531Z" },
 ]
 
 [[package]]

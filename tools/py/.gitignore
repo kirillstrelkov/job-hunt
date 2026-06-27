@@ -219,3 +219,11 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+
+tmp
+__pycache__
+private/
+.deepeval
+/logs
+/*/prompt_eval/prompts

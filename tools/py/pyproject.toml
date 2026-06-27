@@ -6,6 +6,7 @@ dependencies = [
     "datasets>=2.14.0",
     "deepeval>=1.2.0",
     "dotenv>=0.9.9",
+    "easelenium>=0.8.1",
     "giskard>=2.0.0",
     "griffe>=2.0.0",
     "jupyter>=1.1.1",
