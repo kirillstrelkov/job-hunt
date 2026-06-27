@@ -3,6 +3,7 @@
 from pydantic_ai import Agent
 from pydantic_ai.models.ollama import OllamaModel
 from helpers.models import TailoredCVBody
+from helpers.constants import SYS_PROMPT_WITH_TAILORED_CV
 
 
 def get_agent(model_name: str) -> Agent:
@@ -12,10 +13,5 @@ def get_agent(model_name: str) -> Agent:
     return Agent(
         model,
         output_type=TailoredCVBody,
-        instructions="""
-        You are a professional technical reverse recruiter.
-        Analyze the candidate's CV against the Job Description (JD).
-        Produce a tailored CV matching the TailoredCVBody schema.
-        Ensure every field is populated strictly based on the provided documents.
-        """,
+        instructions=SYS_PROMPT_WITH_TAILORED_CV,
     )
