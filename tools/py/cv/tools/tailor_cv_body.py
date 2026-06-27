@@ -50,7 +50,7 @@ def run_ollama(prompt_content: str, model: str) -> dict:
 def process_output_of_ollama(result: dict, output_file: Path) -> None:
     """Process result from Ollama, trim the response to the CV content, and write it to the output file."""
     response_text = result.get("response", "")
-    
+
     lines = response_text.splitlines()
     start_idx = 0
     for i, line in enumerate(lines):
@@ -73,7 +73,6 @@ def process_output_of_ollama(result: dict, output_file: Path) -> None:
     output_file.write_text(trimmed_text, encoding="utf-8")
 
     logger.info(f"Success! Tokens per second: {result.get('tokens_per_sec', 0.0):.2f}")
-
 
 
 def main() -> None:

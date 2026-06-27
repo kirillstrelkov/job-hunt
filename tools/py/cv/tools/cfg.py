@@ -35,8 +35,6 @@ def load_config(path: Path = Path(__file__).resolve().parent.parent / "tmp/confi
     return config
 
 
-
-
 def load(config_path: str | Path) -> dict[str, str]:
     """Load config from YAML file and resolve paths to absolute paths.
 
