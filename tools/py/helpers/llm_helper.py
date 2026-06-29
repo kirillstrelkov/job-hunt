@@ -14,6 +14,11 @@ from helpers.config import DEFAULT_CONFIG, ConfigManager
 MIN_EVAL_TIME = 0.001
 
 
+def get_eval_model(config_manager: ConfigManager = DEFAULT_CONFIG) -> str:
+    """Get the evaluation model."""
+    return config_manager.get_config_value(".eval_model")
+
+
 def get_model_names(config_manager: ConfigManager = DEFAULT_CONFIG) -> list[str]:
     """Get all configured model names."""
     return config_manager.get_config_value(".gemini_models")

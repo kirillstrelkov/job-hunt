@@ -21,12 +21,6 @@ from helpers.config import DEFAULT_CONFIG  # noqa: E402
 from helpers.ollama_helper import get_eval_model, get_model_names  # noqa: E402
 from helpers.tmp_helper import get_tmp_output_dir  # noqa: E402
 
-if get_eval_model() not in get_model_names():
-    raise RuntimeError(
-        f"Required evaluator model '{get_eval_model()}' is not installed in Ollama. "
-        f"Please run 'ollama pull {get_eval_model()}'."
-    )
-
 
 def run_assessment(prompt_content: str, actual_output: str, expected_output: str) -> tuple[float, str, bool]:
     """Evaluates the actual output against the expected ground truth using DeepEval."""
@@ -76,7 +70,7 @@ def run_assessment(prompt_content: str, actual_output: str, expected_output: str
     return score, reason, passed
 
 
-@pytest.mark.parametrize("model_name", get_model_names())
+@pytest.mark.parametrize("model_name", get_model_names(check=False))
 def test_evaluate_llm_tailoring(model_name: str, variant: str):
     """Evaluates LLM tailored CV outputs against a reference ground truth
 

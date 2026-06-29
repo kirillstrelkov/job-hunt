@@ -345,3 +345,5 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+# TODO: add check for errors for wrong link: **Todo App GitOps Kubernetes Deployment Pipeline(https://github.com/kirillstrelkov/todo-app-gitops)** | 2026

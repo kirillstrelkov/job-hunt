@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 
 # Ensure tools/py is in sys.path to import helpers
-tools_py_dir = Path(__file__).resolve().parent.parent.parent / "tools/py"
+tools_py_dir = Path(__file__).resolve().parent.parent.parent
 if str(tools_py_dir) not in sys.path:
     sys.path.insert(0, str(tools_py_dir))
 

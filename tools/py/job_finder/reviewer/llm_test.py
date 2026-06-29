@@ -6,7 +6,7 @@ from pprint import pformat
 import pytest
 from loguru import logger
 
-from reviewer.llm import (
+from job_finder.reviewer.llm import (
     JobMatchResult,
     _get_analysis,
     _get_screening,
@@ -28,7 +28,7 @@ def assert_llm_response(
         return
 
     if result.screening:
-        assert get_checked_passed(result), f"Failed : {pformat(result.screening)}"
+        assert get_checked_passed(result), f"Failed : {result.model_dump()}"
     assert get_match_percentage(result) >= min_match
     assert get_match_percentage(result) <= max_match
 

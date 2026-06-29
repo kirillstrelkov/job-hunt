@@ -19,6 +19,7 @@ Here are the strict rules for tailoring the CV:
    - Action Verbs: Start every single bullet point with a clear, professional, past-tense action verb (e.g., Built, Developed, Designed, Managed, Implemented, Migrated).
    - NO FLUFF WORDS: Do NOT under any circumstances use overly dramatic, cliché, or "fluffy" resume buzzwords (e.g., DO NOT USE Spearheaded, Streamlined, Adept, Championed, Revolutionized, Masterminded, or Synergized). Keep the tone grounded, authentic, and highly technical.
    - Bullet Limits: Limit the most recent job to a maximum of 5 bullet points. Older relevant jobs should have a maximum of 3 bullet points. Less relevant/older jobs should have exactly 1 bullet point summarizing the role.
+   - Bullet points format: `<Action verb> <what you did> <how you did it or the result>`
    - Job Format: Use the exact format below for each job entry:
 
      ```
@@ -63,7 +64,11 @@ Here are the strict rules for tailoring the CV:
 - The resume output MUST be in pure Markdown format.
 - Use standard Markdown headings (`#`, `##`, `###`), bold text for emphasis, and bullet points.
 - Structure the resume with the exact following sections:
-  - Summary (a customized 3-sentence summary based STRICTLY on actual Master CV facts, incorporating JD keywords natively)
+  - Summary (a customized summary based STRICTLY on actual Master CV facts, incorporating JD keywords natively)
+    - Concise: Aim for 3–5 sentences.
+    - Tailored: Customize it for each job application, aligning with the company's needs and values.
+    - Specific: Highlight quantifiable achievements and specific skills.
+    - Avoid Clichés: Steer clear of overused phrases like "hardworking professional" or "team player."
   - Skills (List ONLY the technologies, tools, and skills explicitly mentioned in this tailored CV. Group them logically. Example: **Languages:** Python, Go | **Cloud & DevOps:** AWS, Docker).
   - Work Experience
   - Projects

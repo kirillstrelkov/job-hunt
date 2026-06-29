@@ -3,11 +3,11 @@
 import json
 import os
 import tempfile
-from dataclasses import dataclass
 from pathlib import Path
 
 import ollama
 from loguru import logger
+from job_finder.reviewer.llm_with_pydantic import Screening, Analysis, JobMatchResult
 
 # Fallback model: "gemma4:e2b"
 MODEL = "gemma4:e4b-it-qat"
@@ -43,17 +43,7 @@ findings before outputting the boolean flags:
 
 ```json
 
-{{
-    "reasoning": "Briefly state your findings for the 6 rules above.",
-    "is_german_text": boolean,
-    "is_german_required": boolean,
-    "is_manager": boolean,
-    "is_staff": boolean,
-    "is_contract": boolean,
-    "is_excluded_role": boolean,
-    "gate_passed": boolean,
-    "gate_failed_reasons":[]
-}}
+{json.dumps(Screening.model_json_schema())}
 
 ```
 
@@ -72,18 +62,7 @@ information is genuinely absent. Base every judgment strictly on the provided do
 The final JSON output must be:
 
 ```json
-{{
-  "match_percentage": 85,
-  "fit_label": "Excellent | Strong | Moderate | Weak | Poor",
-  "summary": "2-3 sentence explanation of candidate fit.",
-  "matched_skills": ["Python", "Docker", "Kubernetes"],
-  "missing_skills": ["Production Rust", "AWS"],
-  "strengths": ["Strong systems programming foundation with 10 years of C/C++."],
-  "gaps": [
-    "No production Rust experience (required for core backend service development).",
-    "No direct AWS cloud deployment experience."
-  ]
-}}
+{json.dumps(Analysis.model_json_schema())}
 ```
 """
 
@@ -99,43 +78,6 @@ Job description:
 {job_description}
 </job_description>
 """
-
-
-@dataclass(frozen=True)
-class Screening:
-    """Dataclass holding screening results for a job description."""
-
-    reasoning: str
-    is_german_text: bool
-    is_german_required: bool
-    is_manager: bool
-    is_staff: bool
-    is_contract: bool
-    is_excluded_role: bool
-    gate_passed: bool
-    gate_failed_reasons: list[str]
-
-
-@dataclass(frozen=True)
-class Analysis:
-    """Dataclass holding the CV-to-JD fit analysis details."""
-
-    match_percentage: int
-    fit_label: str
-    summary: str
-    matched_skills: list[str]
-    missing_skills: list[str]
-    strengths: list[str]
-    gaps: list[str]
-
-
-@dataclass(frozen=True)
-class JobMatchResult:
-    """Result object combining screening and match analysis."""
-
-    screening: Screening | None = None
-    analysis: Analysis | None = None
-    error: str | None = None
 
 
 def _create_prompt(system: None | str = None, user: str | None = None) -> dict:
@@ -180,9 +122,8 @@ def _get_screening(job_description: str, model: str = MODEL) -> Screening:
         _create_prompt(user=JD_PROMPT.format(job_description=job_description.strip())),
     ]
     raw = llm_send(*prompts, model=model)
-    resp = json.loads(raw)
 
-    return Screening(**resp)
+    return Screening.model_validate_json(raw)
 
 
 def _get_analysis(cv: str, job_description: str, model: str = MODEL) -> Analysis:
@@ -192,9 +133,8 @@ def _get_analysis(cv: str, job_description: str, model: str = MODEL) -> Analysis
         _create_prompt(user=JD_PROMPT.format(job_description=job_description.strip())),
     ]
     raw = llm_send(*prompts, model=model)
-    resp = json.loads(raw)
 
-    return Analysis(**resp)
+    return Analysis.model_validate_json(raw)
 
 
 def analyze_cv(cv: str, job_description: str, model: str = MODEL) -> JobMatchResult:

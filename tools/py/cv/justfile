@@ -7,16 +7,16 @@ default:
     @just --list
 
 cfg-create:
-    tools/.venv/bin/python tools/cfg.py --create
+    uv run python tools/cfg.py --create
 
 cfg-check path="":
-    tools/.venv/bin/python tools/cfg.py --check {{ if path == "" { "" } else { "--path " + path } }}
+    uv run python tools/cfg.py --check {{ if path == "" { "" } else { "--path " + path } }}
 
 check:
-    tools/.venv/bin/python tools/process_cv.py --check {{ cvbody }}
+    uv run python tools/process_cv.py --check {{ cvbody }}
 
 fix:
-    tools/.venv/bin/python tools/process_cv.py --fix {{ mastercv }}
+    uv run python tools/process_cv.py --fix {{ mastercv }}
 
 combine:
     cat ./private/parts/header.md > {{ mastercv }}
@@ -27,7 +27,7 @@ combine:
 
 run: check combine
     # fix
-    tools/.venv/bin/python tools/process_cv.py --fix {{ mastercv }}
+    uv run python tools/process_cv.py --fix {{ mastercv }}
 
     # create text to tailor cv for job description
     /home/kirill/prj/gh/job-hunt/tools/prep_for_cv_tail/target/debug/prep_for_tail \
@@ -47,7 +47,7 @@ gui:
     /home/kirill/prj/gh/job-hunt/tools/prep_for_cv_tail/target/debug/prep_for_tail_ui
 
 mastercv-pdf:
-    tools/.venv/bin/python tools/process_cv.py --fix {{ mastercv }}
+    uv run python tools/process_cv.py --fix {{ mastercv }}
     @just md2pdf "{{ mastercv }}" "./tmp/master_cv.pdf"
 
 prepare-cv folder:
@@ -59,33 +59,32 @@ prepare-cv folder:
     # create llm prompt
     # ask llm for description
 
-    tools/.venv/bin/python tools/prepare_cv.py {{ folder }} --tailored-cv-body "{{ folder }}/body.md"
+    uv run python tools/prepare_cv.py {{ folder }} --tailored-cv-body "{{ folder }}/body.md"
     @just update-pdf {{ folder }}
 
 prepare-llm folder:
-    tools/.venv/bin/python tools/prepare_cv.py --llm-prompt {{ folder }}
+    uv run python tools/prepare_cv.py --llm-prompt {{ folder }}
 
 prepare-llm-for-titles:
-    # tools/.venv/bin/python tools/prepare_llm_prompt.py --output ./tmp/llm_titles/py.md --tailor-for-title "Python Backend Engineer (Cloud Infrastructure & Microservices)"
-    # tools/.venv/bin/python tools/prepare_llm_prompt.py --output ./tmp/llm_titles/go.md --tailor-for-title "Golang Backend Engineer (Cloud-Native & Distributed Systems)"
-    # tools/.venv/bin/python tools/prepare_llm_prompt.py --output ./tmp/llm_titles/sdet.md --tailor-for-title "Software Development Engineer in Test (SDET) / QA Automation"
-    # tools/.venv/bin/python tools/prepare_llm_prompt.py --output ./tmp/llm_titles/fullstack.md --tailor-for-title "Full-Stack Software Engineer (Modern Web & Cloud Architecture)"
-    # tools/.venv/bin/python tools/prepare_llm_prompt.py --output ./tmp/llm_titles/platform.md --tailor-for-title "Platform Engineer (Cloud Infrastructure, IaC & DevOps Automation)"
+    # uv run python tools/prepare_llm_prompt.py --output ./tmp/llm_titles/py.md --tailor-for-title "Python Backend Engineer (Cloud Infrastructure & Microservices)"
+    # uv run python tools/prepare_llm_prompt.py --output ./tmp/llm_titles/go.md --tailor-for-title "Golang Backend Engineer (Cloud-Native & Distributed Systems)"
+    # uv run python tools/prepare_llm_prompt.py --output ./tmp/llm_titles/sdet.md --tailor-for-title "Software Development Engineer in Test (SDET) / QA Automation"
+    # uv run python tools/prepare_llm_prompt.py --output ./tmp/llm_titles/fullstack.md --tailor-for-title "Full-Stack Software Engineer (Modern Web & Cloud Architecture)"
+    # uv run python tools/prepare_llm_prompt.py --output ./tmp/llm_titles/platform.md --tailor-for-title "Platform Engineer (Cloud Infrastructure, IaC & DevOps Automation)"
 
     # @echo "TODO: for each *.md file create *_cv.md file. Hint: use your LLM"
     # @read -p "Press Enter when done... "
 
-    tools/.venv/bin/python tools/create_cv_from_titles.py --folder ./tmp/llm_titles
+    uv run python tools/create_cv_from_titles.py --folder ./tmp/llm_titles
 
 update-pdf folder:
     @just md2pdf "{{ folder }}/gen/cv.md" "{{ folder }}/gen/cv.pdf"
 
 md2pdf input output:
-    tools/.venv/bin/python tools/process_cv.py --check --fix "{{ input }}"
+    uv run python tools/process_cv.py --check --fix "{{ input }}"
     pandoc -V papersize=a4  -V geometry:left=1.5cm -V geometry:right=1.5cm -V geometry:top=1.2cm -V geometry:bottom=1.2cm "{{ input }}" -o "{{ output }}"
 
 auto-tailor-cv folder:
     @just prepare-llm {{ folder }}
-    tools/.venv/bin/python tools/tailor_cv_body.py --prompt-file "{{ folder }}/gen/llm_prompt.txt" --output "{{ folder }}/body.md"
-    tools/.venv/bin/python tools/prepare_cv.py {{ folder }} --tailored-cv-body "{{ folder }}/body.md"
-    @just md2pdf "{{ folder }}/gen/cv.md" "{{ folder }}/gen/cv.pdf"
+    uv run python tools/tailor_cv_body.py --prompt-file "{{ folder }}/gen/llm_prompt.txt" --output "{{ folder }}/body.md"
+    @just prepare-cv {{ folder }}

@@ -49,7 +49,7 @@ def get_top_model_names(config_manager: ConfigManager = DEFAULT_CONFIG) -> list[
     return models
 
 
-def get_model_names(config_manager: ConfigManager = DEFAULT_CONFIG, check: bool = True) -> list[str]:
+def get_model_names(config_manager: ConfigManager = DEFAULT_CONFIG, *, check: bool = True) -> list[str]:
     """Get all configured model names."""
     models_list = config_manager.get_config_value(".models")
     models = [item["name"] for item in models_list]
