@@ -1,0 +1,2 @@
+build:
+    ollama create gemma4:e2b-ctx16k -f ./gemma4_ctx16k
