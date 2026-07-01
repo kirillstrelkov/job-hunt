@@ -35,6 +35,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--force",
         action="store_true",
+        default=False,
         help="Force generation even if the output file already exists",
     )
     return parser.parse_args()

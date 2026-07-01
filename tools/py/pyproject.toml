@@ -73,3 +73,6 @@ pythonpath = [
     "/home/kirill/prj/gl/playground",
     "/home/kirill/prj/gh/easelenium",
 ]
+
+[tool.uv]
+package = true

@@ -1,4 +1,6 @@
 set shell := ["bash", "-cu"]
+set dotenv-path := "../private/.env"
+set dotenv-required := true
 
 mastercv := "./tmp/master_cv.md"
 cvbody := "./private/parts/body.md"
@@ -107,6 +109,6 @@ auto-compose-cv-top-models folder:
 auto-compose-csv path:
     # uv run python tools/compose_jobs_from_csv.py --path {{ path }} --folder ./tmp/from_csv --force --model gemma4:e2b-ctx32k
 
-    uv run python tools/compose_jobs_from_csv.py --path {{ path }} --folder ./tmp/from_csv --force --model gemini-3.1-flash-lite
-    uv run python tools/compose_jobs_from_csv.py --path {{ path }} --folder ./tmp/from_csv --force --model gemma-4-26b-a4b-it
-    uv run python tools/compose_jobs_from_csv.py --path {{ path }} --folder ./tmp/from_csv --force --model gemma-4-31b-it
+    # uv run python tools/compose_jobs_from_csv.py --path {{ path }} --folder ./tmp/from_csv --force --model gemini-3.1-flash-lite
+    uv run python tools/compose_jobs_from_csv.py --path {{ path }} --folder ./tmp/from_csv --model gemma-4-26b-a4b-it
+    uv run python tools/compose_jobs_from_csv.py --path {{ path }} --folder ./tmp/from_csv --model gemma-4-31b-it

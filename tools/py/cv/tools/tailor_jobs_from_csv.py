@@ -48,6 +48,7 @@ def main() -> None:  # noqa: PLR0915
     parser.add_argument(
         "--force",
         action="store_true",
+        default=False,
         help="Force execution of Step 2 (LLM tailoring) even if tailored body already exists.",
     )
     args = parser.parse_args()

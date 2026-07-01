@@ -11,6 +11,7 @@ from helpers.tmp_helper import get_tmp_output_dir
 
 
 def run_eval() -> None:
+    """Run the Giskard evaluation process for CV tailoring."""
     eval_model = get_eval_model()
     models = get_model_names()
     subfolder = "job1"
