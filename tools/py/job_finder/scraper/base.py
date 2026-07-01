@@ -72,7 +72,7 @@ def make_job(title: str = "", company: str = "", url: str = "", description: str
     return Job(title=title, company=company, url=url, description=description, error=error)
 
 
-class Page:
+class JobBoard:
     """Base class for scrapers of different job sites."""
 
     # timeout should be long enough to verify login via phone app or via email or validate capcha
@@ -83,10 +83,10 @@ class Page:
     _CSS_PROFILE = None
 
     def __init__(self, browser: Browser, *, use_cache: bool = False) -> None:
-        """Create a Page object."""
+        """Create a JobBoard object."""
         self._browser = browser
         self._use_cache = use_cache
-        self._credentials = get_credentials(self.__class__.__name__.removesuffix("Page"))
+        self._credentials = get_credentials(self.__class__.__name__.removesuffix("Board"))
 
         logger.info("Signing in...")
         self._signin()
@@ -197,6 +197,7 @@ class Page:
 
     # methods with caching
 
+    # TODO: fix on error - add retry 3 times if failed - just return with error?
     def get_job(self, url: str | None = None) -> Job:
         """Get job from the current page."""
         url = url or self._browser.get_current_url()

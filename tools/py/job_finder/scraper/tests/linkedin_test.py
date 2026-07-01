@@ -8,7 +8,7 @@ from easelenium.browser import Browser
 from job_finder.utils.caching_utils import ENV_VAR_DISABLE_CACHED
 
 from job_finder.scraper.base import Job, get_browser
-from job_finder.scraper.linkedin import LinkedinPage
+from job_finder.scraper.linkedin import LinkedinBoard
 
 
 @pytest.fixture
@@ -19,13 +19,13 @@ def browser() -> Browser:
 
 
 @pytest.fixture
-def page(browser: Browser) -> LinkedinPage:
-    return LinkedinPage(browser)
+def page(browser: Browser) -> LinkedinBoard:
+    return LinkedinBoard(browser)
 
 
 def test_login(browser: Browser) -> None:
     for _ in range(3):
-        page = LinkedinPage(browser)
+        page = LinkedinBoard(browser)
         assert page._signin()
         page.open("https://www.linkedin.com/jobs/view/4354613359/")
         assert page._signin()
@@ -33,7 +33,7 @@ def test_login(browser: Browser) -> None:
         assert page._signin()
 
 
-def test_linkedin_get_job(page: LinkedinPage) -> None:
+def test_linkedin_get_job(page: LinkedinBoard) -> None:
     job = page._get_job("https://www.linkedin.com/jobs/view/4354613359/")
     assert "4354613359" in job.url
     assert "http" in job.url
@@ -45,7 +45,7 @@ def test_linkedin_get_job(page: LinkedinPage) -> None:
     assert "Never stop playing" in description
 
 
-def test_linkedin_get_job2(page: LinkedinPage) -> None:
+def test_linkedin_get_job2(page: LinkedinBoard) -> None:
     job = page._get_job("https://www.linkedin.com/jobs/view/4393486078/")
     assert "4393486078" in job.url
     assert "http" in job.url
@@ -53,7 +53,7 @@ def test_linkedin_get_job2(page: LinkedinPage) -> None:
     assert "Arbeitsplatz und viele Benefits" in description
 
 
-def test_get_jobs(page: LinkedinPage) -> None:
+def test_get_jobs(page: LinkedinBoard) -> None:
     url = "https://www.linkedin.com/jobs/search/?currentJobId=4352782750&f_TPR=r2592000&geoId=103035651&keywords=%22software%20engineer%22&origin=JOB_SEARCH_PAGE_JOB_FILTER&refresh=true&spellCorrectionEnabled=true"
     limit = 5
     page.open(url)
@@ -62,7 +62,7 @@ def test_get_jobs(page: LinkedinPage) -> None:
     assert len(jobs[0].description) > 100
 
 
-def test_get_jobs_with_limit_and_mocked_get_job(page: LinkedinPage) -> None:
+def test_get_jobs_with_limit_and_mocked_get_job(page: LinkedinBoard) -> None:
     url = "https://www.linkedin.com/jobs/search/?currentJobId=4418748282&f_TPR=r604800&keywords=%22test%22&origin=JOB_SEARCH_PAGE_JOB_FILTER"
 
     def _get_job(url):
@@ -74,7 +74,7 @@ def test_get_jobs_with_limit_and_mocked_get_job(page: LinkedinPage) -> None:
         assert len(jobs) == limit
 
 
-def test_get_jobs_failing_url(page: LinkedinPage) -> None:
+def test_get_jobs_failing_url(page: LinkedinBoard) -> None:
     url = "https://www.linkedin.com/jobs/view/4399293689/"
     with (
         patch.object(page, "get_job_urls", return_value=[url]),
@@ -86,7 +86,7 @@ def test_get_jobs_failing_url(page: LinkedinPage) -> None:
         assert jobs[0].url == url
 
 
-def test_get_jobs_failing_urls(page: LinkedinPage) -> None:
+def test_get_jobs_failing_urls(page: LinkedinBoard) -> None:
     failed_urls = [
         "https://www.linkedin.com/jobs/view/4383013067",
         "https://www.linkedin.com/jobs/view/4398023509",
@@ -101,7 +101,7 @@ def test_get_jobs_failing_urls(page: LinkedinPage) -> None:
         assert len(jobs) == len(failed_urls)
 
 
-def test_linkedin_no_jobs(page: LinkedinPage) -> None:
+def test_linkedin_no_jobs(page: LinkedinBoard) -> None:
     url = "https://www.linkedin.com/jobs/search/?currentJobId=4377194485&f_TPR=r604800&f_WT=2&geoId=101282230&keywords=%22sdfpowe%22&origin=JOB_SEARCH_PAGE_SEARCH_BUTTON&refresh=true"
 
     jobs = page.get_jobs(url)

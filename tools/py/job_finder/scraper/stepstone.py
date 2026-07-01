@@ -2,10 +2,10 @@
 
 from loguru import logger
 
-from .base import Job, Page
+from .base import Job, JobBoard
 
 
-class StepstonePage(Page):
+class StepstoneBoard(JobBoard):
     """Scraper class for the StepStone job search website."""
 
     def _signin(self) -> bool:

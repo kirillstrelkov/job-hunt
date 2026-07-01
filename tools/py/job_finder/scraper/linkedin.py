@@ -8,7 +8,7 @@ from easelenium.browser import Browser
 from loguru import logger
 from selenium.webdriver.remote.webelement import WebElement
 
-from .base import Job, Page
+from .base import Job, JobBoard
 
 _LINKEDIN_JOB_URL_TEMPLATE = "https://www.linkedin.com/jobs/view/{}"
 
@@ -28,7 +28,7 @@ def _find_first_visible(browser: Browser, **kwargs: object) -> WebElement:
     return browser.find_element(**kwargs)
 
 
-class LinkedinPage(Page):
+class LinkedinBoard(JobBoard):
     """Scraper class for the LinkedIn job search website."""
 
     _CSS_NEXT_PAGE = '[aria-label="View next page"]'

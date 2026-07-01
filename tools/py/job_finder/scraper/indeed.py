@@ -1,9 +1,9 @@
 """Scraper implementation for Indeed."""
 
-from .base import Job, Page
+from .base import Job, JobBoard
 
 
-class IndeedPage(Page):
+class IndeedBoard(JobBoard):
     """Scraper class for the Indeed job search website."""
 
     _CSS_PROFILE = 'button[id="AccountMenu"]'

@@ -6,9 +6,9 @@ from urllib.parse import urlsplit
 from loguru import logger
 
 from job_finder.scraper.base import Job, browser_context
-from job_finder.scraper.indeed import IndeedPage
-from job_finder.scraper.linkedin import LinkedinPage
-from job_finder.scraper.stepstone import StepstonePage
+from job_finder.scraper.indeed import IndeedBoard
+from job_finder.scraper.linkedin import LinkedinBoard
+from job_finder.scraper.stepstone import StepstoneBoard
 
 EXCLUDED_COMPANIES = {
     "mindrift",
@@ -89,9 +89,9 @@ def get_jobs(*urls: str, limit: None | int = None, use_cache: bool = False) -> l
         grouped_url[loc].append(url)
 
     page_classes = {
-        "www.linkedin.com": LinkedinPage,
-        "www.stepstone.de": StepstonePage,
-        "de.indeed.com": IndeedPage,
+        "www.linkedin.com": LinkedinBoard,
+        "www.stepstone.de": StepstoneBoard,
+        "de.indeed.com": IndeedBoard,
     }
 
     with browser_context() as browser:
