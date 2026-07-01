@@ -6,8 +6,6 @@ from loguru import logger
 from trulens.apps.virtual import TruVirtual, VirtualApp, VirtualRecord
 from trulens.core import Feedback, TruSession
 
-sys.path.append(str(Path(__file__).resolve().parents[3]))
-sys.path.append(str(Path(__file__).resolve().parents[4]))
 from helpers.config import DEFAULT_CONFIG, TRULENS_DB_URL  # noqa: E402
 from helpers.ollama_helper import get_eval_model, get_model_names
 from helpers.tmp_helper import get_tmp_output_dir  # noqa: E402

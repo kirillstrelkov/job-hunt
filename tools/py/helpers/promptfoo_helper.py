@@ -10,7 +10,7 @@ import pandas as pd
 import yaml
 from loguru import logger
 
-from helpers.config import DEFAULT_CONFIG
+from config.config import DEFAULT_CONFIG
 
 _MAX_GOOD_LATENCY_SEC = 60
 

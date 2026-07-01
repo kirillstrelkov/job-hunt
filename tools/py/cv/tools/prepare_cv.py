@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 import argparse
 from pathlib import Path
+import sys
 
 from loguru import logger
 
-from cfg import DEFAULT_CONFIG
+
+from config.config import DEFAULT_CV_CONFIG as DEFAULT_CONFIG
 
 
 def prepare_cv(

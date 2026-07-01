@@ -8,8 +8,6 @@ from loguru import logger
 from ragas import evaluate
 from ragas.metrics import answer_relevancy, faithfulness
 
-sys.path.append(str(Path(__file__).resolve().parents[3]))
-sys.path.append(str(Path(__file__).resolve().parents[4]))
 from helpers.config import DEFAULT_CONFIG  # noqa: E402
 from helpers.ollama_helper import get_eval_model, get_model_names  # noqa: E402
 from helpers.tmp_helper import get_tmp_output_dir  # noqa: E402

@@ -84,29 +84,29 @@ md2pdf input output options="--check --fix":
     uv run python tools/process_cv.py {{ options }} "{{ input }}"
     uv run python tools/md2pdf.py "{{ input }}" --output "{{ output }}"
 
-auto-tailor-cv folder:
+auto-compose-cv folder:
     @just prepare-llm {{ folder }}
-    uv run python tools/tailor_cv_body.py --prompt-file "{{ folder }}/gen/llm_prompt.txt" --output "{{ folder }}/body.md"
+    uv run python tools/tailor_body.py --prompt-file "{{ folder }}/gen/llm_prompt.txt" --output "{{ folder }}/body.md"
     @just prepare-cv {{ folder }}
 
-auto-tailor-cv-top-models folder:
-    uv run python tools/tailor_cv_locally.py {{ folder }} --model gemma4:e4b-it-qat --force
-    # uv run python tools/tailor_cv_locally.py {{ folder }} --model qwen3.5:9b-q4_K_M
-    # uv run python tools/tailor_cv_locally.py {{ folder }} --model llama3.1:8b-text-q4_K_M
-    # uv run python tools/tailor_cv_locally.py {{ folder }} --model gemma4:e2b
-    # uv run python tools/tailor_cv_locally.py {{ folder }} --model qwen3.5:4b-q8_0
-    # uv run python tools/tailor_cv_locally.py {{ folder }} --model llama3.3:7b-instruct-q4_K_M
-    # uv run python tools/tailor_cv_locally.py {{ folder }} --model phi4-mini:3.8b-q8_0   
-    # uv run python tools/tailor_cv_locally.py {{ folder }} --model falcon3:7b
+auto-compose-cv-top-models folder:
+    uv run python tools/compose_cv_locally.py {{ folder }} --model gemma4:e4b-it-qat --force
+    # uv run python tools/compose_cv_locally.py {{ folder }} --model qwen3.5:9b-q4_K_M
+    # uv run python tools/compose_cv_locally.py {{ folder }} --model llama3.1:8b-text-q4_K_M
+    # uv run python tools/compose_cv_locally.py {{ folder }} --model gemma4:e2b
+    # uv run python tools/compose_cv_locally.py {{ folder }} --model qwen3.5:4b-q8_0
+    # uv run python tools/compose_cv_locally.py {{ folder }} --model llama3.3:7b-instruct-q4_K_M
+    # uv run python tools/compose_cv_locally.py {{ folder }} --model phi4-mini:3.8b-q8_0   
+    # uv run python tools/compose_cv_locally.py {{ folder }} --model falcon3:7b
 
-    # uv run python tools/tailor_cv_locally.py {{ folder }} --model "gemini-3.1-flash-lite"
-    # uv run python tools/tailor_cv_locally.py {{ folder }} --model "gemini-3.5-flash"
-    # uv run python tools/tailor_cv_locally.py {{ folder }} --model "gemma-4-26b-a4b-it"
-    # uv run python tools/tailor_cv_locally.py {{ folder }} --model "gemma-4-31b-it"
+    # uv run python tools/compose_cv_locally.py {{ folder }} --model "gemini-3.1-flash-lite"
+    # uv run python tools/compose_cv_locally.py {{ folder }} --model "gemini-3.5-flash"
+    # uv run python tools/compose_cv_locally.py {{ folder }} --model "gemma-4-26b-a4b-it"
+    # uv run python tools/compose_cv_locally.py {{ folder }} --model "gemma-4-31b-it"
 
-auto-tailor-csv path:
-    # uv run python tools/tailor_jobs_from_csv.py --path {{ path }} --folder ./tmp/from_csv --force --model gemma4:e2b-ctx32k
+auto-compose-csv path:
+    # uv run python tools/compose_jobs_from_csv.py --path {{ path }} --folder ./tmp/from_csv --force --model gemma4:e2b-ctx32k
 
-    uv run python tools/tailor_jobs_from_csv.py --path {{ path }} --folder ./tmp/from_csv --force --model gemini-3.1-flash-lite
-    uv run python tools/tailor_jobs_from_csv.py --path {{ path }} --folder ./tmp/from_csv --force --model gemma-4-26b-a4b-it
-    uv run python tools/tailor_jobs_from_csv.py --path {{ path }} --folder ./tmp/from_csv --force --model gemma-4-31b-it
+    uv run python tools/compose_jobs_from_csv.py --path {{ path }} --folder ./tmp/from_csv --force --model gemini-3.1-flash-lite
+    uv run python tools/compose_jobs_from_csv.py --path {{ path }} --folder ./tmp/from_csv --force --model gemma-4-26b-a4b-it
+    uv run python tools/compose_jobs_from_csv.py --path {{ path }} --folder ./tmp/from_csv --force --model gemma-4-31b-it

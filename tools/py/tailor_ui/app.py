@@ -20,50 +20,39 @@ from loguru import logger
 tools_py_dir = Path(__file__).resolve().parent.parent
 cv_tools_dir = tools_py_dir / "cv" / "tools"
 
-if str(tools_py_dir) not in sys.path:
-    sys.path.insert(0, str(tools_py_dir))
-if str(cv_tools_dir) not in sys.path:
-    sys.path.insert(0, str(cv_tools_dir))
-
 
 def generate_config(output_path: str) -> None:
-    """Generate consolidated configuration file from CV and helper configs."""
+    """Generate consolidated configuration file from unified config.yaml."""
     logger.info(f"Generating consolidated config at {output_path}")
 
-    cv_config_path = cv_tools_dir.parent / "tmp" / "config.yml"
-    helpers_config_path = tools_py_dir / "helpers" / "config.yaml"
-
+    unified_config_path = tools_py_dir / "config" / "config.yaml"
     consolidated = {}
 
-    # Read CV config
-    if cv_config_path.exists():
-        with cv_config_path.open(encoding="utf-8") as f:
-            cv_config = yaml.safe_load(f)
-            if cv_config:
-                # Resolve paths relative to cv/tmp
-                for k, v in cv_config.items():
-                    if isinstance(v, str):
-                        p = Path(v)
-                        if not p.is_absolute():
-                            cv_config[k] = str((cv_config_path.parent / p).resolve())
-                consolidated.update(cv_config)
-    else:
-        logger.warning(f"Warning: {cv_config_path} not found.")
+    if unified_config_path.exists():
+        with unified_config_path.open(encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
 
-    # Read Helpers config
-    if helpers_config_path.exists():
-        with helpers_config_path.open(encoding="utf-8") as f:
-            helpers_config = yaml.safe_load(f)
-            if helpers_config:
-                consolidated["ollama"] = {
-                    "eval_model": helpers_config.get("eval_model"),
-                    "models": helpers_config.get("models"),
-                    "model_default_options": helpers_config.get("model_default_options"),
-                }
-                if "gemini_models" in helpers_config:
-                    consolidated["gemini_models"] = helpers_config["gemini_models"]
+        # Flatten composer and tailor sections
+        if "composer" in data:
+            composer = data.get("composer") or {}
+            for k, v in composer.items():
+                consolidated[k] = v
+        if "tailor" in data:
+            tailor = data.get("tailor") or {}
+            for k, v in tailor.items():
+                consolidated[k] = v
+        for k, v in data.items():
+            if k not in ("composer", "tailor"):
+                consolidated[k] = v
+
+        # Resolve relative paths relative to config/ folder
+        config_dir = unified_config_path.parent
+        for k, v in consolidated.items():
+            if isinstance(v, str):
+                if v.startswith(("./", "../")) or v in {".", ".."}:
+                    consolidated[k] = str((config_dir / v).resolve())
     else:
-        logger.warning(f"Warning: {helpers_config_path} not found.")
+        logger.warning(f"Warning: {unified_config_path} not found.")
 
     out_p = Path(output_path)
     out_p.parent.mkdir(parents=True, exist_ok=True)
@@ -117,9 +106,9 @@ def get_temp_generation_dir(jd_text: str | None = None) -> tuple[Path, str]:
     dt_str = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
     if jd_text and jd_text.strip():
         jd_hash = hashlib.md5(jd_text.strip().encode("utf-8"), usedforsecurity=False).hexdigest()
-        temp_dir = Path(tempfile.gettempdir()) / "tmp_tailor_cv" / jd_hash
+        temp_dir = Path(tempfile.gettempdir()) / "tmp_compose_cv" / jd_hash
     else:
-        temp_dir = Path(tempfile.gettempdir()) / "tmp_tailor_cv" / "default"
+        temp_dir = Path(tempfile.gettempdir()) / "tmp_compose_cv" / "default"
 
     temp_dir.mkdir(parents=True, exist_ok=True)
     return temp_dir, dt_str
@@ -139,8 +128,8 @@ def run_check_on_text(md_content: str) -> list[str]:
             Path(temp_path).unlink()
 
 
-st.set_page_config(layout="wide", page_title="Tailored CV UI")
-st.title("Tailored CV UI")
+st.set_page_config(layout="wide", page_title="CV Composer")
+st.title("CV Composer")
 
 # Premium styling for primary CTA buttons to be blue
 st.markdown(
@@ -175,7 +164,55 @@ def load_unified_config(path: str) -> dict:
     if not p.exists():
         return {}
     with p.open(encoding="utf-8") as f:
-        return yaml.safe_load(f)
+        data = yaml.safe_load(f) or {}
+
+    # Extract composer and tailor settings to root level
+    if "composer" in data:
+        composer = data.get("composer") or {}
+        for k, v in composer.items():
+            data[k] = v
+    if "tailor" in data:
+        tailor = data.get("tailor") or {}
+        for k, v in tailor.items():
+            data[k] = v
+    if "paths" in data:
+        paths = data.get("paths") or {}
+        for k, v in paths.items():
+            data[k] = v
+    if "llm" in data:
+        llm = data.get("llm") or {}
+        for k, v in llm.items():
+            data[k] = v
+        # Ensure eval_model, models and gemini_models are available at root level
+        data["eval_model"] = llm.get("eval_mode")
+        data["model_default_options"] = llm.get("model_default_options")
+        data["top_models"] = llm.get("top_models")
+
+        ollama_models = llm.get("ollama", {}).get("models", [])
+        gemini_models = llm.get("gemini", {}).get("models", [])
+        data["models"] = ollama_models + gemini_models
+        data["gemini_models"] = [m["name"] for m in gemini_models]
+
+        # Build "ollama" dictionary for UI compatibility
+        data["ollama"] = {
+            "eval_model": llm.get("eval_mode"),
+            "model_default_options": llm.get("model_default_options"),
+            "models": ollama_models,
+            "top_models": llm.get("top_models"),
+        }
+    if "data" in data:
+        data_sec = data.get("data") or {}
+        if "jobs" in data_sec:
+            data["jobs"] = data_sec["jobs"]
+
+    # Resolve paths relative to config directory
+    config_dir = p.parent
+    for k, v in data.items():
+        if isinstance(v, str):
+            if v.startswith(("./", "../")) or v in {".", ".."}:
+                data[k] = str((config_dir / v).resolve())
+
+    return data
 
 
 def _clear_stale_config_states() -> None:
@@ -223,7 +260,7 @@ def load_config_data_action(config_data: dict) -> None:
 
 # Initial Config Loading
 if "config" not in st.session_state:
-    config_path = st.session_state.get("config_path_input_val", "./config.yaml")
+    config_path = st.session_state.get("config_path_input_val", "../config/config.yaml")
     st.session_state["config"] = load_unified_config(config_path)
 
 if "local_llm_stdout" not in st.session_state:
@@ -292,7 +329,7 @@ if "ollama" in cfg and "models" in cfg["ollama"]:
 eval_model = cfg.get("ollama", {}).get("eval_model", "")
 
 # Main layout
-tabs = st.tabs(["Tailor with LLM", "Tailor manually", "MD to PDF Converter", "Settings"])
+tabs = st.tabs(["Compose with LLM", "Compose manually", "MD to PDF Converter", "Settings"])
 
 with tabs[0]:
     # Toggle between Local and Cloud LLM
@@ -450,7 +487,7 @@ with tabs[0]:
         col_md = st.container()
 
     with col_md:
-        st.subheader("Step 2: Tailor CV to Markdown")
+        st.subheader("Step 2: Compose CV to Markdown")
 
         # Combine CV
         tailored_body = st.session_state.get("tailored_body", "")
@@ -475,7 +512,7 @@ with tabs[0]:
         col_btn1, col_btn2, col_btn3 = st.columns([1, 1, 1])
         with col_btn1:
             btn_gen_local_clicked = st.button(
-                "Tailor CV with LLM", use_container_width=True, key="btn_gen_local", type="primary"
+                "Compose CV with LLM", use_container_width=True, key="btn_gen_local", type="primary"
             )
         with col_btn2:
             btn_check_local_clicked = st.button(
@@ -483,7 +520,7 @@ with tabs[0]:
             )
         with col_btn3:
             st.download_button(
-                "Save Tailored CV as Markdown",
+                "Save Composed CV as Markdown",
                 edited_full_cv,
                 file_name="cv.md",
                 key="dl_md_local",
@@ -620,7 +657,7 @@ with tabs[0]:
                         st.session_state.pop("pdf_bytes", None)
                         st.session_state.pop("local_cv_errors", None)
                         st.session_state.pop("local_cv_checked", None)
-                        st.session_state["local_tailor_note"] = "CV Tailored successfully!"
+                        st.session_state["local_tailor_note"] = "CV Composed successfully!"
                         st.rerun()
                     except Exception as e:  # noqa: BLE001
                         st.session_state["local_tailor_error"] = f"LLM Generation Failed: {e}"
@@ -789,7 +826,7 @@ with tabs[1]:
         col_md_man = st.container()
 
     with col_md_man:
-        st.subheader("Step 4: Tailor CV to Markdown")
+        st.subheader("Step 4: Compose CV to Markdown")
         st.toggle(
             "Show PDF Preview", value=st.session_state.get("show_pdf_manual_val", True), key="show_pdf_manual_val"
         )
@@ -797,7 +834,7 @@ with tabs[1]:
         col_btn1, col_btn2, col_btn3 = st.columns([1, 1, 1])
         with col_btn1:
             btn_use_manual = st.button(
-                "Tailor CV manually", key="btn_use_manual_body", type="primary", use_container_width=True
+                "Compose CV manually", key="btn_use_manual_body", type="primary", use_container_width=True
             )
         with col_btn2:
             btn_check_manual_clicked = st.button(
@@ -805,7 +842,7 @@ with tabs[1]:
             )
         with col_btn3:
             st.download_button(
-                "Save Tailored CV as Markdown",
+                "Save Composed CV as Markdown",
                 edited_full_cv,
                 file_name="cv.md",
                 key="dl_md_manual",
@@ -880,7 +917,7 @@ with tabs[1]:
                 st.session_state.pop("pdf_bytes", None)
                 st.session_state.pop("manual_cv_errors", None)
                 st.session_state.pop("manual_cv_checked", None)
-                st.session_state["manual_tailor_note"] = "CV Tailored manually successfully!"
+                st.session_state["manual_tailor_note"] = "CV Composed manually successfully!"
                 st.rerun()
 
         # Message placeholders directly after buttons
@@ -913,7 +950,7 @@ with tabs[1]:
             with col_pdf_btns2:
                 if "pdf_bytes" in st.session_state:
                     st.download_button(
-                        "Save Tailored CV as PDF",
+                        "Save Composed CV as PDF",
                         st.session_state["pdf_bytes"],
                         file_name="cv.pdf",
                         key="dl_pdf_manual",
@@ -921,7 +958,7 @@ with tabs[1]:
                     )
                 else:
                     st.button(
-                        "Save Tailored CV as PDF", disabled=True, use_container_width=True, key="dl_pdf_manual_disabled"
+                        "Save Composed CV as PDF", disabled=True, use_container_width=True, key="dl_pdf_manual_disabled"
                     )
 
             # Message placeholders directly after buttons
@@ -1178,7 +1215,7 @@ with tabs[3]:
 
         config_path_input = st.text_input(
             "Config File Path",
-            value=st.session_state.get("config_path_input_val", "./config.yaml"),
+            value=st.session_state.get("config_path_input_val", "../config/config.yaml"),
             key="config_path_input_val",
             on_change=on_config_path_change_tab,
             label_visibility="collapsed",

@@ -11,7 +11,7 @@ from typing import Any
 import ollama
 from loguru import logger
 
-from helpers.config import DEFAULT_CONFIG, ConfigManager
+from config.config import DEFAULT_CONFIG, ConfigManager
 
 MIN_EVAL_TIME = 0.001
 

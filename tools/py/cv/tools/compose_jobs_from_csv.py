@@ -7,10 +7,9 @@ from loguru import logger
 import pandas as pd
 from tqdm import tqdm
 
-
-from cv.tools import cfg
+from config import config as cfg
 from cv.tools import prepare_cv
-from cv.tools.tailor_cv_locally import tailor
+from cv.tools.compose_cv_locally import compose_cv
 
 
 WORD_PATTERN = re.compile(r"\w{2,}")
@@ -25,7 +24,7 @@ def generate_id(title: str, company: str) -> str:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Read job postings from a CSV and tailor CVs locally for each posting."
+        description="Read job postings from a CSV and compose CVs locally for each posting."
     )
     parser.add_argument(
         "--path",
@@ -43,7 +42,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--model",
-        help="Optional Ollama model to use for tailoring. If not set, defaults to configured eval model.",
+        help="Optional Ollama model to use for composing. If not set, defaults to configured eval model.",
     )
     parser.add_argument(
         "--force",
@@ -59,7 +58,7 @@ def main() -> None:
             logger.error(f"Config file not found: {config_path}")
             sys.exit(1)
         custom_cfg = cfg.load_config(config_path)
-        cfg.DEFAULT_CONFIG = custom_cfg
+        cfg.DEFAULT_CV_CONFIG = custom_cfg
         prepare_cv.DEFAULT_CONFIG = custom_cfg
         logger.info(f"Loaded custom configuration from {config_path}")
 
@@ -111,9 +110,9 @@ def main() -> None:
         jd_file.write_text(description, encoding="utf-8")
 
         try:
-            tailor(folder=job_folder, model=args.model, force=args.force)
+            compose_cv(folder=job_folder, model=args.model, force=args.force)
         except Exception as e:
-            logger.error(f"Failed to tailor CV for job ID {job_id}: {e}")
+            logger.error(f"Failed to compose CV for job ID {job_id}: {e}")
 
 
 if __name__ == "__main__":

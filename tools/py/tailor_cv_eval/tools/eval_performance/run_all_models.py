@@ -6,10 +6,6 @@ import pandas as pd
 from loguru import logger
 from tqdm import tqdm
 
-# Find workspace root directory dynamically starting from current file
-ROOT_DIR = Path(__file__).resolve().parents[2]
-sys.path.append(str(ROOT_DIR))
-sys.path.append(str(ROOT_DIR.parent))
 
 from helpers.config import (  # noqa: E402
     DEFAULT_CONFIG,

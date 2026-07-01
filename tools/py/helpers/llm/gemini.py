@@ -1,6 +1,6 @@
 """Gemini agent helper using Pydantic AI."""
 
-from helpers.config import DEFAULT_CONFIG
+from config.config import DEFAULT_CONFIG
 from pydantic import BaseModel
 from pydantic_ai import Agent
 from pydantic_ai.models.gemini import GeminiModel, GeminiModelSettings

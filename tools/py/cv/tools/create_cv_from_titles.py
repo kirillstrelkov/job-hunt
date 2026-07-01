@@ -7,7 +7,7 @@ from pathlib import Path
 from loguru import logger
 
 _TOOLS_DIR = Path(__file__).parent
-sys.path.insert(0, str(_TOOLS_DIR))
+
 
 from prepare_cv import prepare_cv  # noqa: E402
 from process_cv import fix_file  # noqa: E402

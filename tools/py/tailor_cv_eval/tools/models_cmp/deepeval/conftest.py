@@ -6,8 +6,6 @@ import pandas as pd
 import pytest
 from loguru import logger
 
-sys.path.append(str(Path(__file__).resolve().parents[3]))
-sys.path.append(str(Path(__file__).resolve().parents[4]))
 from helpers.tmp_helper import get_tmp_output_dir
 
 # Global list to aggregate evaluation results across test cases

@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 
 
 from .prepare_cv import prepare_cv
-from .tailor_cv_body import run_ollama, process_output_of_ollama, get_eval_model
+from .tailor_body import run_ollama, process_output_of_ollama, get_eval_model
 from .process_cv import fix_file, check_file
 from .md2pdf import convert_md_to_pdf
 
@@ -42,8 +42,8 @@ def decide_keep_thesis(jd_text: str) -> bool:
     return decision.keep_thesis
 
 
-def tailor(folder: str | Path, model: str | None = None, force: bool = False) -> None:
-    """Tailor CV locally for a given folder using the specified Ollama model."""
+def compose_cv(folder: str | Path, model: str | None = None, force: bool = False) -> None:
+    """Compose CV locally for a given folder using the specified Ollama model."""
     folder = Path(folder).resolve()
     if not folder.exists():
         logger.error(f"Folder or file {folder} not found")
@@ -81,7 +81,7 @@ def tailor(folder: str | Path, model: str | None = None, force: bool = False) ->
             f"Step 2: Skipping LLM tailoring because {body_output.name} already exists. Use --force to re-generate."
         )
 
-    logger.info("Step 3: Assembling CV from tailored body")
+    logger.info("Step 3: Composing CV from tailored body")
     prepare_cv(body=str(body_output))
 
     logger.info(f"Step 4: Fixing CV: {assembled_cv}")
@@ -104,11 +104,11 @@ def tailor(folder: str | Path, model: str | None = None, force: bool = False) ->
     logger.info(f"Step 6: Converting CV to PDF: {pdf_output}")
     convert_md_to_pdf(assembled_cv, pdf_output)
 
-    logger.info("Successfully finished tailoring CV locally!")
+    logger.info("Successfully finished composing CV locally!")
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Tailor CV locally using Ollama models.")
+    parser = argparse.ArgumentParser(description="Compose CV locally using Ollama models.")
     parser.add_argument(
         "job_description",
         help="Path to the CV folder or the jd.txt file directly",
@@ -117,7 +117,7 @@ def main() -> None:
         "--model",
         "-m",
         default=None,
-        help="Ollama model to use for tailoring. If None, the configured eval model is used without filename prefixes.",
+        help="Ollama model to use for composing. If None, the configured eval model is used without filename prefixes.",
     )
     parser.add_argument(
         "--force",
@@ -128,7 +128,7 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    tailor(folder=args.job_description, model=args.model, force=args.force)
+    compose_cv(folder=args.job_description, model=args.model, force=args.force)
 
 
 if __name__ == "__main__":

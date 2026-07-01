@@ -11,13 +11,11 @@ import sys
 from deepeval import assert_test
 from deepeval.metrics import GEval
 from deepeval.models import OllamaModel
-from deepeval.test_case import LLMTestCase, LLMTestCaseParams
+from deepeval.test_case import LLMTestCase, SingleTurnParams
 from loguru import logger
 
-sys.path.append(str(Path(__file__).resolve().parents[3]))
-sys.path.append(str(Path(__file__).resolve().parents[4]))
 from conftest import EVALUATION_RESULTS
-from helpers.config import DEFAULT_CONFIG  # noqa: E402
+from config.config import DEFAULT_CONFIG  # noqa: E402
 from helpers.ollama_helper import get_eval_model, get_model_names  # noqa: E402
 from helpers.tmp_helper import get_tmp_output_dir  # noqa: E402
 
@@ -35,9 +33,9 @@ def run_assessment(prompt_content: str, actual_output: str, expected_output: str
         name="Correctness",
         criteria=("Determine whether the actual output is factually correct based on the expected output."),
         evaluation_params=[
-            LLMTestCaseParams.INPUT,
-            LLMTestCaseParams.ACTUAL_OUTPUT,
-            LLMTestCaseParams.EXPECTED_OUTPUT,
+            SingleTurnParams.INPUT,
+            SingleTurnParams.ACTUAL_OUTPUT,
+            SingleTurnParams.EXPECTED_OUTPUT,
         ],
         threshold=0.5,
         model=evaluator_model,

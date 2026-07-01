@@ -9,10 +9,6 @@ import re
 
 from reviewer.llm import Analysis
 
-# Add the tests directory directly to sys.path to avoid package namespace conflicts with 'tests'
-
-AI_SEARCH_DIR = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(AI_SEARCH_DIR))
 
 from reviewer.llm import JobMatchResult  # noqa: E402
 from reviewer.llm_test import assert_llm_response  # noqa: E402

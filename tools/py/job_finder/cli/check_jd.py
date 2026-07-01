@@ -5,8 +5,6 @@ import sys
 from pathlib import Path
 from pprint import pformat
 
-# Add parent directory to path so relative imports work when executed directly
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from loguru import logger
 from reviewer.llm import MODEL, analyze_cv, get_match_percentage

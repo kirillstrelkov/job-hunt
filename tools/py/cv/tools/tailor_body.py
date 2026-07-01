@@ -12,7 +12,7 @@ import time
 
 def parse_args() -> argparse.Namespace:
     """Parse command line arguments."""
-    parser = argparse.ArgumentParser(description="Tailor CV using a local LLM via Ollama.")
+    parser = argparse.ArgumentParser(description="Tailor CV body using a local LLM via Ollama.")
     parser.add_argument(
         "--prompt-file",
         required=True,

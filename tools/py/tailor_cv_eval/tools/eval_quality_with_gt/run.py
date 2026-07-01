@@ -6,9 +6,6 @@ from pathlib import Path
 import yaml
 from loguru import logger
 
-# Add root directory to path to import shared_config and ollama_helper
-sys.path.append(str(Path(__file__).resolve().parents[2]))
-sys.path.append(str(Path(__file__).resolve().parents[3]))
 from helpers.config import DEFAULT_CONFIG  # noqa: E402
 from helpers.notebook import run_jupyter_notebook  # noqa: E402
 from helpers.ollama_helper import (

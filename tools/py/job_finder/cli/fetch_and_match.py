@@ -6,9 +6,6 @@ import tempfile
 from dataclasses import asdict, is_dataclass
 from pathlib import Path
 
-# Add parent directory to path so relative imports work when executed directly
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-
 import pandas as pd
 import yaml
 from loguru import logger

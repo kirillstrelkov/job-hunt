@@ -9,7 +9,7 @@ from loguru import logger
 from pydantic_ai import Agent, ModelSettings
 from pydantic_ai.models.gemini import GeminiModel
 
-from helpers.config import DEFAULT_CONFIG, ConfigManager
+from config.config import DEFAULT_CONFIG, ConfigManager
 
 MIN_EVAL_TIME = 0.001
 

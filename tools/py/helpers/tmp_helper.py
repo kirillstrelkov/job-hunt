@@ -3,7 +3,7 @@
 import os
 from pathlib import Path
 
-from .config import DEFAULT_CONFIG, InputJob
+from config.config import DEFAULT_CONFIG, InputJob
 
 
 def get_root_dir() -> Path:

@@ -6,9 +6,6 @@ from pathlib import Path
 
 from loguru import logger
 
-# Add root directory to path to import shared_config and ollama_helper
-sys.path.append(str(Path(__file__).resolve().parents[2]))
-sys.path.append(str(Path(__file__).resolve().parents[3]))
 from helpers.config import DEFAULT_CONFIG  # noqa: E402
 from helpers.ollama_helper import get_eval_model  # noqa: E402
 from helpers.promptfoo_helper import get_provider_id  # noqa: E402
