@@ -45,7 +45,7 @@ def process_one(folder: Path, cv_md: Path) -> None:
     logger.info(f"Written body: {body_md}")
 
     logger.debug("Preparing cv in {} with {}", job_folder, body_md)
-    prepare_cv(str(job_folder), str(body_md))
+    prepare_cv(folder=str(job_folder), body=str(body_md))
 
     keep_thesis = any(kw in name.lower() for kw in ("test", "sdet"))
     gen_cv = job_folder / "gen/cv.md"

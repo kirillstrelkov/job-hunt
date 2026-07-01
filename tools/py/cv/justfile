@@ -50,7 +50,7 @@ mastercv-pdf:
     uv run python tools/process_cv.py --fix {{ mastercv }}
     @just md2pdf "{{ mastercv }}" "./tmp/master_cv.pdf"
 
-prepare-cv folder:
+prepare-cv folder name="body.md":
     # flow:
 
     # use just gui with config
@@ -59,11 +59,11 @@ prepare-cv folder:
     # create llm prompt
     # ask llm for description
 
-    uv run python tools/prepare_cv.py {{ folder }} --tailored-cv-body "{{ folder }}/body.md"
+    uv run python tools/prepare_cv.py --folder {{ folder }} --body "{{ folder }}/{{ name }}"
     @just update-pdf {{ folder }}
 
 prepare-llm folder:
-    uv run python tools/prepare_cv.py --llm-prompt {{ folder }}
+    uv run python tools/prepare_cv.py --llm-prompt --folder {{ folder }}
 
 prepare-llm-for-titles:
     # uv run python tools/prepare_llm_prompt.py --output ./tmp/llm_titles/py.md --tailor-for-title "Python Backend Engineer (Cloud Infrastructure & Microservices)"
@@ -80,11 +80,26 @@ prepare-llm-for-titles:
 update-pdf folder:
     @just md2pdf "{{ folder }}/gen/cv.md" "{{ folder }}/gen/cv.pdf"
 
-md2pdf input output:
-    uv run python tools/process_cv.py --check --fix "{{ input }}"
-    pandoc -V papersize=a4  -V geometry:left=1.5cm -V geometry:right=1.5cm -V geometry:top=1.2cm -V geometry:bottom=1.2cm "{{ input }}" -o "{{ output }}"
+md2pdf input output options="--check --fix":
+    uv run python tools/process_cv.py {{ options }} "{{ input }}"
+    uv run python tools/md2pdf.py "{{ input }}" --output "{{ output }}"
 
 auto-tailor-cv folder:
     @just prepare-llm {{ folder }}
     uv run python tools/tailor_cv_body.py --prompt-file "{{ folder }}/gen/llm_prompt.txt" --output "{{ folder }}/body.md"
     @just prepare-cv {{ folder }}
+
+auto-tailor-cv-top-models folder:
+    uv run python tools/tailor_cv_locally.py {{ folder }} --model gemma4:e4b-it-qat --force
+    # uv run python tools/tailor_cv_locally.py {{ folder }} --model qwen3.5:9b-q4_K_M
+    # uv run python tools/tailor_cv_locally.py {{ folder }} --model llama3.1:8b-text-q4_K_M
+    # uv run python tools/tailor_cv_locally.py {{ folder }} --model gemma4:e2b
+    # uv run python tools/tailor_cv_locally.py {{ folder }} --model qwen3.5:4b-q8_0
+    # uv run python tools/tailor_cv_locally.py {{ folder }} --model llama3.3:7b-instruct-q4_K_M
+    # uv run python tools/tailor_cv_locally.py {{ folder }} --model phi4-mini:3.8b-q8_0   
+    # uv run python tools/tailor_cv_locally.py {{ folder }} --model falcon3:7b
+
+    # uv run python tools/tailor_cv_locally.py {{ folder }} --model "gemini-3.1-flash-lite"
+    # uv run python tools/tailor_cv_locally.py {{ folder }} --model "gemini-3.5-flash"
+    # uv run python tools/tailor_cv_locally.py {{ folder }} --model "gemma-4-26b-a4b-it"
+    # uv run python tools/tailor_cv_locally.py {{ folder }} --model "gemma-4-31b-it"

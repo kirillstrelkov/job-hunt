@@ -1,13 +1,17 @@
 """Gemini agent helper using Pydantic AI."""
 
+from helpers.config import DEFAULT_CONFIG
 from pydantic import BaseModel
 from pydantic_ai import Agent
 from pydantic_ai.models.gemini import GeminiModel, GeminiModelSettings
 from helpers.models import TailoredCVBody
 from helpers.constants import SYS_PROMPT_WITH_TAILORED_CV
-
+from dotenv import load_dotenv
 
 from helpers.llm_helper import dict_to_model_settings, get_model_options
+
+
+load_dotenv(DEFAULT_CONFIG.get_env_file())
 
 
 def get_agent(
@@ -20,7 +24,6 @@ def get_agent(
     settings = dict_to_model_settings(options)
     settings["gemini_thinking_config"] = {"thinking_budget": 0}
     model = GeminiModel(model_name)
-
 
     return Agent(
         model,

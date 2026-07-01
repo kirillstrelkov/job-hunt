@@ -33,9 +33,9 @@ def test_login(page: StepstonePage) -> None:
 
 
 def test_get_job(page: StepstonePage) -> None:
-    url = "https://www.stepstone.de/jobs--Senior-Software-Developer-m-w-d-Berlin-meinestadt-de--13929237-inline.html"
+    url = "https://www.stepstone.de/stellenangebote--Senior-Full-Stack-Developer-Python-Azure-AI-w-m-d-Berlin-Koeln-Hamburg-Muenchen-Frankfurt-Main-Stuttgart-Duesseldorf-EY-Deutschland--14210733-inline.html"
     job = page._get_job(url)
-    assert "Senior Software Developer" in job.title
-    assert "meinestadt.de" in job.company
+    assert "Developer" in job.title
+    assert "EY Deutschland" in job.company
     assert job.url == url
     assert len(job.description) > 100

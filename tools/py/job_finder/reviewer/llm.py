@@ -7,7 +7,7 @@ from pathlib import Path
 
 import ollama
 from loguru import logger
-from job_finder.reviewer.llm_with_pydantic import Screening, Analysis, JobMatchResult
+from .llm_with_pydantic import Screening, Analysis, JobMatchResult
 
 # Fallback model: "gemma4:e2b"
 MODEL = "gemma4:e4b-it-qat"

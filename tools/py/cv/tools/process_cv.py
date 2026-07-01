@@ -26,10 +26,10 @@ MONTHS_TO_SHORT = {
 
 RE_HEADING = re.compile(r"^#+\s")
 RE_DATE_EXTRACT = re.compile(r"([A-Z][a-z]+)?\s*(\d{4})")
-RE_WORK_EXP = re.compile(r"^\*\*(.*?)\*\*\s*\|\s*_(.*?)_\s*\|\s*(.*)$")
-RE_PIPE_SPLIT = re.compile(r"\|")
+RE_WORK_EXP = re.compile(r"^\*\*(.*?)\*\*\s*\|\s*_(.*?)_\s*(?:\||\\hfill)\s*(.*)$")
+RE_PIPE_SPLIT = re.compile(r"\||\\hfill")
 RE_ENDS_WITH_YEAR = re.compile(r"\d{4}$")
-RE_COURSE_FORMAT = re.compile(r"^\- .+?\, \_.+?\_ \| \w{3}\s\d{4}$")
+RE_COURSE_FORMAT = re.compile(r"^\- .+?\, \_.+?\_ \s*(?:\||\\hfill)\s*\w{3}\s\d{4}$")
 RE_COURSE_DATE = re.compile(r"([A-Za-z]+\s+\d{4})$")
 RE_LEADING_SPACES = re.compile(r"^\s*")
 RE_COURSE_ADD_HFILL = re.compile(r"\s+([A-Za-z]+\s+\d{4})$")
@@ -228,10 +228,9 @@ def do_check(sections: list[Section]) -> list[Error]:
 
     for req in required_headers:
         if not any(req in name for name in section_names):
-            msg_name = req.title() if req != "courses and certificates" else "Courses and Certificates"
             errors.append(
                 Error(
-                    msg=f"Missing '{msg_name}' section in headers",
+                    msg=f"Missing '{req}' section in headers",
                     filepath=filepath,
                     line_num=1,
                     line="",

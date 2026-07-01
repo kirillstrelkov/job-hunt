@@ -82,4 +82,6 @@ def get_jobs(*urls: str, limit: None | int = None, use_cache: bool = False) -> l
         if not is_excluded:
             filtered_jobs.append(job)
 
+    logger.debug("Unique jobs: {}, filtered jobs: {}", len(uniq_jobs), len(filtered_jobs))
+
     return filtered_jobs

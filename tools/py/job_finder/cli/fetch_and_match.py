@@ -7,14 +7,14 @@ from dataclasses import asdict, is_dataclass
 from pathlib import Path
 
 # Add parent directory to path so relative imports work when executed directly
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 import pandas as pd
 import yaml
 from loguru import logger
-from reviewer.match import JobMatch, get_job_matches
-from scraper.base import Job
-from scraper.fetch import get_jobs
+from job_finder.reviewer.match import JobMatch, get_job_matches
+from job_finder.scraper.base import Job
+from job_finder.scraper.fetch import get_jobs
 
 _OUTPUT_PATH = Path(tempfile.gettempdir()) / "job_matches.csv"
 

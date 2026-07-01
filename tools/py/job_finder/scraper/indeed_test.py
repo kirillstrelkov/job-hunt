@@ -6,8 +6,8 @@ import pytest
 from easelenium.browser import Browser
 from utils.caching_utils import ENV_VAR_DISABLE_CACHED
 
-from scraper.base import get_browser
-from scraper.indeed import IndeedPage
+from .base import get_browser
+from .indeed import IndeedPage
 
 
 @pytest.fixture
@@ -53,7 +53,7 @@ def test_get_job_with_company(page: IndeedPage) -> None:
 
 
 def test_get_jobs(page: IndeedPage) -> None:
-    url = "https://de.indeed.com/jobs?q=test&l=test&fromage=14&radius=50&from=searchOnDesktopSerp&vjk=f673956b8cf1219b"
+    url = "https://de.indeed.com/jobs?q=software&l=berlin&fromage=14&radius=50&from=searchOnDesktopSerp"
     limit = 21
     page.open(url)
     jobs = page.get_jobs(limit=limit)

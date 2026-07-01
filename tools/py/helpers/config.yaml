@@ -89,6 +89,8 @@ tmp_input_dir: "{root_dir}/tmp/inputs"
 trulens_db_url: "sqlite:///{root_dir}/tmp/outputs/truelens/default.sqlite"
 prepare_llm_prompt_script: "{root_dir}/tools/py/cv/tools/prepare_llm_prompt.py"
 
+env_file: "{root_dir}/tools/py/private/.env"
+
 jobs:
   - name: "job_tesla"
     ground_truth: "{tmp_input_dir}/job_tesla_gt.md"

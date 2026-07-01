@@ -169,6 +169,10 @@ class ConfigManager:
 
         return current
 
+    def get_env_file(self) -> Path:
+        """Get the path to the environment variable file (.env) from the configuration."""
+        return Path(self.get_config_value(".env_file"))
+
 
 DEFAULT_CONFIG = ConfigManager(CONFIG_DIR / "config.yaml")
 TRULENS_DB_URL = DEFAULT_CONFIG.get_config_value(".trulens_db_url")

@@ -9,7 +9,9 @@ if str(tools_py_dir) not in sys.path:
     sys.path.insert(0, str(tools_py_dir))
 
 from loguru import logger
-from helpers.ollama_helper import run_model, get_eval_model, get_model_options
+from helpers.ollama_helper import get_eval_model, get_model_options
+from helpers.llm import get_agent
+import time
 
 
 def parse_args() -> argparse.Namespace:
@@ -37,14 +39,36 @@ def parse_args() -> argparse.Namespace:
 
 
 def run_ollama(prompt_content: str, model: str) -> dict:
-    """Run Ollama model on the prompt content."""
-    model_options = get_model_options(model)
-    logger.info(f"Running LLM model '{model}' via Ollama...")
-    return run_model(
-        model=model,
-        prompt_content=prompt_content,
-        options=model_options,
+    """Run Ollama model on the prompt content using Pydantic AI Agent."""
+    logger.info(f"Running LLM model '{model}' via Ollama Pydantic AI agent...")
+    start_time = time.time()
+    agent = get_agent(
+        model_name=model,
+        output_type=str,
     )
+    result = agent.run_sync(prompt_content)
+    elapsed = time.time() - start_time
+
+    response_text = result.output
+
+    usage = result.usage
+    prompt_tokens = usage.request_tokens or 0
+    gen_tokens = usage.response_tokens or 0
+    tokens_per_sec = gen_tokens / elapsed if elapsed > 0.001 else 0.0
+
+    return {
+        "model": model,
+        "total_time": elapsed,
+        "load_time": 0.0,
+        "prompt_tokens": prompt_tokens,
+        "gen_tokens": gen_tokens,
+        "tokens_per_sec": tokens_per_sec,
+        "char_count": len(response_text),
+        "word_count": len(response_text.split()),
+        "gpu_usage": 0.0,
+        "gpu_info": None,
+        "response": response_text,
+    }
 
 
 def process_output_of_ollama(result: dict, output_file: Path) -> None:

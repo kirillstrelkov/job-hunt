@@ -7,19 +7,44 @@ from loguru import logger
 from cfg import DEFAULT_CONFIG
 
 
-def prepare_cv(folder: str, tailored_cv_body: str | None, llm_prompt: bool = False) -> None:
-    folder_path = Path(folder)
-    if not folder_path.exists():
-        raise FileNotFoundError(f"{folder_path} not found")
+def prepare_cv(
+    *,
+    folder: str | None = None,
+    body: str | None = None,
+    llm_prompt: bool = False,
+    job_description: str | None = None,
+) -> None:
+    folder_path = Path(folder) if folder else None
+    body_path = Path(body) if body else None
+
+    if folder_path is None and body_path is None:
+        raise ValueError("Must specify at least a folder or a body path")
+
+    if body_path is not None:
+        if folder_path and not folder_path.is_dir():
+            raise ValueError(f"folder must be a directory: {folder_path}")
+        body_file = body_path
+        target_folder = folder_path if folder_path else body_path.parent
+        generate_cv_mode = True
+    else:
+        # body_path is None, so folder_path must be not None
+        body_file = folder_path / "body.md"
+        target_folder = folder_path
+        generate_cv_mode = not llm_prompt
+
+    if not target_folder.exists():
+        raise FileNotFoundError(f"{target_folder} not found")
 
     # inputs
-    body = folder_path / "body.md"
-
     header = DEFAULT_CONFIG.header
     footer = DEFAULT_CONFIG.footer
     mastercv = DEFAULT_CONFIG.body
     tailor_for_desc = DEFAULT_CONFIG.prompt
-    jd = folder_path / "jd.txt"
+
+    if job_description:
+        jd = Path(job_description)
+    else:
+        jd = target_folder / "jd.txt"
 
     paths_to_check = [
         header,
@@ -28,8 +53,8 @@ def prepare_cv(folder: str, tailored_cv_body: str | None, llm_prompt: bool = Fal
         mastercv,
     ]
 
-    if tailored_cv_body:
-        paths_to_check.append(body)
+    if generate_cv_mode:
+        paths_to_check.append(body_file)
 
     if llm_prompt:
         paths_to_check.append(jd)
@@ -39,16 +64,15 @@ def prepare_cv(folder: str, tailored_cv_body: str | None, llm_prompt: bool = Fal
             raise FileNotFoundError(f"{p} not found")
 
     # outputs
-    out_folder = folder_path / "gen"
+    out_folder = target_folder / "gen"
     if not out_folder.exists():
         out_folder.mkdir(exist_ok=False)
 
     tailored_llm_text = out_folder / "llm_prompt.txt"
-    cv_out = out_folder / "cv.md"
 
     # generate
     if llm_prompt:
-        logger.info(f"Generating : {tailored_llm_text}")
+        logger.info(f"Generating {tailored_llm_text}")
 
         content = tailor_for_desc.read_text().format(
             master_cv=(mastercv).read_text(),
@@ -56,33 +80,39 @@ def prepare_cv(folder: str, tailored_cv_body: str | None, llm_prompt: bool = Fal
         )
         tailored_llm_text.write_text(content)
 
-        logger.info(f"Written: {tailored_llm_text}")
-
-    if tailored_cv_body:
-        logger.info(f"Generating : {cv_out}")
-
-        tailored_cv_body_path = Path(tailored_cv_body)
-        assert tailored_cv_body_path.exists()
+    if generate_cv_mode:
+        cv_out = out_folder / f"{body_file.stem.replace('body', 'cv')}.md"
+        logger.info(f"Generating {cv_out}")
 
         with cv_out.open("w") as out:
             out.write((header).read_text())
             out.write("\n")
 
-            out.write((body).read_text())
+            out.write((body_file).read_text())
             out.write("\n")
 
             out.write((footer).read_text())
-        logger.info(f"Written: {tailored_cv_body_path}")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Assemble CV from header, body and footer.")
-    parser.add_argument("folder", help="Path to the CV folder containing body.md")
     parser.add_argument(
-        "--tailored-cv-body",
-        required=False,
+        "--folder",
+        "-f",
         default=None,
-        help="Path to tailored CV body - body.md",
+        help="Path to the CV folder only",
+    )
+    parser.add_argument(
+        "--body",
+        "-b",
+        default=None,
+        help="Path to CV body markdown file",
+    )
+    parser.add_argument(
+        "--job-description",
+        "--jd",
+        default=None,
+        help="Path to job description text file (defaults to folder/jd.txt)",
     )
     parser.add_argument(
         "--llm-prompt",
@@ -92,4 +122,13 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-    prepare_cv(args.folder, args.tailored_cv_body, args.llm_prompt)
+
+    if args.folder and not Path(args.folder).is_dir():
+        parser.error(f"--folder must be a directory: {args.folder}")
+
+    prepare_cv(
+        folder=args.folder,
+        body=args.body,
+        llm_prompt=args.llm_prompt,
+        job_description=args.job_description,
+    )
