@@ -16,6 +16,18 @@ from pathlib import Path
 import yaml
 from loguru import logger
 
+import streamlit as st
+
+import sys
+
+sys.path.append(str(Path(__file__).parent.parent))
+
+import cv.tools.process_cv as process_cv
+from cv.tools.md2pdf import convert_md_to_pdf
+from helpers.llm_helper import get_model_names as get_gemini_models, run_model as run_gemini_model
+from helpers.ollama_helper import run_model as run_ollama_model
+
+
 # Add required paths
 tools_py_dir = Path(__file__).resolve().parent.parent
 cv_tools_dir = tools_py_dir / "cv" / "tools"
@@ -80,12 +92,6 @@ def main_cli() -> None:
 
 main_cli()
 
-import streamlit as st
-
-import cv.tools.process_cv as process_cv
-from cv.tools.md2pdf import convert_md_to_pdf
-from helpers.llm_helper import get_model_names as get_gemini_models, run_model as run_gemini_model
-from helpers.ollama_helper import run_model as run_ollama_model
 
 # Load API Key from session state if stored
 if st.session_state.get("gemini_api_key_val"):
