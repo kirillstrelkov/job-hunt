@@ -11,8 +11,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import pandas as pd
 from loguru import logger
 from reviewer.match import get_job_matches
-from scraper.base import Job
-from utils.caching_utils import ENV_VAR_DISABLE_CACHED
+from job_finder.scraper.base import Job
+from job_finder.utils.caching_utils import ENV_VAR_DISABLE_CACHED
 
 
 def load_file(path: Path) -> tuple[pd.DataFrame, str]:

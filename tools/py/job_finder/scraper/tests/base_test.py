@@ -1,6 +1,6 @@
 """Unit tests for the scraper base classes and utilities."""
 
-from scraper.base import Job, make_job
+from job_finder.scraper.base import Job, make_job
 
 
 def test_uniq_jobs() -> None:

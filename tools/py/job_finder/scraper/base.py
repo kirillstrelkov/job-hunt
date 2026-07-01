@@ -11,9 +11,11 @@ from easelenium.browser import Browser
 from loguru import logger
 from selenium.common.exceptions import WebDriverException
 from tenacity import RetryError, retry, retry_if_exception_type, stop_after_attempt
-from utils.caching_utils import get_cached_value, get_hashsum, has_cached_value
-from utils.common_utils import get_browser as _get_browser
-from utils.env_utils import get_credentials
+
+
+from job_finder.utils.caching_utils import get_cached_value, get_hashsum, has_cached_value
+from job_finder.utils.common_utils import get_browser as _get_browser
+from job_finder.utils.env_utils import get_credentials
 
 __BROWSER = None
 

@@ -5,9 +5,9 @@ from pathlib import Path
 from pprint import pformat
 
 from loguru import logger
-from scraper.base import Job
+from job_finder.scraper.base import Job
 from tqdm import tqdm
-from utils.caching_utils import get_cached_value, get_hashsum
+from job_finder.utils.caching_utils import get_cached_value, get_hashsum
 
 from reviewer.llm import analyze_cv, get_checked_passed, get_match_percentage
 
