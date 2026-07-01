@@ -15,6 +15,59 @@ EXCLUDED_COMPANIES = {
     "turing",
 }
 
+EXCLUDED_TITLE_KEYWORDS = {
+    "intern",
+    "student",
+    "manager",
+    "marketing",
+}
+
+
+def _filter_jobs(jobs: list[Job]) -> list[Job]:
+    """Remove duplicates and filter out jobs from excluded companies and keywords.
+
+    Args:
+        jobs: List of Job instances.
+
+    Returns:
+        A list of unique Job instances not belonging to excluded companies/keywords.
+
+    """
+    logger.debug("Total jobs: {}", len(jobs))
+    uniq_jobs = list(set(jobs))
+    logger.debug("Unique jobs: {}", len(uniq_jobs))
+
+    # filter for excluded companies and keywords
+    filtered_jobs = []
+    excluded_jobs = defaultdict(list)
+    for job in uniq_jobs:
+        is_excluded = False
+        for company in EXCLUDED_COMPANIES:
+            if company in job.company.lower():
+                excluded_jobs[company].append(job)
+                is_excluded = True
+                break
+
+        if is_excluded:
+            continue
+
+        for keyword in EXCLUDED_TITLE_KEYWORDS:
+            if keyword in job.title.lower():
+                excluded_jobs[keyword].append(job)
+                is_excluded = True
+                break
+
+        if not is_excluded:
+            filtered_jobs.append(job)
+
+    for trigger, ex_jobs in excluded_jobs.items():
+        logger.warning("Jobs {} excluded due to {}", len(ex_jobs), trigger)
+
+    logger.debug("Excluded jobs count: {}", len(excluded_jobs))
+    logger.debug("Filtered jobs count: {}", len(filtered_jobs))
+
+    return filtered_jobs
+
 
 def get_jobs(*urls: str, limit: None | int = None, use_cache: bool = False) -> list[Job]:
     """Retrieve job descriptions from a list of URLs using respective scrapers.
@@ -61,27 +114,4 @@ def get_jobs(*urls: str, limit: None | int = None, use_cache: bool = False) -> l
                 logger.info("{} jobs found for {}", len(url_jobs), url)
                 jobs += url_jobs
 
-    # remove duplicates
-    uniq_jobs = list(set(jobs))
-    logger.debug("Total jobs: {}, unique jobs: {}", len(jobs), len(uniq_jobs))
-
-    # filter for excluded companies
-    filtered_jobs = []
-    for job in uniq_jobs:
-        is_excluded = False
-        for company in EXCLUDED_COMPANIES:
-            if company in job.company.lower():
-                logger.warning(
-                    "Job '{}' from company '{}' was skipped because '{}' is in the excluded companies list.",
-                    job.title,
-                    job.company,
-                    company,
-                )
-                is_excluded = True
-                break
-        if not is_excluded:
-            filtered_jobs.append(job)
-
-    logger.debug("Unique jobs: {}, filtered jobs: {}", len(uniq_jobs), len(filtered_jobs))
-
-    return filtered_jobs
+    return _filter_jobs(jobs)

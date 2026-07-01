@@ -3,7 +3,7 @@
 import atexit
 from collections.abc import Generator
 from contextlib import contextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from traceback import format_exc
 from typing import Self
 
@@ -60,7 +60,7 @@ class Job:
 
     title: str
     company: str
-    url: str
+    url: str = field(compare=False)
     description: str
     error: str
 

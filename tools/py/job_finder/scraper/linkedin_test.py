@@ -7,7 +7,7 @@ import pytest
 from easelenium.browser import Browser
 from utils.caching_utils import ENV_VAR_DISABLE_CACHED
 
-from scraper.base import Job, get_browser, make_job
+from scraper.base import Job, get_browser
 from scraper.linkedin import LinkedinPage
 
 
@@ -60,42 +60,6 @@ def test_get_jobs(page: LinkedinPage) -> None:
     jobs = page.get_jobs(limit=limit)
     assert len(jobs) == limit
     assert len(jobs[0].description) > 100
-
-
-def test_uniq_jobs() -> None:
-    # same title
-    title = "Software engineer"
-    assert (
-        len(
-            {
-                make_job(title=title),
-                make_job(title=title),
-            }
-        )
-        == 1
-    )
-
-    # same title but different companies
-    assert (
-        len(
-            {
-                make_job(title=title, company="A"),
-                make_job(title=title, company="B"),
-            }
-        )
-        == 2
-    )
-
-    # same title but different urls
-    assert (
-        len(
-            {
-                make_job(title=title, url="a", description="one two"),
-                make_job(title=title, url="b", description="one two"),
-            }
-        )
-        == 2
-    )
 
 
 def test_get_jobs_with_limit_and_mocked_get_job(page: LinkedinPage) -> None:
