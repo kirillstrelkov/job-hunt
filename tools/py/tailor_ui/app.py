@@ -41,23 +41,16 @@ def generate_config(output_path: str) -> None:
 
         # Flatten composer and tailor sections
         if "composer" in data:
-            composer = data.get("composer") or {}
-            for k, v in composer.items():
-                consolidated[k] = v
+            consolidated.update(data.get("composer") or {})
         if "tailor" in data:
-            tailor = data.get("tailor") or {}
-            for k, v in tailor.items():
-                consolidated[k] = v
-        for k, v in data.items():
-            if k not in ("composer", "tailor"):
-                consolidated[k] = v
+            consolidated.update(data.get("tailor") or {})
+        consolidated.update({k: v for k, v in data.items() if k not in ("composer", "tailor")})
 
         # Resolve relative paths relative to config/ folder
         config_dir = unified_config_path.parent
         for k, v in consolidated.items():
-            if isinstance(v, str):
-                if v.startswith(("./", "../")) or v in {".", ".."}:
-                    consolidated[k] = str((config_dir / v).resolve())
+            if isinstance(v, str) and (v.startswith(("./", "../")) or v in {".", ".."}):
+                consolidated[k] = str((config_dir / v).resolve())
     else:
         logger.warning(f"Warning: {unified_config_path} not found.")
 
@@ -99,7 +92,8 @@ def compile_pdf(md_path: str, pdf_path: str) -> None:
         convert_md_to_pdf(Path(md_path), Path(pdf_path))
     except SystemExit as e:
         if e.code != 0:
-            raise RuntimeError(f"PDF generation failed with exit code {e.code}") from e
+            msg = f"PDF generation failed with exit code {e.code}"
+            raise RuntimeError(msg) from e
 
 
 def get_temp_generation_dir(jd_text: str | None = None) -> tuple[Path, str]:
@@ -169,21 +163,14 @@ def load_unified_config(path: str) -> dict:
 
     # Extract composer and tailor settings to root level
     if "composer" in data:
-        composer = data.get("composer") or {}
-        for k, v in composer.items():
-            data[k] = v
+        data.update(data.get("composer") or {})
     if "tailor" in data:
-        tailor = data.get("tailor") or {}
-        for k, v in tailor.items():
-            data[k] = v
+        data.update(data.get("tailor") or {})
     if "paths" in data:
-        paths = data.get("paths") or {}
-        for k, v in paths.items():
-            data[k] = v
+        data.update(data.get("paths") or {})
     if "llm" in data:
         llm = data.get("llm") or {}
-        for k, v in llm.items():
-            data[k] = v
+        data.update(llm)
         # Ensure eval_model, models and gemini_models are available at root level
         data["eval_model"] = llm.get("eval_mode")
         data["model_default_options"] = llm.get("model_default_options")
@@ -209,9 +196,8 @@ def load_unified_config(path: str) -> dict:
     # Resolve paths relative to config directory
     config_dir = p.parent
     for k, v in data.items():
-        if isinstance(v, str):
-            if v.startswith(("./", "../")) or v in {".", ".."}:
-                data[k] = str((config_dir / v).resolve())
+        if isinstance(v, str) and (v.startswith(("./", "../")) or v in {".", ".."}):
+            data[k] = str((config_dir / v).resolve())
 
     return data
 
@@ -1044,7 +1030,8 @@ with tabs[2]:
             original_md = st.session_state.get("original_md_content", "")
             has_changes = (current_md != original_md) and bool(current_md.strip())
 
-            def on_save_click():
+            def on_save_click() -> None:
+                """Save current markdown content to session state."""
                 st.session_state["original_md_content"] = st.session_state.get("arbitrary_md", "")
 
             st.download_button(
@@ -1202,7 +1189,7 @@ with tabs[3]:
                         st.rerun()
                     else:
                         st.error("Invalid YAML format.")
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     st.error(f"Error loading config file: {e}")
         else:
             st.session_state.pop("_last_loaded_config_file_id", None)
@@ -1210,7 +1197,8 @@ with tabs[3]:
         st.markdown("**Or specify path on server:**")
 
         # Callback to load config automatically when path input is changed
-        def on_config_path_change_tab():
+        def on_config_path_change_tab() -> None:
+            """Handle changes to config file path."""
             path = st.session_state["config_path_input_val"]
             load_config_action(path)
 

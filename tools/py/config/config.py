@@ -357,7 +357,8 @@ def load_config(path: Path = CONFIG_DIR / "config.yaml") -> Config:
     )
     for p in (config.header, config.body, config.footer, config.prompt):
         if not p.is_file():
-            raise FileNotFoundError(f"Configured file path does not exist: {p}")
+            msg = f"Configured file path does not exist: {p}"
+            raise FileNotFoundError(msg)
     return config
 
 
@@ -380,17 +381,16 @@ def load(config_path: str | Path) -> dict:
 
     config_dir = config_path.parent
 
-    def resolve_paths(node: Any) -> Any:
+    def resolve_paths(node: Any) -> Any:  # noqa: ANN401
         if isinstance(node, dict):
             return {k: resolve_paths(v) for k, v in node.items()}
         if isinstance(node, list):
             return [resolve_paths(v) for v in node]
-        if isinstance(node, str) and (node.startswith("/") or node.startswith(".") or "../" in node or "/" in node):
-            if ":" not in node:
-                val_path = Path(node)
-                resolved_path = (config_dir / val_path).resolve() if not val_path.is_absolute() else val_path.resolve()
-                if resolved_path.exists() or val_path.suffix in (".md", ".txt", ".yaml", ".yml"):
-                    return str(resolved_path)
+        if isinstance(node, str) and (node.startswith(("/", ".")) or "../" in node or "/" in node) and ":" not in node:
+            val_path = Path(node)
+            resolved_path = (config_dir / val_path).resolve() if not val_path.is_absolute() else val_path.resolve()
+            if resolved_path.exists() or val_path.suffix in (".md", ".txt", ".yaml", ".yml"):
+                return str(resolved_path)
         return node
 
     return resolve_paths(data)

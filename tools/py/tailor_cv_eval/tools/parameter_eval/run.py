@@ -1,3 +1,5 @@
+"""Evaluation runner for testing prompt variations using Promptfoo."""
+
 import os
 import shutil
 import subprocess
@@ -12,7 +14,8 @@ from helpers.promptfoo_helper import get_provider_id
 from helpers.tmp_helper import get_root_dir, get_tmp_folder
 
 
-def get_npx_command():
+def get_npx_command() -> str:
+    """Find the npx command path in system PATH or NVM directories."""
     # Check if npx is in the system path
     npx_path = shutil.which("npx")
     if npx_path:
@@ -34,7 +37,8 @@ def get_npx_command():
     return "npx"
 
 
-def main():
+def main() -> None:
+    """Run parameter evaluation variations with Promptfoo."""
     logger.info("=== Starting Promptfoo Parameter Evaluation ===")
     eval_model = get_eval_model()
 
@@ -51,10 +55,11 @@ def main():
         script_path = DEFAULT_CONFIG.get_config_value_as_path(".prepare_llm_prompt_script")
         jd_input = Path(get_root_dir()) / "inputs" / "job1" / "input.txt"
         llm_prompt_file.parent.mkdir(parents=True, exist_ok=True)
+        uv_cmd = shutil.which("uv") or "uv"
         try:
-            subprocess.run(
+            subprocess.run(  # noqa: S603
                 [
-                    "uv",
+                    uv_cmd,
                     "run",
                     str(script_path),
                     "--output",
@@ -134,7 +139,7 @@ tests:
 
     # 5. Run promptfoo
     logger.info("Running Promptfoo parameter evaluation...")
-    res = subprocess.run(
+    res = subprocess.run(  # noqa: S603
         [
             get_npx_command(),
             "-y",

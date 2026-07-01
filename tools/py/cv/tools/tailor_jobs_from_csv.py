@@ -1,4 +1,5 @@
-#!/usr/bin/env python3
+"""CLI script to run batch CV tailoring from jobs in a CSV file."""
+
 import argparse
 import re
 import sys
@@ -21,7 +22,8 @@ def generate_id(title: str, company: str) -> str:
     return "_".join(title_words + company_words)
 
 
-def main() -> None:
+def main() -> None:  # noqa: PLR0915
+    """Run batch CV tailoring by reading job postings from a CSV file."""
     parser = argparse.ArgumentParser(
         description="Read job postings from a CSV and tailor CVs locally for each posting."
     )
@@ -69,7 +71,7 @@ def main() -> None:
 
     try:
         df = pd.read_csv(csv_path, sep=None, engine="python")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Failed to read CSV file {csv_path}: {e}")
         sys.exit(1)
 
@@ -110,7 +112,7 @@ def main() -> None:
 
         try:
             tailor(folder=job_folder, model=args.model, force=args.force)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to tailor CV for job ID {job_id}: {e}")
 
 

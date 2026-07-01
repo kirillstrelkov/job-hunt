@@ -1,3 +1,5 @@
+"""Ollama agent integration helper."""
+
 from pydantic import BaseModel
 from pydantic_ai import Agent
 from pydantic_ai.models.ollama import OllamaModel

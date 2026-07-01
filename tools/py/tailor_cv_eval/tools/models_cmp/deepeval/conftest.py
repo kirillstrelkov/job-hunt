@@ -1,4 +1,6 @@
-import os
+"""Pytest configuration and session hooks for DeepEval model comparisons."""
+
+from typing import Any
 
 import pandas as pd
 import pytest
@@ -7,18 +9,18 @@ from loguru import logger
 from helpers.tmp_helper import get_tmp_output_dir
 
 # Global list to aggregate evaluation results across test cases
-EVALUATION_RESULTS = []
+EVALUATION_RESULTS: list[dict[str, Any]] = []
 
 
 @pytest.hookimpl(tryfirst=True)
-def pytest_sessionstart(session):
-    """Called before runtest loop starts."""
+def pytest_sessionstart(_session: pytest.Session) -> None:
+    """Run initial setup actions before the test session starts."""
     # Ensure outputs directory exists
-    os.makedirs(get_tmp_output_dir(), exist_ok=True)
+    get_tmp_output_dir().mkdir(parents=True, exist_ok=True)
 
 
-def pytest_sessionfinish(session, exitstatus):
-    """Called after whole test run finished, right before returning the exit status."""
+def pytest_sessionfinish(_session: pytest.Session, _exitstatus: int) -> None:
+    """Analyze gathered results and write a Markdown comparison report when the session finishes."""
     if not EVALUATION_RESULTS:
         logger.warning("No evaluation results gathered.")
         return
@@ -56,13 +58,12 @@ the evaluator where applicable.
 
 *Report generated automatically on {pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S")}.*
 """
-    with open(report_path, "w", encoding="utf-8") as f:
-        f.write(report_content)
-
+    report_path.write_text(report_content, encoding="utf-8")
     logger.info(f"Evaluation complete. Summary report written to: {report_path}")
 
 
-def pytest_addoption(parser):
+def pytest_addoption(parser: pytest.Parser) -> None:
+    """Add command line options to control the test run."""
     parser.addoption(
         "--variant",
         action="store",
@@ -72,7 +73,8 @@ def pytest_addoption(parser):
     )
 
 
-def pytest_generate_tests(metafunc):
+def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
+    """Generate dynamic parameterizations of test inputs during collection."""
     if "variant" in metafunc.fixturenames:
         variant = metafunc.config.getoption("variant")
         metafunc.parametrize("variant", [variant])

@@ -196,7 +196,7 @@ class JobBoard:
 
     # methods with caching
 
-    # TODO: fix on error - add retry 3 times if failed - just return with error?
+    # Future: fix on error - add retry 3 times if failed - just return with error?
     def get_job(self, url: str | None = None) -> Job:
         """Get job from the current page."""
         url = url or self._browser.get_current_url()

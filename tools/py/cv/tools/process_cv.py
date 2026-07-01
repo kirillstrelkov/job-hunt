@@ -1,9 +1,10 @@
-#!/usr/bin/env python3
+"""Check and fix CV markdown formatting and chronological consistency."""
+
 import argparse
 import re
 import sys
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 
 from loguru import logger
@@ -37,17 +38,21 @@ RE_LAST_PIPE_REPLACE = re.compile(r"\|([^|]*)$")
 RE_TRAILING_DOT = re.compile(r"\.(\s*)$")
 
 MONTHS_TO_SHORT_RE = {re.compile(rf"\b{full_m}\b"): short_m for full_m, short_m in MONTHS_TO_SHORT.items()}
-_CUR_YEAR = datetime.now().year
+_CUR_YEAR = datetime.now(UTC).year
 
 
 @dataclass
 class Line:
+    """Represents a single line from the CV with its content and line number."""
+
     raw_line: str
     number: int
 
 
 @dataclass
 class Section:
+    """Represents a CV section under a specific header."""
+
     name: str | None
     filepath: str
     lines: list[Line]
@@ -55,13 +60,16 @@ class Section:
 
 @dataclass
 class Error:
+    """Represents a validation error found in the CV."""
+
     msg: str
     filepath: str
     line_num: int
     line: str
 
 
-def parse_args():
+def parse_args() -> argparse.Namespace:
+    """Parse CLI arguments for CV checking and fixing."""
     parser = argparse.ArgumentParser(description="Check and fix CV markdown file.")
     parser.add_argument("file", type=str, help="Path to the markdown file")
     parser.add_argument("--check", action="store_true", help="Check the file for errors")
@@ -71,6 +79,7 @@ def parse_args():
 
 
 def split_into_sections(filepath: str) -> list[Section]:
+    """Parse the CV file and split it into sections based on markdown headers."""
     with Path(filepath).open("r", encoding="utf-8") as f:
         lines_raw = f.read().splitlines()
 
@@ -95,7 +104,8 @@ def split_into_sections(filepath: str) -> list[Section]:
     return sections
 
 
-def get_sort_key(date_str):
+def get_sort_key(date_str: str) -> tuple[int, int]:
+    """Calculate a numerical sort key (year, month) from a date string for sorting."""
     if date_str.endswith("..."):
         return (_CUR_YEAR, 1)
 
@@ -129,13 +139,14 @@ def get_sort_key(date_str):
     return (year, month)
 
 
-def do_check(sections: list[Section]) -> list[Error]:
+def do_check(sections: list[Section]) -> list[Error]:  # noqa: C901, PLR0912, PLR0915
+    """Run validation checks on the CV sections to identify structural or chronological errors."""
     errors = []
 
-    def check_chronological(line_and_dates: list, section: Section, double_error: bool = False) -> None:
+    def check_chronological(line_and_dates: list, section: Section, *, double_error: bool = False) -> None:
         for i in range(len(line_and_dates) - 1):
-            line1_obj, (key1, date_str1, line_str1) = line_and_dates[i]
-            line2_obj, (key2, date_str2, line_str2) = line_and_dates[i + 1]
+            line1_obj, (key1, _, line_str1) = line_and_dates[i]
+            line2_obj, (key2, _, line_str2) = line_and_dates[i + 1]
             if key1 < key2:
                 errors.append(
                     Error(
@@ -199,7 +210,7 @@ def do_check(sections: list[Section]) -> list[Error]:
                             )
                         )
                         parts = RE_PIPE_SPLIT.split(line_str)
-                        if len(parts) >= 2:
+                        if len(parts) >= 2:  # noqa: PLR2004
                             date_str = parts[-1].strip()
                         else:
                             match = RE_COURSE_DATE.search(line_str)
@@ -211,7 +222,7 @@ def do_check(sections: list[Section]) -> list[Error]:
 
             check_chronological(line_and_dates, section)
 
-        elif "personal projects" in heading_title:
+        elif "projects" in heading_title:
             line_and_dates = []
             for line_obj in section.lines:
                 line_str = line_obj.raw_line.strip()
@@ -223,18 +234,18 @@ def do_check(sections: list[Section]) -> list[Error]:
 
     filepath = sections[0].filepath if sections else ""
     section_names = [s.name.lower() for s in sections if s.name]
-    required_headers = ["work experience", "personal projects", "courses and certificates"]
+    required_headers = ["work experience", "projects", "courses and certificates"]
 
-    for req in required_headers:
-        if not any(req in name for name in section_names):
-            errors.append(
-                Error(
-                    msg=f"Missing '{req}' section in headers",
-                    filepath=filepath,
-                    line_num=1,
-                    line="",
-                )
-            )
+    errors.extend(
+        Error(
+            msg=f"Missing '{req}' section in headers",
+            filepath=filepath,
+            line_num=1,
+            line="",
+        )
+        for req in required_headers
+        if not any(req in name for name in section_names)
+    )
 
     return errors
 
@@ -255,7 +266,8 @@ def _fix_skills_section(section: Section) -> None:
     section.lines = new_lines
 
 
-def do_fix(sections: list[Section], keep_thesis: bool = True) -> list[Section]:
+def do_fix(sections: list[Section], *, keep_thesis: bool = True) -> list[Section]:  # noqa: C901
+    """Apply sorting, formatting and structure fixes to CV sections."""
     if not keep_thesis:
         logger.warning("Thesis will be removed")
 
@@ -303,6 +315,7 @@ def do_fix(sections: list[Section], keep_thesis: bool = True) -> list[Section]:
 
 
 def check_file(filepath: str) -> None:
+    """Run verification checks on a CV file path."""
     logger.debug("Checking file {}", filepath)
 
     sections = split_into_sections(filepath)
@@ -315,7 +328,8 @@ def check_file(filepath: str) -> None:
     logger.info("No errors found")
 
 
-def fix_file(filepath: str, keep_thesis: bool = True) -> None:
+def fix_file(filepath: str, *, keep_thesis: bool = True) -> None:
+    """Apply auto-formatting and structure fixes to a CV file path."""
     logger.debug("Fixing file {}", filepath)
 
     sections = split_into_sections(filepath)
@@ -327,6 +341,7 @@ def fix_file(filepath: str, keep_thesis: bool = True) -> None:
 
 
 def main() -> None:
+    """Main CLI entry point for checking and fixing CV files."""
     args = parse_args()
 
     logger.info("Starting CV processing for file: {}", args.file)
@@ -337,10 +352,10 @@ def main() -> None:
 
     if args.fix:
         logger.info("Applying fixes...")
-        fix_file(args.file, args.keep_thesis)
+        fix_file(args.file, keep_thesis=args.keep_thesis)
 
 
 if __name__ == "__main__":
     main()
 
-# TODO: add check for errors for wrong link: **Todo App GitOps Kubernetes Deployment Pipeline(https://github.com/kirillstrelkov/todo-app-gitops)** | 2026
+# Future: check for wrong link syntax in projects section (e.g. mismatched brackets).

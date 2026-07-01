@@ -1,3 +1,5 @@
+"""Constants used across the project."""
+
 SYS_PROMPT_WITH_TAILORED_CV = """
 You are a professional technical reverse recruiter.
 Analyze the candidate's CV against the Job Description (JD).

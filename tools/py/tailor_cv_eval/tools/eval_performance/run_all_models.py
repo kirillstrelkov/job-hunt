@@ -1,4 +1,5 @@
-#!/usr/bin/env python
+"""Run evaluation configurations across multiple Ollama models."""
+
 import sys
 from pathlib import Path
 
@@ -55,7 +56,8 @@ def save_and_log_statistics(stats: list[dict], output: Path) -> None:
     logger.info(f"\nModel Evaluation Statistics ({output.stem}):\n\n{markdown_table}\n")
 
 
-def run_evaluation_for_config(config_path: Path, run_name: str | None = None):
+def run_evaluation_for_config(config_path: Path, run_name: str | None = None) -> None:
+    """Run Ollama models evaluation for a specific configuration path."""
     # Output file base name
     suffix = f"_{run_name}" if run_name else ""
     csv_name = f"model_comparison{suffix}.csv"
@@ -69,7 +71,7 @@ def run_evaluation_for_config(config_path: Path, run_name: str | None = None):
     config_manager = ConfigManager(config_path)
     try:
         config = config_manager.get_config()
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Error parsing config YAML: {e}")
         return
 
@@ -87,7 +89,7 @@ def run_evaluation_for_config(config_path: Path, run_name: str | None = None):
     logger.debug(f"Loaded prompt file from: {prompt_path}")
     try:
         prompt_content = prompt_path.read_text(encoding="utf-8")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Error reading prompt file: {e}")
         return
 
@@ -107,7 +109,7 @@ def run_evaluation_for_config(config_path: Path, run_name: str | None = None):
                 f"Tokens/sec: {model_stat['tokens_per_sec']:.2f}, "
                 f"Response Length: {model_stat['char_count']} chars"
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Error executing model '{model_name}': {e}")
 
     if not stats:
@@ -119,6 +121,7 @@ def run_evaluation_for_config(config_path: Path, run_name: str | None = None):
 
 
 def generate_run_configs() -> list[tuple[Path, str]]:
+    """Generate YAML configuration files programmatically for different evaluation parameters."""
     models = get_top_model_names()
     active_count = len(models)
     logger.info(f"Number of models to be used: {active_count} ({', '.join(models)})")
@@ -133,10 +136,7 @@ def generate_run_configs() -> list[tuple[Path, str]]:
             for num_predict in num_predict_values:
                 temp_str = f"{temp:.1f}".replace(".", "")
                 ctx_str = f"{num_ctx // 1024}k"
-                if num_predict < 0:
-                    pred_str = f"neg{abs(num_predict)}"
-                else:
-                    pred_str = f"{num_predict // 1024}k"
+                pred_str = f"neg{abs(num_predict)}" if num_predict < 0 else f"{num_predict // 1024}k"
 
                 run_name = f"m{active_count}_ctx{ctx_str}_temp{temp_str}_pred{pred_str}"
                 runs_data.append(
@@ -169,10 +169,12 @@ def generate_run_configs() -> list[tuple[Path, str]]:
     return configs_to_run
 
 
-def main():
-    # Generate configs under tmp/ and run all
+def main() -> None:
+    """Generate configuration variations and run evaluations on all models."""
     configs_to_run = generate_run_configs()
-    assert len(configs_to_run) == len(set(configs_to_run)), f"Generated duplicate configs: {configs_to_run}"
+    if len(configs_to_run) != len(set(configs_to_run)):
+        msg = f"Generated duplicate configs: {configs_to_run}"
+        raise ValueError(msg)
     if not configs_to_run:
         logger.error("No run configurations could be generated.")
         sys.exit(1)

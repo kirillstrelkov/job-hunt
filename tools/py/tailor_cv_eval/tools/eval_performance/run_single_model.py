@@ -1,4 +1,5 @@
-#!/usr/bin/env python
+"""Execute a prompt against a single Ollama model for performance testing."""
+
 import argparse
 import sys
 from pathlib import Path
@@ -10,7 +11,8 @@ from helpers.ollama_helper import get_eval_model, get_model_options, run_model
 from helpers.tmp_helper import get_llm_prompt_for_job
 
 
-def main():
+def main() -> None:
+    """Run a single prompt on a selected Ollama model and log performance metrics."""
     default_llm_prompt_path = get_llm_prompt_for_job(DEFAULT_CONFIG.get_jobs()[0])
 
     parser = argparse.ArgumentParser(description="Run a single prompt against a specific Ollama model.")
@@ -41,7 +43,7 @@ def main():
 
     try:
         prompt_content = prompt_path.read_text(encoding="utf-8")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Error reading prompt file: {e}")
         sys.exit(1)
 
@@ -63,7 +65,7 @@ def main():
                 logger.info(resp)
             else:
                 logger.warning("Response is empty.")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Error executing prompt: {e}")
         sys.exit(1)
 

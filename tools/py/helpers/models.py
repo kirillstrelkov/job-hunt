@@ -1,6 +1,5 @@
 """Pydantic models representing tailored CV structure for LLM requests."""
 
-
 from pydantic import BaseModel, Field
 
 

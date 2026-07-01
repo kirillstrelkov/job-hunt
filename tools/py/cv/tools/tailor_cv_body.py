@@ -1,4 +1,5 @@
-#!/usr/bin/env python3
+"""CLI tool to tailor CV body based on LLM prompts."""
+
 import argparse
 import sys
 import time
@@ -55,7 +56,7 @@ def run_ollama(prompt_content: str, model: str) -> dict:
     usage = result.usage
     prompt_tokens = usage.input_tokens or 0
     gen_tokens = usage.output_tokens or 0
-    tokens_per_sec = gen_tokens / elapsed if elapsed > 0.001 else 0.0
+    tokens_per_sec = gen_tokens / elapsed if elapsed > 0.001 else 0.0  # noqa: PLR2004
 
     return {
         "model": model,
@@ -74,7 +75,7 @@ def run_ollama(prompt_content: str, model: str) -> dict:
 
 def process_output_of_ollama(result: dict, output_file: Path) -> None:
     """Process result from Ollama, trim the response to the CV content, and write it to the output file."""
-    if (gen_tokens := result.get("gen_tokens")) < 100:
+    if (gen_tokens := result.get("gen_tokens")) < 100:  # noqa: PLR2004
         logger.warning(
             f"WARNING!!!! Generated {gen_tokens} tokens is too small. This may be because context is too small."
         )
@@ -106,6 +107,7 @@ def process_output_of_ollama(result: dict, output_file: Path) -> None:
 
 
 def main() -> None:
+    """Run the main CLI entry point for tailoring the CV body."""
     args = parse_args()
 
     prompt_file = Path(args.prompt_file).resolve()
@@ -127,7 +129,7 @@ def main() -> None:
     try:
         result = run_ollama(prompt_content, model)
         process_output_of_ollama(result, output_file)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Failed to generate tailored CV: {e}")
         sys.exit(1)
 

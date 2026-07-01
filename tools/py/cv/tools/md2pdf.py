@@ -1,4 +1,5 @@
-#!/usr/bin/env python3
+"""Convert Markdown to PDF using Pandoc."""
+
 import argparse
 import subprocess
 import sys
@@ -8,9 +9,10 @@ from loguru import logger
 
 
 def convert_md_to_pdf(input_path: Path, output_path: Path) -> None:
+    """Convert input markdown path to output PDF path using Pandoc."""
     logger.info(f"Converting {input_path} to {output_path}...")
     try:
-        subprocess.run(
+        subprocess.run(  # noqa: S603
             [
                 "pandoc",
                 "-V",
@@ -36,6 +38,7 @@ def convert_md_to_pdf(input_path: Path, output_path: Path) -> None:
 
 
 def main() -> None:
+    """Parse CLI arguments and invoke the conversion function."""
     parser = argparse.ArgumentParser(description="Convert Markdown to PDF using Pandoc.")
     parser.add_argument(
         "input",

@@ -28,7 +28,9 @@ def test_tailored_cv_parsing() -> None:
                 "location": "Berlin, Germany",
                 "dates": "Oct 2023 - Aug 2025",
                 "bullet_points": [
-                    "Engineered and maintained fault-tolerant build infrastructure and CI/CD pipelines using Bazel, Python, and GitHub Actions to streamline enterprise-scale software operations."
+                    "Engineered and maintained fault-tolerant build infrastructure and CI/CD "
+                    "pipelines using Bazel, Python, and GitHub Actions to streamline enterprise-scale "
+                    "software operations."
                 ],
             }
         ],
@@ -38,7 +40,9 @@ def test_tailored_cv_parsing() -> None:
                 "url": "https://github.com/kirillstrelkov/KubernetesSubmissions",
                 "year": "2026",
                 "bullet_points": [
-                    "Developed a distributed, event-driven microservices application in Golang, utilizing NATS as a message broker to asynchronously trigger notifications, with state managed in PostgreSQL."
+                    "Developed a distributed, event-driven microservices application in Golang, "
+                    "utilizing NATS as a message broker to asynchronously trigger notifications, "
+                    "with state managed in PostgreSQL."
                 ],
                 "skills": ["Golang", "Kubernetes", "GKE", "NATS", "Prometheus", "PostgreSQL", "Helm", "Docker"],
             }
@@ -79,7 +83,8 @@ def test_tailored_cv_parsing() -> None:
                     "url": "https://github.com/kirillstrelkov/csv2qif",
                     "year": "2020",
                     "bullet_points": [
-                        "Engineered a high-performance, multithreaded CLI tool using Rust and Rayon to parse and process large datasets."
+                        "Engineered a high-performance, multithreaded CLI tool using Rust and "
+                        "Rayon to parse and process large datasets."
                     ],
                     "skills": ["Rust", "Multithreading", "Data Transformation"],
                 }

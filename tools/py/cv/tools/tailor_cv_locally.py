@@ -1,4 +1,5 @@
-#!/usr/bin/env python3
+"""Tool to run CV tailoring pipeline locally using Ollama."""
+
 import argparse
 import sys
 from pathlib import Path
@@ -15,8 +16,14 @@ from .tailor_cv_body import get_eval_model, process_output_of_ollama, run_ollama
 
 
 class ThesisDecision(BaseModel):
+    """Pydantic model representing LLM decision on keeping the thesis in CV."""
+
     keep_thesis: bool = Field(
-        description="Whether to keep the thesis name in the CV. This should be True if the job description is for a software test engineer / QA automation / SDET role, and False if it is for a developer / software engineer role."
+        description=(
+            "Whether to keep the thesis name in the CV. This should be True if the job description "
+            "is for a software test engineer / QA automation / SDET role, and False if it is for a "
+            "developer / software engineer role."
+        )
     )
     reason: str = Field(description="Short reason/justification for the decision.")
 
@@ -42,7 +49,7 @@ def decide_keep_thesis(jd_text: str) -> bool:
     return decision.keep_thesis
 
 
-def tailor(folder: str | Path, model: str | None = None, force: bool = False) -> None:
+def tailor(folder: str | Path, model: str | None = None, *, force: bool = False) -> None:
     """Tailor CV locally for a given folder using the specified Ollama model."""
     folder = Path(folder).resolve()
     if not folder.exists():
@@ -90,7 +97,7 @@ def tailor(folder: str | Path, model: str | None = None, force: bool = False) ->
     if jd_file.exists():
         try:
             keep_thesis = decide_keep_thesis(jd_file.read_text(encoding="utf-8"))
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"Failed to dynamically decide keep_thesis via LLM: {e}. Defaulting to True.")
 
     fix_file(str(assembled_cv), keep_thesis=keep_thesis)
@@ -98,7 +105,7 @@ def tailor(folder: str | Path, model: str | None = None, force: bool = False) ->
     logger.info(f"Step 5: Checking CV: {assembled_cv}")
     try:
         check_file(str(assembled_cv))
-    except (SystemExit, Exception):
+    except (SystemExit, Exception):  # noqa: BLE001
         logger.warning("Step 5 check failed, but proceeding to Step 6 anyway.")
 
     logger.info(f"Step 6: Converting CV to PDF: {pdf_output}")
@@ -108,6 +115,7 @@ def tailor(folder: str | Path, model: str | None = None, force: bool = False) ->
 
 
 def main() -> None:
+    """Run the main CLI entry point for local CV tailoring."""
     parser = argparse.ArgumentParser(description="Tailor CV locally using Ollama models.")
     parser.add_argument(
         "job_description",

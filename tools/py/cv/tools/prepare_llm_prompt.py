@@ -1,4 +1,5 @@
-#!/usr/bin/env python3
+"""Prepare prompts for CV tailoring using templates and job descriptions."""
+
 import argparse
 import os
 from pathlib import Path
@@ -12,13 +13,15 @@ _PROMPT_DESC = _CUR_DIR / ".." / "prompts/tailor_for_description.md"
 
 
 def _require(path: Path) -> Path:
+    """Ensure that a required file exists and resolve its absolute path."""
     resolved = path.resolve()
     if not resolved.exists():
-        raise FileNotFoundError(f"{resolved} not found")
+        raise FileNotFoundError(resolved)
     return resolved
 
 
 def tailor_for_title(output: str, job_title: str) -> None:
+    """Generate a prompt tailored for a specific job title using the template."""
     mastercv = _require(_MASTERCV)
     template = _require(_PROMPT_TITLE)
 
@@ -34,6 +37,7 @@ def tailor_for_title(output: str, job_title: str) -> None:
 
 
 def tailor_for_description(output: str, jd_path: str) -> None:
+    """Generate a prompt tailored for a detailed job description file."""
     mastercv = _require(_MASTERCV)
     template = _require(_PROMPT_DESC)
     jd = _require(Path(jd_path))

@@ -1,4 +1,5 @@
-#!/usr/bin/env python3
+"""Read job postings from a CSV and compose CVs locally for each posting."""
+
 import argparse
 import re
 import sys
@@ -22,7 +23,8 @@ def generate_id(title: str, company: str) -> str:
     return "_".join(title_words + company_words)
 
 
-def main() -> None:
+def main() -> None:  # noqa: PLR0915
+    """Read CSV, extract job postings, and run compose pipeline for each job."""
     parser = argparse.ArgumentParser(
         description="Read job postings from a CSV and compose CVs locally for each posting."
     )
@@ -70,7 +72,7 @@ def main() -> None:
 
     try:
         df = pd.read_csv(csv_path, sep=None, engine="python")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Failed to read CSV file {csv_path}: {e}")
         sys.exit(1)
 
@@ -111,7 +113,7 @@ def main() -> None:
 
         try:
             compose_cv(folder=job_folder, model=args.model, force=args.force)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to compose CV for job ID {job_id}: {e}")
 
 

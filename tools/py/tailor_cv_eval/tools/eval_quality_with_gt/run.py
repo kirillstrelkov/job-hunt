@@ -1,3 +1,5 @@
+"""Run Promptfoo evaluation against ground truth CV."""
+
 import argparse
 import shutil
 import sys
@@ -91,7 +93,7 @@ tests:
       - type: similar
         value: '{{expected}}'
         threshold: 0.7
-        provider: 
+        provider:
           id: ollama:embeddings:qwen3-embedding:0.6b
           config:
             num_ctx: 32768
@@ -145,7 +147,8 @@ def generate_config(prompt_files: list[Path], gt_file: Path, output_file: Path) 
 
         for prompt_file in prompt_files:
             if not check_if_file_fits_into_ctx_num(prompt_file, ctx_num):
-                raise ValueError(f"File {prompt_file} does not fit into context window of {ctx_num} tokens.")
+                msg = f"File {prompt_file} does not fit into context window of {ctx_num} tokens."
+                raise ValueError(msg)
 
     config["providers"] = providers
 
@@ -176,7 +179,8 @@ def get_prompt_files(prompts_dir: Path, baseline_prompt_file: Path) -> list[Path
     return prompt_files
 
 
-def main():
+def main() -> None:
+    """Run Promptfoo prompt evaluation pipeline against ground truth reference."""
     parser = argparse.ArgumentParser(description="Run Promptfoo prompt evaluation")
     parser.add_argument("--force", action="store_true", help="Remove evaluation temp directory before starting")
     parser.add_argument("--gt-only", action="store_true", help="Use only the baseline ground truth prompt file")
@@ -191,10 +195,9 @@ def main():
 
     logger.info("Starting Promptfoo Prompt Evaluation")
 
-    if args.force:
-        if TMP_EVAL_DIR.exists():
-            logger.info(f"Removing temporary evaluation directory: {TMP_EVAL_DIR}")
-            shutil.rmtree(TMP_EVAL_DIR)
+    if args.force and TMP_EVAL_DIR.exists():
+        logger.info(f"Removing temporary evaluation directory: {TMP_EVAL_DIR}")
+        shutil.rmtree(TMP_EVAL_DIR)
 
     TMP_EVAL_DIR.mkdir(parents=True, exist_ok=True)
 

@@ -16,9 +16,10 @@ def extract_json_from_text(text: str) -> str | None:
     """Bulletproof JSON extraction that ignores stray '{' in reasoning text."""
     try:
         json.loads(text)
-        return text
     except json.JSONDecodeError:
         pass
+    else:
+        return text
 
     # 1. First, check if the LLM politely used markdown fences
 
@@ -42,15 +43,16 @@ def extract_json_from_text(text: str) -> str | None:
             try:
                 # If this parses without error, we found the REAL JSON block
                 json.loads(substring)
-                return substring
             except json.JSONDecodeError:
                 # If it fails, skip this '{' and find the next one
                 current_start = text.find("{", current_start + 1)
+            else:
+                return substring
 
     return None
 
 
-def get_assert(output: str, context: Any) -> dict[str, Any]:  # noqa: ANN401
+def get_assert(output: str, context: Any) -> dict[str, Any]:  # noqa: ANN401, PLR0911
     """Evaluate LLM output against expected screening gates and match percentage."""
     try:
         raw = output.strip()

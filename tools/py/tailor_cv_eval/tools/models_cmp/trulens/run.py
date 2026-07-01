@@ -1,3 +1,5 @@
+"""TruLens evaluation runner to compare models for CV tailoring."""
+
 import re
 from pathlib import Path
 
@@ -6,7 +8,12 @@ from loguru import logger
 from trulens.apps.virtual import TruVirtual, VirtualApp, VirtualRecord
 from trulens.core import Feedback, TruSession
 
-from helpers.ollama_helper import get_eval_model, get_model_names
+from helpers.ollama_helper import (
+    generate_response,
+    get_eval_model,
+    get_model_names,
+    get_model_output,
+)
 from helpers.tmp_helper import get_tmp_output_dir
 
 # Set TruLens database path to be inside the tmp directory
@@ -14,7 +21,8 @@ Path(TRULENS_DB_URL.replace("sqlite:///", "")).parent.mkdir(parents=True, exist_
 TruSession(database_url=TRULENS_DB_URL)
 
 
-def run_eval():
+def run_eval() -> None:
+    """Run model comparison evaluation using TruLens."""
     eval_model = get_eval_model()
     models = get_model_names()
     subfolder = "job1"
@@ -33,7 +41,7 @@ def run_eval():
     expected = gt_file.read_text(encoding="utf-8")
     prompt_content = prompt_file.read_text(encoding="utf-8")
 
-    def correctness_score(input_text: str, output_text: str) -> float:
+    def correctness_score(input_text: str, output_text: str) -> float:  # noqa: ARG001
         prompt = (
             f"Ground Truth:\n{expected}\n\n"
             f"Generated Output:\n{output_text}\n\n"
@@ -41,14 +49,10 @@ def run_eval():
             f"against the Ground Truth from 0.0 (worst) to 1.0 (best). Output ONLY the numeric float value."
         )
         try:
-            from helpers.ollama_helper import generate_response
-
             text = generate_response(eval_model, prompt).strip()
             m = re.search(r"[-+]?\d*\.\d+|\d+", text)
-            if m:
-                return float(m.group())
-            return 0.0
-        except Exception:
+            return float(m.group()) if m else 0.0
+        except Exception:  # noqa: BLE001
             return 0.0
 
     # Define TruLens Feedback
@@ -63,13 +67,11 @@ def run_eval():
     for model in models:
         logger.info(f"Generating CV with {model}...")
         try:
-            from helpers.ollama_helper import get_model_output
-
             model_output_file = (
                 get_tmp_output_dir() / subfolder / "model_output" / f"{model.replace(':', '_')}_{variant}_cv.md"
             )
             actual = get_model_output(model, prompt_content, model_output_file)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Ollama generation failed for {model}: {e}")
             continue
 
@@ -82,7 +84,7 @@ def run_eval():
         try:
             record = VirtualRecord(main_input=prompt_content, main_output=actual)
             tru_recorder.add_record(record)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Could not log record to TruLens database: {e}")
 
         # Run custom feedback to show in console

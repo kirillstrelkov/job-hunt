@@ -1,4 +1,5 @@
-#!/usr/bin/env python3
+"""Create tailored CV documents and PDFs from section headers/titles."""
+
 import argparse
 import subprocess
 import sys
@@ -17,6 +18,7 @@ _MARKER_END = "### Tailoring Justification Report"
 
 
 def extract_body(md_path: Path) -> str:
+    """Extract work experience and projects sections from a CV markdown file."""
     lines = md_path.read_text().splitlines(keepends=True)
 
     start_idx = None
@@ -36,6 +38,7 @@ def extract_body(md_path: Path) -> str:
 
 
 def process_one(folder: Path, cv_md: Path) -> None:
+    """Create a tailored body, prepare CV, apply fixes, and compile to PDF for a single file."""
     name = cv_md.stem.removesuffix("_cv")
     job_folder = folder / name
     job_folder.mkdir(exist_ok=True)
@@ -52,7 +55,7 @@ def process_one(folder: Path, cv_md: Path) -> None:
     fix_file(str(gen_cv), keep_thesis=keep_thesis)
 
     gen_pdf = job_folder / "gen/cvStrelkov.pdf"
-    subprocess.run(
+    subprocess.run(  # noqa: S603
         [
             "pandoc",
             "-V",

@@ -1,4 +1,5 @@
-#!/usr/bin/env python3
+"""Local CV composer that coordinates prompt generation, LLM tailoring, and PDF conversion."""
+
 import argparse
 import sys
 from pathlib import Path
@@ -15,8 +16,14 @@ from .tailor_body import get_eval_model, process_output_of_ollama, run_ollama
 
 
 class ThesisDecision(BaseModel):
+    """Pydantic model representing LLM decision about keeping or removing the thesis from the CV."""
+
     keep_thesis: bool = Field(
-        description="Whether to keep the thesis name in the CV. This should be True if the job description is for a software test engineer / QA automation / SDET role, and False if it is for a developer / software engineer role."
+        description=(
+            "Whether to keep the thesis name in the CV. This should be True if the job description "
+            "is for a software test engineer / QA automation / SDET role, and False if it is for "
+            "a developer / software engineer role."
+        )
     )
     reason: str = Field(description="Short reason/justification for the decision.")
 
@@ -30,10 +37,9 @@ def decide_keep_thesis(jd_text: str) -> bool:
         model_name=model_name,
         output_type=ThesisDecision,
         instructions=(
-            "You are an expert recruiter and CV compiler. Analyze the job description and decide "
-            "if it is for a software test engineer / QA / SDET (set keep_thesis to True) and not a software developer / "
-            "engineer (set keep_thesis to False). The decision should be True only if the role is primarily focused on "
-            "testing/QA/SDET, otherwise False."
+            "Recruiter and CV compiler. Analyze the job description and decide "
+            "if it is for a software test engineer / QA / SDET (set keep_thesis to True) "
+            "and not a software developer / engineer (set keep_thesis to False)."
         ),
     )
     result = agent.run_sync(f"Job Description:\n{jd_text}")
@@ -42,7 +48,7 @@ def decide_keep_thesis(jd_text: str) -> bool:
     return decision.keep_thesis
 
 
-def compose_cv(folder: str | Path, model: str | None = None, force: bool = False) -> None:
+def compose_cv(folder: str | Path, model: str | None = None, force: bool = False) -> None:  # noqa: FBT001, FBT002
     """Compose CV locally for a given folder using the specified Ollama model."""
     folder = Path(folder).resolve()
     if not folder.exists():
@@ -90,7 +96,7 @@ def compose_cv(folder: str | Path, model: str | None = None, force: bool = False
     if jd_file.exists():
         try:
             keep_thesis = decide_keep_thesis(jd_file.read_text(encoding="utf-8"))
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"Failed to dynamically decide keep_thesis via LLM: {e}. Defaulting to True.")
 
     fix_file(str(assembled_cv), keep_thesis=keep_thesis)
@@ -98,7 +104,7 @@ def compose_cv(folder: str | Path, model: str | None = None, force: bool = False
     logger.info(f"Step 5: Checking CV: {assembled_cv}")
     try:
         check_file(str(assembled_cv))
-    except (SystemExit, Exception):
+    except (SystemExit, Exception):  # noqa: BLE001
         logger.warning("Step 5 check failed, but proceeding to Step 6 anyway.")
 
     logger.info(f"Step 6: Converting CV to PDF: {pdf_output}")
@@ -108,6 +114,7 @@ def compose_cv(folder: str | Path, model: str | None = None, force: bool = False
 
 
 def main() -> None:
+    """Entry point for CLI execution to compose CV locally."""
     parser = argparse.ArgumentParser(description="Compose CV locally using Ollama models.")
     parser.add_argument(
         "job_description",

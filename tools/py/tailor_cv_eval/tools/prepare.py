@@ -1,4 +1,7 @@
+"""Evaluation preparation script for LLM prompts."""
+
 import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -7,7 +10,8 @@ from helpers.config import DEFAULT_CONFIG
 from loguru import logger
 
 
-def main():
+def main() -> None:
+    """Prepare LLM prompt for evaluation."""
     logger.info("Preparing LLM Prompt")
     if not os.getenv("MASTERCV_PATH"):
         logger.error("MASTERCV_PATH not set")
@@ -30,10 +34,11 @@ def main():
 
     # Run prepare script using subprocess
     logger.info(f"Running prompt preparation script: {script_path.name}...")
+    uv_cmd = shutil.which("uv") or "uv"
     try:
-        subprocess.run(
+        subprocess.run(  # noqa: S603
             [
-                "uv",
+                uv_cmd,
                 "run",
                 str(script_path),
                 "--output",

@@ -1,4 +1,5 @@
-#!/usr/bin/env python3
+"""Assembles CV parts (header, body, footer) and prepares LLM tailoring prompts."""
+
 import argparse
 from pathlib import Path
 
@@ -7,22 +8,25 @@ from loguru import logger
 from config.config import DEFAULT_CV_CONFIG as DEFAULT_CONFIG
 
 
-def prepare_cv(
+def prepare_cv(  # noqa: C901
     *,
     folder: str | None = None,
     body: str | None = None,
     llm_prompt: bool = False,
     job_description: str | None = None,
 ) -> None:
+    """Prepare the CV files, either composing final markdown or creating an LLM tailoring prompt."""
     folder_path = Path(folder) if folder else None
     body_path = Path(body) if body else None
 
     if folder_path is None and body_path is None:
-        raise ValueError("Must specify at least a folder or a body path")
+        msg = "Must specify at least a folder or a body path"
+        raise ValueError(msg)
 
     if body_path is not None:
         if folder_path and not folder_path.is_dir():
-            raise ValueError(f"folder must be a directory: {folder_path}")
+            msg = f"folder must be a directory: {folder_path}"
+            raise ValueError(msg)
         body_file = body_path
         target_folder = folder_path or body_path.parent
         generate_cv_mode = True
@@ -33,7 +37,8 @@ def prepare_cv(
         generate_cv_mode = not llm_prompt
 
     if not target_folder.exists():
-        raise FileNotFoundError(f"{target_folder} not found")
+        msg = f"{target_folder} not found"
+        raise FileNotFoundError(msg)
 
     # inputs
     header = DEFAULT_CONFIG.header
@@ -41,10 +46,7 @@ def prepare_cv(
     mastercv = DEFAULT_CONFIG.body
     tailor_for_desc = DEFAULT_CONFIG.prompt
 
-    if job_description:
-        jd = Path(job_description)
-    else:
-        jd = target_folder / "jd.txt"
+    jd = Path(job_description) if job_description else target_folder / "jd.txt"
 
     paths_to_check = [
         header,
@@ -61,7 +63,8 @@ def prepare_cv(
 
     for p in paths_to_check:
         if not p.exists():
-            raise FileNotFoundError(f"{p} not found")
+            msg = f"{p} not found"
+            raise FileNotFoundError(msg)
 
     # outputs
     out_folder = target_folder / "gen"

@@ -17,9 +17,10 @@ from helpers.promptfoo_helper import (
     run_promptfoo_eval,
     write_yaml_config,
 )
-from helpers.tmp_helper import get_tmp_folder
+from helpers.tmp_helper import get_root_dir, get_tmp_folder
 
 MODELS = get_gemini_model_names()
+PRJ_ROOT_DIR = get_root_dir()
 TMP_DIR = get_tmp_folder(__file__)
 
 

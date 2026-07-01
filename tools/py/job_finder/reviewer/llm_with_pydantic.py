@@ -1,5 +1,7 @@
 """LLM integration for CV and job description screening and analysis."""
 
+from typing import Any
+
 from pydantic import BaseModel, Field
 
 from helpers.llm.gemini import get_agent as get_gemini_agent
@@ -110,7 +112,8 @@ class JobMatchResult(BaseModel):
     }
 
 
-def get_agent(model_name: str, output_type: type[BaseModel], instructions: str):
+def get_agent(model_name: str, output_type: type[BaseModel], instructions: str) -> Any:
+    """Get a Pydantic AI agent configured for the specified model and output type."""
     if model_name in get_gemini_model_names():
         return get_gemini_agent(model_name, output_type, instructions)
     return get_ollama_agent(model_name, output_type, instructions)

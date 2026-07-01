@@ -1,3 +1,5 @@
+"""LLM Agent integration package."""
+
 from pydantic_ai import Agent
 
 from config.config import DEFAULT_CONFIG
