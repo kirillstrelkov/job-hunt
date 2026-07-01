@@ -35,6 +35,11 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Ollama model to use. Defaults to the configured eval model.",
     )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Force generation even if the output file already exists",
+    )
     return parser.parse_args()
 
 
@@ -52,8 +57,8 @@ def run_ollama(prompt_content: str, model: str) -> dict:
     response_text = result.output
 
     usage = result.usage
-    prompt_tokens = usage.request_tokens or 0
-    gen_tokens = usage.response_tokens or 0
+    prompt_tokens = usage.input_tokens or 0
+    gen_tokens = usage.output_tokens or 0
     tokens_per_sec = gen_tokens / elapsed if elapsed > 0.001 else 0.0
 
     return {
@@ -73,6 +78,11 @@ def run_ollama(prompt_content: str, model: str) -> dict:
 
 def process_output_of_ollama(result: dict, output_file: Path) -> None:
     """Process result from Ollama, trim the response to the CV content, and write it to the output file."""
+    if (gen_tokens := result.get("gen_tokens")) < 100:
+        logger.warning(
+            f"WARNING!!!! Generated {gen_tokens} tokens is too small. This may be because context is too small."
+        )
+
     response_text = result.get("response", "")
 
     lines = response_text.splitlines()
@@ -108,6 +118,10 @@ def main() -> None:
     if not prompt_file.exists():
         logger.error(f"Prompt file not found at: {prompt_file}")
         sys.exit(1)
+
+    if output_file.exists() and not args.force:
+        logger.warning(f"Output file already exists at: {output_file}. Skipping generation. Use --force to overwrite.")
+        sys.exit(0)
 
     logger.info(f"Reading prompt from: {prompt_file}")
     prompt_content = prompt_file.read_text(encoding="utf-8")

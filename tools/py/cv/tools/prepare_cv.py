@@ -84,14 +84,7 @@ def prepare_cv(
         cv_out = out_folder / f"{body_file.stem.replace('body', 'cv')}.md"
         logger.info(f"Generating {cv_out}")
 
-        with cv_out.open("w") as out:
-            out.write((header).read_text())
-            out.write("\n")
-
-            out.write((body_file).read_text())
-            out.write("\n")
-
-            out.write((footer).read_text())
+        cv_out.write_text("\n\n".join([f.read_text() for f in [header, body_file, footer]]))
 
 
 if __name__ == "__main__":

@@ -1,36 +1,68 @@
-header: /home/kirill/prj/gh/job-hunt/tools/py/cv/private/parts/header.md
-body: /home/kirill/prj/gh/job-hunt/tools/py/cv/private/parts/body.md
-footer: /home/kirill/prj/gh/job-hunt/tools/py/cv/private/parts/footer.md
+header: /home/kirill/prj/gl/job-hunt/cv/private/parts/header.md
+body: /home/kirill/prj/gl/job-hunt/cv/private/parts/body.md
+footer: /home/kirill/prj/gl/job-hunt/cv/private/parts/footer.md
 prompt: /home/kirill/prj/gh/job-hunt/tools/py/cv/prompts/tailor_for_description.md
 ollama:
-  eval_model: gemma4:e2b
+  eval_model: gemma-4-26b-a4b-it
   models:
-  - name: llama3.1:8b-text-q4_K_M
-  - name: gemma4:e4b-it-qat
-  - name: llama3.2:3b-instruct-q8_0
-  - name: qwen2.5:3b-instruct-q8_0
-  - name: qwen2.5:7b-instruct-q4_K_M
-  - name: mistral:7b-instruct-v0.3-q4_K_M
-  - name: qwen3.5:9b-q4_K_M
-    options:
-      num_ctx: 12288
-  - name: gemma4:12b-it-qat
-    options:
-      num_ctx: 12288
-  - name: qwen3.5:4b-q8_0
-  - name: llama3.1:8b-instruct-q6_K
-  - name: gemma2:9b-instruct-q5_K_M
-  - name: gemma4:e2b
-  - name: gemma4:e2b-it-qat
-  - name: deepseek-r1:7b
-  - name: qwen2.5:7b
-  - name: qwen2.5-coder:7b
-  - name: llama3.1:8b
-  - name: codegemma:7b-code
-  - name: deepseek-r1:1.5b
+    - name: llama3.1:8b-text-q4_K_M
+    - name: gemma4:e4b-it-qat
+    - name: llama3.2:3b-instruct-q8_0
+    - name: qwen2.5:3b-instruct-q8_0
+    - name: qwen2.5:7b-instruct-q4_K_M
+    - name: mistral:7b-instruct-v0.3-q4_K_M
+    - name: qwen3.5:9b-q4_K_M
+    - name: gemma4:12b-it-qat
+      options:
+        num_predict: 4000
+        repeat_penalty: 1.15
+    - name: qwen3.5:4b-q8_0
+    - name: llama3.1:8b-instruct-q6_K
+      options:
+        temperature: 0.3
+        top_p: 0.85
+        repeat_penalty: 1.05
+    - name: gemma2:9b-instruct-q5_K_M
+    - name: gemma4:e2b
+    - name: gemma4:e2b-it-qat
+    - name: deepseek-r1:7b
+      options:
+        num_predict: 8192
+    - name: qwen2.5-coder:7b
+    - name: llama3.1:8b
+    - name: codegemma:7b-code
+    - name: deepseek-r1:1.5b
+    - name: phi4-mini:3.8b-q8_0
+    - name: falcon3:7b
+    - name: gemini-3.1-flash-lite
+      options:
+        use_default: false
+        temperature: 0.1
+        maxRetries: 3
+    - name: gemini-3.5-flash
+      options:
+        use_default: false
+        temperature: 0.1
+        maxRetries: 3
+    - name: gemma-4-26b-a4b-it
+      options:
+        use_default: false
+        temperature: 0.1
+        maxRetries: 3
+    - name: gemma-4-31b-it
+      options:
+        use_default: false
+        temperature: 0.1
+        maxRetries: 3
   model_default_options:
     num_ctx: 16384
     num_predict: -1
     seed: 42
     keep_alive: 0
     temperature: 0.1
+    repeat_penalty: 1.1
+gemini_models:
+  - gemini-3.1-flash-lite
+  - gemini-3.5-flash
+  - gemma-4-26b-a4b-it
+  - gemma-4-31b-it

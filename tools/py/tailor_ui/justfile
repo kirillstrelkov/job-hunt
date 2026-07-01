@@ -1,3 +1,6 @@
+set dotenv-path := "../private/.env"
+set dotenv-required := true
+
 default:
     @just -l
 

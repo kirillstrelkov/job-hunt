@@ -91,23 +91,12 @@ def main_cli() -> None:
 
 main_cli()
 
-try:
-    import streamlit as st
-except ImportError:
-    logger.error("Streamlit is not installed. Please install it using `uv add streamlit`.")
-    sys.exit(1)
+import streamlit as st
 
-import process_cv  # noqa: E402
-
-from helpers.llm_helper import (  # noqa: E402
-    get_model_names as get_gemini_models,
-)
-from helpers.llm_helper import (  # noqa: E402
-    run_model as run_gemini_model,
-)
-from helpers.ollama_helper import (  # noqa: E402
-    run_model as run_ollama_model,
-)
+import cv.tools.process_cv as process_cv
+from cv.tools.md2pdf import convert_md_to_pdf
+from helpers.llm_helper import get_model_names as get_gemini_models, run_model as run_gemini_model
+from helpers.ollama_helper import run_model as run_ollama_model
 
 # Load API Key from session state if stored
 if st.session_state.get("gemini_api_key_val"):
@@ -115,28 +104,12 @@ if st.session_state.get("gemini_api_key_val"):
 
 
 def compile_pdf(md_path: str, pdf_path: str) -> None:
-    """Compile Markdown file to PDF using pandoc."""
-    pandoc_path = shutil.which("pandoc") or "pandoc"
+    """Compile Markdown file to PDF using cv/tools/md2pdf.py."""
     try:
-        subprocess.run(  # noqa: S603
-            [
-                pandoc_path,
-                "--pdf-engine=xelatex",
-                "-V",
-                "papersize=a4",
-                "-V",
-                "geometry:margin=1.5cm",
-                md_path,
-                "-o",
-                pdf_path,
-            ],
-            check=True,
-        )
-    except (subprocess.CalledProcessError, OSError) as e:
-        logger.warning(f"xelatex failed, falling back to default pdf engine: {e}")
-        subprocess.run(  # noqa: S603
-            [pandoc_path, "-V", "papersize=a4", "-V", "geometry:margin=1.5cm", md_path, "-o", pdf_path], check=True
-        )
+        convert_md_to_pdf(Path(md_path), Path(pdf_path))
+    except SystemExit as e:
+        if e.code != 0:
+            raise RuntimeError(f"PDF generation failed with exit code {e.code}") from e
 
 
 def get_temp_generation_dir(jd_text: str | None = None) -> tuple[Path, str]:
@@ -205,13 +178,53 @@ def load_unified_config(path: str) -> dict:
         return yaml.safe_load(f)
 
 
+def _clear_stale_config_states() -> None:
+    """Clean up stale session state variables related to previous configuration."""
+    st.session_state.pop("master_texts", None)
+    st.session_state.pop("edited_cv_local", None)
+    st.session_state.pop("edited_cv_manual", None)
+    st.session_state.pop("_persistent_edited_cv_local", None)
+    st.session_state.pop("_persistent_edited_cv_manual", None)
+    st.session_state.pop("tailored_body", None)
+    st.session_state.pop("shared_jd", None)
+    st.session_state.pop("jd_local", None)
+    st.session_state.pop("jd_manual", None)
+    st.session_state.pop("pdf_bytes", None)
+    st.session_state.pop("arbitrary_pdf_bytes", None)
+    st.session_state.pop("local_cv_errors", None)
+    st.session_state.pop("local_cv_checked", None)
+    st.session_state.pop("manual_cv_errors", None)
+    st.session_state.pop("manual_cv_checked", None)
+    st.session_state.pop("local_tailor_error", None)
+    st.session_state.pop("local_tailor_warning", None)
+    st.session_state.pop("local_tailor_note", None)
+    st.session_state.pop("local_pdf_error", None)
+    st.session_state.pop("local_pdf_warning", None)
+    st.session_state.pop("local_pdf_note", None)
+    st.session_state.pop("manual_tailor_error", None)
+    st.session_state.pop("manual_tailor_warning", None)
+    st.session_state.pop("manual_tailor_note", None)
+    st.session_state.pop("manual_pdf_error", None)
+    st.session_state.pop("manual_pdf_warning", None)
+    st.session_state.pop("manual_pdf_note", None)
+
+
+def load_config_action(path: str) -> None:
+    """Load configuration and clean up stale state variables."""
+    st.session_state["config"] = load_unified_config(path)
+    _clear_stale_config_states()
+
+
+def load_config_data_action(config_data: dict) -> None:
+    """Load configuration data directly and clean up stale state variables."""
+    st.session_state["config"] = config_data
+    _clear_stale_config_states()
+
+
 # Initial Config Loading
 if "config" not in st.session_state:
     config_path = st.session_state.get("config_path_input_val", "./config.yaml")
-    if Path(config_path).exists():
-        st.session_state["config"] = load_unified_config(config_path)
-    else:
-        st.session_state["config"] = {}
+    st.session_state["config"] = load_unified_config(config_path)
 
 if "local_llm_stdout" not in st.session_state:
     st.session_state["local_llm_stdout"] = ""
@@ -257,13 +270,29 @@ if "master_texts" not in st.session_state:
         "prompt": read_file(cfg.get("prompt")),
     }
 
+
+def _save_master_section(key: str, path_key: str) -> None:
+    """Save the content of a master textarea to its file."""
+    content = st.session_state.get(key, "")
+    file_path = cfg.get(path_key)
+    if file_path:
+        try:
+            with Path(file_path).open("w", encoding="utf-8") as f:
+                f.write(content)
+            logger.info(f"Saved {key} to {file_path}")
+            # Update in-memory master_texts dict
+            st.session_state["master_texts"][path_key] = content
+        except Exception as e:  # noqa: BLE001
+            logger.error(f"Failed to save {key} to {file_path}: {e}")
+
+
 models = []
 if "ollama" in cfg and "models" in cfg["ollama"]:
     models = sorted([m["name"] for m in cfg["ollama"]["models"]])
 eval_model = cfg.get("ollama", {}).get("eval_model", "")
 
 # Main layout
-tabs = st.tabs(["Tailor with LLM", "Tailor manually", "MD to PDF Converter", "Configuration / Master Data"])
+tabs = st.tabs(["Tailor with LLM", "Tailor manually", "MD to PDF Converter", "Settings"])
 
 with tabs[0]:
     # Toggle between Local and Cloud LLM
@@ -437,9 +466,11 @@ with tabs[0]:
             st.session_state["edited_cv_local"] = st.session_state.pop("_edited_cv_local_pending")
 
         if "edited_cv_local" not in st.session_state:
-            st.session_state["edited_cv_local"] = full_cv_md
+            st.session_state["edited_cv_local"] = st.session_state.get("_persistent_edited_cv_local", full_cv_md)
 
         edited_full_cv = st.session_state.get("edited_cv_local", full_cv_md)
+        if "edited_cv_local" in st.session_state:
+            st.session_state["_persistent_edited_cv_local"] = st.session_state["edited_cv_local"]
 
         col_btn1, col_btn2, col_btn3 = st.columns([1, 1, 1])
         with col_btn1:
@@ -460,14 +491,6 @@ with tabs[0]:
             )
 
         fix_markdown = st.checkbox("Fix Markdown", value=True, key="fix_markdown_local")
-
-        # Message placeholders directly after buttons
-        if st.session_state.get("local_tailor_error"):
-            st.error(st.session_state["local_tailor_error"])
-        if st.session_state.get("local_tailor_warning"):
-            st.warning(st.session_state["local_tailor_warning"])
-        if st.session_state.get("local_tailor_note"):
-            st.info(st.session_state["local_tailor_note"])
 
         if btn_check_local_clicked:
             st.session_state.pop("local_tailor_error", None)
@@ -593,6 +616,7 @@ with tabs[0]:
                                 with contextlib.suppress(Exception):
                                     Path(_tf_path).unlink()
                         st.session_state["edited_cv_local"] = full_cv_md
+                        st.session_state["_persistent_edited_cv_local"] = full_cv_md
                         st.session_state.pop("pdf_bytes", None)
                         st.session_state.pop("local_cv_errors", None)
                         st.session_state.pop("local_cv_checked", None)
@@ -601,6 +625,14 @@ with tabs[0]:
                     except Exception as e:  # noqa: BLE001
                         st.session_state["local_tailor_error"] = f"LLM Generation Failed: {e}"
                         st.rerun()
+
+        # Message placeholders directly after buttons
+        if st.session_state.get("local_tailor_error"):
+            st.error(st.session_state["local_tailor_error"])
+        if st.session_state.get("local_tailor_warning"):
+            st.warning(st.session_state["local_tailor_warning"])
+        if st.session_state.get("local_tailor_note"):
+            st.info(st.session_state["local_tailor_note"])
 
         st.toggle("Show PDF Preview", value=st.session_state.get("show_pdf_local_val", True), key="show_pdf_local_val")
 
@@ -742,9 +774,11 @@ with tabs[1]:
         st.session_state["edited_cv_manual"] = st.session_state.pop("_edited_cv_manual_pending")
 
     if "edited_cv_manual" not in st.session_state:
-        st.session_state["edited_cv_manual"] = full_cv_md
+        st.session_state["edited_cv_manual"] = st.session_state.get("_persistent_edited_cv_manual", full_cv_md)
 
     edited_full_cv = st.session_state.get("edited_cv_manual", full_cv_md)
+    if "edited_cv_manual" in st.session_state:
+        st.session_state["_persistent_edited_cv_manual"] = st.session_state["edited_cv_manual"]
 
     # Dynamic column structure for Step 4 (Markdown) and Step 5 (PDF)
     show_pdf_manual = st.session_state.get("show_pdf_manual_val", True)
@@ -777,14 +811,6 @@ with tabs[1]:
                 key="dl_md_manual",
                 use_container_width=True,
             )
-
-        # Message placeholders directly after buttons
-        if st.session_state.get("manual_tailor_error"):
-            st.error(st.session_state["manual_tailor_error"])
-        if st.session_state.get("manual_tailor_warning"):
-            st.warning(st.session_state["manual_tailor_warning"])
-        if st.session_state.get("manual_tailor_note"):
-            st.info(st.session_state["manual_tailor_note"])
 
         if btn_check_manual_clicked:
             st.session_state.pop("manual_tailor_error", None)
@@ -850,11 +876,20 @@ with tabs[1]:
                     with contextlib.suppress(Exception):
                         Path(_tf_path).unlink()
                 st.session_state["edited_cv_manual"] = full_cv_md
+                st.session_state["_persistent_edited_cv_manual"] = full_cv_md
                 st.session_state.pop("pdf_bytes", None)
                 st.session_state.pop("manual_cv_errors", None)
                 st.session_state.pop("manual_cv_checked", None)
                 st.session_state["manual_tailor_note"] = "CV Tailored manually successfully!"
                 st.rerun()
+
+        # Message placeholders directly after buttons
+        if st.session_state.get("manual_tailor_error"):
+            st.error(st.session_state["manual_tailor_error"])
+        if st.session_state.get("manual_tailor_warning"):
+            st.warning(st.session_state["manual_tailor_warning"])
+        if st.session_state.get("manual_tailor_note"):
+            st.info(st.session_state["manual_tailor_note"])
 
         cv_edit_tab, cv_preview_tab = st.tabs(["Edit", "Preview"])
         with cv_edit_tab:
@@ -954,6 +989,37 @@ with tabs[2]:
     col_md, col_pdf = st.columns([1, 1])
     with col_md:
         st.subheader("Markdown Input")
+        col_up, col_sv = st.columns([3, 1])
+        with col_up:
+            uploaded_file = st.file_uploader("Upload a Markdown file (.md)", type=["md"], key="uploaded_md_file")
+            if uploaded_file is not None:
+                file_key = f"last_uploaded_file_{uploaded_file.name}_{uploaded_file.size}"
+                if st.session_state.get("last_uploaded_file_key") != file_key:
+                    uploaded_content = uploaded_file.getvalue().decode("utf-8")
+                    st.session_state["arbitrary_md"] = uploaded_content
+                    st.session_state["original_md_content"] = uploaded_content
+                    st.session_state["last_uploaded_file_key"] = file_key
+
+        with col_sv:
+            st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
+            current_md = st.session_state.get("arbitrary_md", "")
+            original_md = st.session_state.get("original_md_content", "")
+            has_changes = (current_md != original_md) and bool(current_md.strip())
+
+            def on_save_click():
+                st.session_state["original_md_content"] = st.session_state.get("arbitrary_md", "")
+
+            st.download_button(
+                label="Save",
+                data=current_md,
+                file_name=uploaded_file.name if uploaded_file else "document.md",
+                mime="text/markdown",
+                disabled=not has_changes,
+                key="btn_save_arbitrary_md",
+                on_click=on_save_click,
+                use_container_width=True,
+            )
+
         arbitrary_edit_tab, arbitrary_preview_tab = st.tabs(["Edit", "Preview"])
         with arbitrary_edit_tab:
             arbitrary_md = st.text_area(
@@ -1013,115 +1079,124 @@ with tabs[2]:
             st.info("Click 'Generate PDF' to preview.")
 
 with tabs[3]:
-    st.header("Configuration")
-    config_path_input = st.text_input(
-        "Config File Path",
-        value=st.session_state.get("config_path_input_val", "./config.yaml"),
-        key="config_path_input_val",
-    )
+    settings_tabs = st.tabs(["CV", "Prompt", "Configuration"])
 
-    # Gemini API Key configuration
-    gemini_api_key_input = st.text_input(
-        "Gemini API Key (GEMINI_API_KEY)",
-        value=st.session_state.get("gemini_api_key_val", os.environ.get("GEMINI_API_KEY", "")),
-        type="password",
-        key="gemini_api_key_val",
-    )
-    if gemini_api_key_input:
-        os.environ["GEMINI_API_KEY"] = gemini_api_key_input
-    if st.button("Load Config", key="btn_load_config_tabs"):
-        st.session_state["config"] = load_unified_config(config_path_input)
-        st.session_state.pop("master_texts", None)
-        st.session_state.pop("edited_cv_local", None)
-        st.session_state.pop("edited_cv_manual", None)
-        st.session_state.pop("tailored_body", None)
-        st.session_state.pop("shared_jd", None)
-        st.session_state.pop("jd_local", None)
-        st.session_state.pop("jd_manual", None)
-        st.session_state.pop("pdf_bytes", None)
-        st.session_state.pop("arbitrary_pdf_bytes", None)
-        st.session_state.pop("local_cv_errors", None)
-        st.session_state.pop("local_cv_checked", None)
-        st.session_state.pop("manual_cv_errors", None)
-        st.session_state.pop("manual_cv_checked", None)
-        st.session_state.pop("local_tailor_error", None)
-        st.session_state.pop("local_tailor_warning", None)
-        st.session_state.pop("local_tailor_note", None)
-        st.session_state.pop("local_pdf_error", None)
-        st.session_state.pop("local_pdf_warning", None)
-        st.session_state.pop("local_pdf_note", None)
-        st.session_state.pop("manual_tailor_error", None)
-        st.session_state.pop("manual_tailor_warning", None)
-        st.session_state.pop("manual_tailor_note", None)
-        st.session_state.pop("manual_pdf_error", None)
-        st.session_state.pop("manual_pdf_warning", None)
-        st.session_state.pop("manual_pdf_note", None)
-        st.success("Config loaded!")
-        st.rerun()
+    with settings_tabs[0]:
+        st.subheader("Header")
+        header_edit_tab, header_preview_tab = st.tabs(["Edit", "Preview"])
+        with header_edit_tab:
+            st.session_state["master_texts"]["header"] = st.text_area(
+                "Header text",
+                value=st.session_state["master_texts"]["header"],
+                height=200,
+                label_visibility="collapsed",
+                key="master_header_editor",
+                on_change=_save_master_section,
+                args=("master_header_editor", "header"),
+            )
+        with header_preview_tab:
+            st.markdown(st.session_state["master_texts"]["header"])
 
-    st.header("Master Data")
+        st.subheader("Body")
+        body_edit_tab, body_preview_tab = st.tabs(["Edit", "Preview"])
+        with body_edit_tab:
+            st.session_state["master_texts"]["body"] = st.text_area(
+                "Body text",
+                value=st.session_state["master_texts"]["body"],
+                height=400,
+                label_visibility="collapsed",
+                key="master_body_editor",
+                on_change=_save_master_section,
+                args=("master_body_editor", "body"),
+            )
+        with body_preview_tab:
+            st.markdown(st.session_state["master_texts"]["body"])
 
-    # Auto-save callbacks for master sections
-    def _save_master_section(key: str, path_key: str) -> None:
-        """Save the content of a master textarea to its file."""
-        content = st.session_state.get(key, "")
-        file_path = cfg.get(path_key)
-        if file_path:
-            try:
-                with Path(file_path).open("w", encoding="utf-8") as f:
-                    f.write(content)
-                logger.info(f"Saved {key} to {file_path}")
-                # Update in-memory master_texts dict
-                st.session_state["master_texts"][path_key] = content
-            except Exception as e:  # noqa: BLE001
-                logger.error(f"Failed to save {key} to {file_path}: {e}")
+        st.subheader("Footer")
+        footer_edit_tab, footer_preview_tab = st.tabs(["Edit", "Preview"])
+        with footer_edit_tab:
+            st.session_state["master_texts"]["footer"] = st.text_area(
+                "Footer text",
+                value=st.session_state["master_texts"]["footer"],
+                height=200,
+                label_visibility="collapsed",
+                key="master_footer_editor",
+                on_change=_save_master_section,
+                args=("master_footer_editor", "footer"),
+            )
+        with footer_preview_tab:
+            st.markdown(st.session_state["master_texts"]["footer"])
 
-    # Header
-    st.session_state["master_texts"]["header"] = st.text_area(
-        "Header",
-        value=st.session_state["master_texts"]["header"],
-        height=200,
-        key="master_header_editor",
-        on_change=_save_master_section,
-        args=("master_header_editor", "header"),
-    )
+    with settings_tabs[1]:
+        st.subheader("Prompt Template")
+        prompt_edit_tab, prompt_preview_tab = st.tabs(["Edit", "Preview"])
+        with prompt_edit_tab:
+            st.session_state["master_texts"]["prompt"] = st.text_area(
+                "Prompt Template text",
+                value=st.session_state["master_texts"]["prompt"],
+                height=300,
+                label_visibility="collapsed",
+                key="master_prompt_editor",
+                on_change=_save_master_section,
+                args=("master_prompt_editor", "prompt"),
+            )
+        with prompt_preview_tab:
+            st.markdown(st.session_state["master_texts"]["prompt"])
 
-    st.subheader("Master Body")
-    body_edit_tab, body_preview_tab = st.tabs(["Edit", "Preview"])
-    with body_edit_tab:
-        st.session_state["master_texts"]["body"] = st.text_area(
-            "Master Body text",
-            value=st.session_state["master_texts"]["body"],
-            height=400,
-            label_visibility="collapsed",
-            key="master_body_editor",
-            on_change=_save_master_section,
-            args=("master_body_editor", "body"),
+    with settings_tabs[2]:
+        st.subheader("Config File")
+
+        # Option 1: Choose Config File (opens local file explorer)
+        uploaded_config_file = st.file_uploader(
+            "Load Config File (Choose from file explorer)",
+            type=["yaml", "yml"],
+            key="config_file_uploader",
         )
-    with body_preview_tab:
-        st.markdown(st.session_state["master_texts"]["body"])
+        if uploaded_config_file is not None:
+            file_id = f"{uploaded_config_file.name}_{uploaded_config_file.size}"
+            if st.session_state.get("_last_loaded_config_file_id") != file_id:
+                try:
+                    config_data = yaml.safe_load(uploaded_config_file.getvalue())
+                    if isinstance(config_data, dict):
+                        load_config_data_action(config_data)
+                        st.session_state["_last_loaded_config_file_id"] = file_id
+                        st.success("Config loaded successfully!")
+                        st.rerun()
+                    else:
+                        st.error("Invalid YAML format.")
+                except Exception as e:
+                    st.error(f"Error loading config file: {e}")
+        else:
+            st.session_state.pop("_last_loaded_config_file_id", None)
 
-    # Footer
-    st.session_state["master_texts"]["footer"] = st.text_area(
-        "Footer",
-        value=st.session_state["master_texts"]["footer"],
-        height=200,
-        key="master_footer_editor",
-        on_change=_save_master_section,
-        args=("master_footer_editor", "footer"),
-    )
+        st.markdown("**Or specify path on server:**")
 
-    st.subheader("Prompt Template")
-    prompt_edit_tab, prompt_preview_tab = st.tabs(["Edit", "Preview"])
-    with prompt_edit_tab:
-        st.session_state["master_texts"]["prompt"] = st.text_area(
-            "Prompt Template text",
-            value=st.session_state["master_texts"]["prompt"],
-            height=300,
+        # Callback to load config automatically when path input is changed
+        def on_config_path_change_tab():
+            path = st.session_state["config_path_input_val"]
+            load_config_action(path)
+
+        config_path_input = st.text_input(
+            "Config File Path",
+            value=st.session_state.get("config_path_input_val", "./config.yaml"),
+            key="config_path_input_val",
+            on_change=on_config_path_change_tab,
             label_visibility="collapsed",
-            key="master_prompt_editor",
-            on_change=_save_master_section,
-            args=("master_prompt_editor", "prompt"),
         )
-    with prompt_preview_tab:
-        st.markdown(st.session_state["master_texts"]["prompt"])
+
+        if st.button("Load Config Path", key="btn_load_config_tab"):
+            load_config_action(config_path_input)
+            st.success("Config loaded!")
+            st.rerun()
+
+        st.markdown("---")
+        st.subheader("API Keys")
+        # Gemini API Key configuration
+        gemini_api_key_input = st.text_input(
+            "Gemini API Key (GEMINI_API_KEY)",
+            value=st.session_state.get("gemini_api_key_val", os.environ.get("GEMINI_API_KEY", "")),
+            type="password",
+            key="gemini_api_key_val",
+        )
+        if gemini_api_key_input:
+            os.environ["GEMINI_API_KEY"] = gemini_api_key_input

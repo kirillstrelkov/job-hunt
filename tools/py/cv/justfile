@@ -103,3 +103,10 @@ auto-tailor-cv-top-models folder:
     # uv run python tools/tailor_cv_locally.py {{ folder }} --model "gemini-3.5-flash"
     # uv run python tools/tailor_cv_locally.py {{ folder }} --model "gemma-4-26b-a4b-it"
     # uv run python tools/tailor_cv_locally.py {{ folder }} --model "gemma-4-31b-it"
+
+auto-tailor-csv path:
+    # uv run python tools/tailor_jobs_from_csv.py --path {{ path }} --folder ./tmp/from_csv --force --model gemma4:e2b-ctx32k
+
+    uv run python tools/tailor_jobs_from_csv.py --path {{ path }} --folder ./tmp/from_csv --force --model gemini-3.1-flash-lite
+    uv run python tools/tailor_jobs_from_csv.py --path {{ path }} --folder ./tmp/from_csv --force --model gemma-4-26b-a4b-it
+    uv run python tools/tailor_jobs_from_csv.py --path {{ path }} --folder ./tmp/from_csv --force --model gemma-4-31b-it

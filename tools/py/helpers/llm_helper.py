@@ -130,8 +130,8 @@ def run_model(model: str, prompt_content: str, options: dict | None = None) -> d
 
     response = result.output
     usage = result.usage
-    prompt_tokens = usage.request_tokens or 0
-    gen_tokens = usage.response_tokens or 0
+    prompt_tokens = usage.input_tokens or 0
+    gen_tokens = usage.output_tokens or 0
 
     if not response.strip() or gen_tokens == 0:
         tokens_per_sec = 0.0

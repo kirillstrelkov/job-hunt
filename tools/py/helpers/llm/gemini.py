@@ -22,7 +22,6 @@ def get_agent(
     """Return a configured Gemini Pydantic AI agent."""
     options = get_model_options(model_name)
     settings = dict_to_model_settings(options)
-    settings["gemini_thinking_config"] = {"thinking_budget": 0}
     model = GeminiModel(model_name)
 
     return Agent(

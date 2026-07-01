@@ -57,8 +57,8 @@ def test_run_model(mock_agent_class, mock_gemini_model_class, monkeypatch):
 
     # Mocking usage
     mock_usage = MagicMock()
-    mock_usage.request_tokens = 15
-    mock_usage.response_tokens = 25
+    mock_usage.input_tokens = 15
+    mock_usage.output_tokens = 25
     mock_run_result.usage = mock_usage
 
     mock_agent.run_sync.return_value = mock_run_result

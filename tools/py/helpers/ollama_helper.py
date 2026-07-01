@@ -76,6 +76,9 @@ def get_models_with_options(
 def get_eval_model(config_manager: ConfigManager = DEFAULT_CONFIG) -> str:
     """Get the configured evaluation model name."""
     eval_model = config_manager.get_config_value(".eval_model")
+    if eval_model in config_manager.get_config_value(".gemini_models"):
+        return eval_model
+
     __check_models_in_ollama([eval_model])
     return eval_model
 
