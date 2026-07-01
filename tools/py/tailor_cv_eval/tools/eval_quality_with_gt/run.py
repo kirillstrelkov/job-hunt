@@ -4,23 +4,23 @@ import sys
 from pathlib import Path
 
 import yaml
+from helpers.config import DEFAULT_CONFIG
 from loguru import logger
 
-from helpers.config import DEFAULT_CONFIG  # noqa: E402
-from helpers.notebook import run_jupyter_notebook  # noqa: E402
+from helpers.notebook import run_jupyter_notebook
 from helpers.ollama_helper import (
     check_if_file_fits_into_ctx_num,
     get_eval_model,
     get_model_options,
     get_top_model_names,
-)  # noqa: E402
-from helpers.promptfoo_helper import (  # noqa: E402
+)
+from helpers.promptfoo_helper import (
     convert_json_to_csv,
     get_provider_id,
     run_promptfoo_eval,
     write_yaml_config,
 )
-from helpers.tmp_helper import get_root_dir, get_tmp_folder  # noqa: E402
+from helpers.tmp_helper import get_root_dir, get_tmp_folder
 
 # Global path definitions for Promptfoo evaluation
 TMP_EVAL_DIR = get_tmp_folder(__file__)

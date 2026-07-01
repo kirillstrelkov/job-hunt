@@ -1,7 +1,9 @@
-import pytest
 from pathlib import Path
-from helpers.tmp_helper import get_tmp_folder
+
+import pytest
+
 from cv.tools.tailor_body import run_ollama
+from helpers.tmp_helper import get_tmp_folder
 
 
 def prepare_llm_prompt_file(test_file_path: str | Path) -> str:

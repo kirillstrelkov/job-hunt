@@ -6,18 +6,17 @@ import pytest
 # Set a dummy key to prevent DeepEval from complaining about missing OpenAI credentials
 os.environ.setdefault("OPENAI_API_KEY", "dummy-key")
 
-import sys
 
+from conftest import EVALUATION_RESULTS
 from deepeval import assert_test
 from deepeval.metrics import GEval
 from deepeval.models import OllamaModel
 from deepeval.test_case import LLMTestCase, SingleTurnParams
 from loguru import logger
 
-from conftest import EVALUATION_RESULTS
-from config.config import DEFAULT_CONFIG  # noqa: E402
-from helpers.ollama_helper import get_eval_model, get_model_names  # noqa: E402
-from helpers.tmp_helper import get_tmp_output_dir  # noqa: E402
+from config.config import DEFAULT_CONFIG
+from helpers.ollama_helper import get_eval_model, get_model_names
+from helpers.tmp_helper import get_tmp_output_dir
 
 
 def run_assessment(prompt_content: str, actual_output: str, expected_output: str) -> tuple[float, str, bool]:

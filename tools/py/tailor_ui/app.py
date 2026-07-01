@@ -6,27 +6,22 @@ import contextlib
 import hashlib
 import io
 import os
-import shutil
-import subprocess
 import sys
 import tempfile
 from datetime import UTC, datetime
 from pathlib import Path
 
+import streamlit as st
 import yaml
 from loguru import logger
 
-import streamlit as st
-
-import sys
-
 sys.path.append(str(Path(__file__).parent.parent))
 
-import cv.tools.process_cv as process_cv
+from cv.tools import process_cv
 from cv.tools.md2pdf import convert_md_to_pdf
-from helpers.llm_helper import get_model_names as get_gemini_models, run_model as run_gemini_model
+from helpers.llm_helper import get_model_names as get_gemini_models
+from helpers.llm_helper import run_model as run_gemini_model
 from helpers.ollama_helper import run_model as run_ollama_model
-
 
 # Add required paths
 tools_py_dir = Path(__file__).resolve().parent.parent

@@ -1,16 +1,15 @@
-import sys
 from pathlib import Path
 
 from datasets import Dataset
+from helpers.config import DEFAULT_CONFIG
 from langchain_community.embeddings import OllamaEmbeddings
 from langchain_community.llms import Ollama as LangchainOllama
 from loguru import logger
 from ragas import evaluate
 from ragas.metrics import answer_relevancy, faithfulness
 
-from helpers.config import DEFAULT_CONFIG  # noqa: E402
-from helpers.ollama_helper import get_eval_model, get_model_names  # noqa: E402
-from helpers.tmp_helper import get_tmp_output_dir  # noqa: E402
+from helpers.ollama_helper import get_eval_model, get_model_names
+from helpers.tmp_helper import get_tmp_output_dir
 
 
 def run_eval():

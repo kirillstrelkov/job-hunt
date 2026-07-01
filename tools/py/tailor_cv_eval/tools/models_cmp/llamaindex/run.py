@@ -1,13 +1,12 @@
-import sys
 from pathlib import Path
 
+from helpers.config import DEFAULT_CONFIG
 from llama_index.core.evaluation import CorrectnessEvaluator
 from llama_index.llms.ollama import Ollama
 from loguru import logger
 
-from helpers.config import DEFAULT_CONFIG  # noqa: E402
-from helpers.ollama_helper import get_eval_model, get_model_names  # noqa: E402
-from helpers.tmp_helper import get_tmp_output_dir  # noqa: E402
+from helpers.ollama_helper import get_eval_model, get_model_names
+from helpers.tmp_helper import get_tmp_output_dir
 
 
 def run_eval():

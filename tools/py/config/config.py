@@ -279,15 +279,9 @@ class ConfigManager:
         # Parse llm
         ll = config.get("llm", {})
         ollama_data = ll.get("ollama", {})
-        ollama_models = [
-            ModelConfig(name=m["name"], options=m.get("options"))
-            for m in ollama_data.get("models", [])
-        ]
+        ollama_models = [ModelConfig(name=m["name"], options=m.get("options")) for m in ollama_data.get("models", [])]
         gemini_data = ll.get("gemini", {})
-        gemini_models = [
-            ModelConfig(name=m["name"], options=m.get("options"))
-            for m in gemini_data.get("models", [])
-        ]
+        gemini_models = [ModelConfig(name=m["name"], options=m.get("options")) for m in gemini_data.get("models", [])]
 
         self.llm = LLMConfig(
             eval_mode=str(ll.get("eval_mode", "")),

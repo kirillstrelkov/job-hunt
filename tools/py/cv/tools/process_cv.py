@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 import argparse
-from pathlib import Path
 import re
 import sys
 from dataclasses import dataclass
-from typing import List, Optional
 from datetime import datetime
+from pathlib import Path
 
 from loguru import logger
 
@@ -49,7 +48,7 @@ class Line:
 
 @dataclass
 class Section:
-    name: Optional[str]
+    name: str | None
     filepath: str
     lines: list[Line]
 
@@ -323,8 +322,7 @@ def fix_file(filepath: str, keep_thesis: bool = True) -> None:
     do_fix(sections, keep_thesis=keep_thesis)
     with Path(filepath).open("w", encoding="utf-8") as f:
         for section in sections:
-            for line_obj in section.lines:
-                f.write(line_obj.raw_line + "\n")
+            f.writelines(line_obj.raw_line + "\n" for line_obj in section.lines)
     logger.info("Fixes applied and file written")
 
 

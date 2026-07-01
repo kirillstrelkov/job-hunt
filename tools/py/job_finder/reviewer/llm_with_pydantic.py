@@ -1,9 +1,11 @@
 """LLM integration for CV and job description screening and analysis."""
 
 from pydantic import BaseModel, Field
-from helpers.llm.ollama import get_agent as get_ollama_agent
+
 from helpers.llm.gemini import get_agent as get_gemini_agent
-from helpers.llm_helper import get_eval_model, get_model_names as get_gemini_model_names
+from helpers.llm.ollama import get_agent as get_ollama_agent
+from helpers.llm_helper import get_eval_model
+from helpers.llm_helper import get_model_names as get_gemini_model_names
 
 MODEL = get_eval_model()
 

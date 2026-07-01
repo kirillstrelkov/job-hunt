@@ -6,22 +6,18 @@ import sys
 from pathlib import Path
 
 from loguru import logger
+from reviewer.llm import CV_PROMPT, JD_PROMPT, SYSTEM_PROMPT_CANDIDATE
 
-
-from reviewer.llm import CV_PROMPT, JD_PROMPT, SYSTEM_PROMPT_CANDIDATE  # noqa: E402
-
-from helpers.notebook import run_jupyter_notebook  # noqa: E402
-from helpers.ollama_helper import get_model_options, get_top_model_names  # noqa: E402
-from helpers.llm_helper import get_model_names as get_gemini_model_names  # noqa: E402
-
-
+from helpers.llm_helper import get_model_names as get_gemini_model_names
+from helpers.notebook import run_jupyter_notebook
+from helpers.ollama_helper import get_model_options
 from helpers.promptfoo_helper import (
     convert_json_to_csv,
     get_provider_id,
     run_promptfoo_eval,
     write_yaml_config,
-)  # noqa: E402
-from helpers.tmp_helper import get_tmp_folder  # noqa: E402
+)
+from helpers.tmp_helper import get_tmp_folder
 
 MODELS = get_gemini_model_names()
 TMP_DIR = get_tmp_folder(__file__)

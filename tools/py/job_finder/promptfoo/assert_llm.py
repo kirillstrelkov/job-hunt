@@ -1,17 +1,15 @@
 """Assertion module for Promptfoo evaluation matching tests/llm_test.py."""
 
 import json
-import sys
-import traceback
-from pathlib import Path
-from typing import Any
 import re
+import traceback
+from typing import Any
 
-from reviewer.llm import Analysis
-
-
-from reviewer.llm import JobMatchResult  # noqa: E402
-from reviewer.llm_test import assert_llm_response  # noqa: E402
+from reviewer.llm import (
+    Analysis,
+    JobMatchResult,
+)
+from reviewer.llm_test import assert_llm_response
 
 
 def extract_json_from_text(text: str) -> str | None:

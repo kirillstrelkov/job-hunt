@@ -4,10 +4,10 @@ import os
 
 import pytest
 from easelenium.browser import Browser
-from job_finder.utils.caching_utils import ENV_VAR_DISABLE_CACHED
 
 from job_finder.scraper.base import get_browser
 from job_finder.scraper.indeed import IndeedBoard
+from job_finder.utils.caching_utils import ENV_VAR_DISABLE_CACHED
 
 
 @pytest.fixture

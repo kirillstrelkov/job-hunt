@@ -1,14 +1,13 @@
-import sys
 from pathlib import Path
 
 import giskard
 import pandas as pd
 from giskard import Dataset, test
+from helpers.config import DEFAULT_CONFIG
 from loguru import logger
 
-from helpers.config import DEFAULT_CONFIG  # noqa: E402
 from helpers.ollama_helper import get_eval_model, get_model_names
-from helpers.tmp_helper import get_tmp_output_dir  # noqa: E402
+from helpers.tmp_helper import get_tmp_output_dir
 
 
 def run_eval():

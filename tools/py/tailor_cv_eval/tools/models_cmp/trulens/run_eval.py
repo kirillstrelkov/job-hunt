@@ -1,14 +1,13 @@
 import re
-import sys
 from pathlib import Path
 
+from helpers.config import DEFAULT_CONFIG, TRULENS_DB_URL
 from loguru import logger
 from trulens.apps.virtual import TruVirtual, VirtualApp, VirtualRecord
 from trulens.core import Feedback, TruSession
 
-from helpers.config import DEFAULT_CONFIG, TRULENS_DB_URL  # noqa: E402
 from helpers.ollama_helper import get_eval_model, get_model_names
-from helpers.tmp_helper import get_tmp_output_dir  # noqa: E402
+from helpers.tmp_helper import get_tmp_output_dir
 
 # Set TruLens database path to be inside the tmp directory
 Path(TRULENS_DB_URL.replace("sqlite:///", "")).parent.mkdir(parents=True, exist_ok=True)

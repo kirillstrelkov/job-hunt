@@ -3,15 +3,13 @@ import argparse
 import re
 import sys
 from pathlib import Path
-from loguru import logger
+
 import pandas as pd
+from loguru import logger
 from tqdm import tqdm
 
-
-from cv.tools import cfg
-from cv.tools import prepare_cv
+from cv.tools import cfg, prepare_cv
 from cv.tools.tailor_cv_locally import tailor
-
 
 WORD_PATTERN = re.compile(r"\w{2,}")
 

@@ -4,12 +4,12 @@ import subprocess
 import sys
 from pathlib import Path
 
+from helpers.config import DEFAULT_CONFIG
 from loguru import logger
 
-from helpers.config import DEFAULT_CONFIG  # noqa: E402
-from helpers.ollama_helper import get_eval_model  # noqa: E402
-from helpers.promptfoo_helper import get_provider_id  # noqa: E402
-from helpers.tmp_helper import get_root_dir, get_tmp_folder  # noqa: E402
+from helpers.ollama_helper import get_eval_model
+from helpers.promptfoo_helper import get_provider_id
+from helpers.tmp_helper import get_root_dir, get_tmp_folder
 
 
 def get_npx_command():

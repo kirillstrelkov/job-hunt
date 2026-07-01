@@ -1,14 +1,11 @@
 from pydantic import BaseModel
 from pydantic_ai import Agent
 from pydantic_ai.models.ollama import OllamaModel
-from helpers.constants import SYS_PROMPT_WITH_TAILORED_CV
+from pydantic_ai.profiles import ModelProfile
 from pydantic_ai.providers.ollama import OllamaProvider
 
-
+from helpers.constants import SYS_PROMPT_WITH_TAILORED_CV
 from helpers.llm_helper import dict_to_model_settings, get_model_options
-
-
-from pydantic_ai.profiles import ModelProfile
 
 
 def get_agent(
@@ -20,10 +17,7 @@ def get_agent(
     options = get_model_options(model_name)
     settings = dict_to_model_settings(options)
 
-    extra_body = {
-        "think": False,
-        "keep_alive": int(options.get("keep_alive", 0))
-    }
+    extra_body = {"think": False, "keep_alive": int(options.get("keep_alive", 0))}
 
     ollama_options = {}
     if "num_ctx" in options:
@@ -45,10 +39,9 @@ def get_agent(
             supports_tools=False,
             supports_json_schema_output=False,
             supports_json_object_output=True,
-            default_structured_output_mode='prompted',
+            default_structured_output_mode="prompted",
         ),
     )
-
 
     return Agent(
         model,

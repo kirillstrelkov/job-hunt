@@ -1,6 +1,6 @@
 """Pydantic models representing tailored CV structure for LLM requests."""
 
-from typing import Optional
+
 from pydantic import BaseModel, Field
 
 
@@ -54,7 +54,7 @@ class Project(BaseModel):
     """A project the candidate built or contributed to."""
 
     name: str = Field(..., description="Project name/title.")
-    url: Optional[str] = Field(None, description="GitHub or website URL of the project.")
+    url: str | None = Field(None, description="GitHub or website URL of the project.")
     year: str = Field(..., description="Year or date of the project (e.g. 2026).")
     bullet_points: list[str] = Field(
         ...,
@@ -119,7 +119,7 @@ class CourseCertificateOverflow(BaseModel):
     name: str = Field(..., description="Name of the course or certification.")
     provider: str = Field(..., description="Issuing organization or platform.")
     date: str = Field(..., description="Completion date.")
-    description: Optional[str] = Field(
+    description: str | None = Field(
         None,
         description="Optional relevance description or notes.",
     )

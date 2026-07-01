@@ -3,10 +3,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from helpers.config import DEFAULT_CONFIG
 from loguru import logger
-
-
-from helpers.config import DEFAULT_CONFIG  # noqa: E402
 
 
 def main():

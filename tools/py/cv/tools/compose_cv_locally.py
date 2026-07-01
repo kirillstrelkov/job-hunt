@@ -2,16 +2,16 @@
 import argparse
 import sys
 from pathlib import Path
+
 from loguru import logger
 from pydantic import BaseModel, Field
 
-
-from .prepare_cv import prepare_cv
-from .tailor_body import run_ollama, process_output_of_ollama, get_eval_model
-from .process_cv import fix_file, check_file
-from .md2pdf import convert_md_to_pdf
-
 from helpers.llm import get_agent
+
+from .md2pdf import convert_md_to_pdf
+from .prepare_cv import prepare_cv
+from .process_cv import check_file, fix_file
+from .tailor_body import get_eval_model, process_output_of_ollama, run_ollama
 
 
 class ThesisDecision(BaseModel):

@@ -5,7 +5,6 @@ import sys
 from pathlib import Path
 from pprint import pformat
 
-
 from loguru import logger
 from reviewer.llm import MODEL, analyze_cv, get_match_percentage
 

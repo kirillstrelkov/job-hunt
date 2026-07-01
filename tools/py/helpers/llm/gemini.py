@@ -1,15 +1,13 @@
 """Gemini agent helper using Pydantic AI."""
 
-from config.config import DEFAULT_CONFIG
+from dotenv import load_dotenv
 from pydantic import BaseModel
 from pydantic_ai import Agent
-from pydantic_ai.models.gemini import GeminiModel, GeminiModelSettings
-from helpers.models import TailoredCVBody
+from pydantic_ai.models.gemini import GeminiModel
+
+from config.config import DEFAULT_CONFIG
 from helpers.constants import SYS_PROMPT_WITH_TAILORED_CV
-from dotenv import load_dotenv
-
 from helpers.llm_helper import dict_to_model_settings, get_model_options
-
 
 load_dotenv(DEFAULT_CONFIG.get_env_file())
 

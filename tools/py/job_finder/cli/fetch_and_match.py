@@ -9,6 +9,7 @@ from pathlib import Path
 import pandas as pd
 import yaml
 from loguru import logger
+
 from job_finder.reviewer.match import JobMatch, get_job_matches
 from job_finder.scraper.base import Job
 from job_finder.scraper.fetch import get_jobs

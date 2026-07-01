@@ -1,9 +1,10 @@
 """Tests for CV tailoring Pydantic models."""
 
-from helpers.models import TailoredCVBody
+from pydantic_ai import Agent
+
 from helpers.llm.gemini import get_agent as get_gemini_agent
 from helpers.llm.ollama import get_agent as get_ollama_agent
-from pydantic_ai import Agent
+from helpers.models import TailoredCVBody
 
 
 def test_tailored_cv_parsing() -> None:

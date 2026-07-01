@@ -1,8 +1,10 @@
+from pydantic_ai import Agent
+
 from config.config import DEFAULT_CONFIG
 from helpers.constants import SYS_PROMPT_WITH_TAILORED_CV
+
 from .gemini import get_agent as get_gemini_agent
 from .ollama import get_agent as get_ollama_agent
-from pydantic_ai import Agent
 
 
 def get_agent(

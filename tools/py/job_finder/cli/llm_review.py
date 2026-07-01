@@ -5,10 +5,10 @@ import os
 import sys
 from pathlib import Path
 
-
 import pandas as pd
 from loguru import logger
 from reviewer.match import get_job_matches
+
 from job_finder.scraper.base import Job
 from job_finder.utils.caching_utils import ENV_VAR_DISABLE_CACHED
 

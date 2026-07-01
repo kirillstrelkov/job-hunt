@@ -3,12 +3,11 @@ import argparse
 import sys
 from pathlib import Path
 
+from helpers.config import DEFAULT_CONFIG
 from loguru import logger
 
-
-from helpers.config import DEFAULT_CONFIG  # noqa: E402
-from helpers.ollama_helper import get_eval_model, get_model_options, run_model  # noqa: E402
-from helpers.tmp_helper import get_llm_prompt_for_job  # noqa: E402
+from helpers.ollama_helper import get_eval_model, get_model_options, run_model
+from helpers.tmp_helper import get_llm_prompt_for_job
 
 
 def main():

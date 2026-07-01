@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 import argparse
 from pathlib import Path
-import sys
 
 from loguru import logger
-
 
 from config.config import DEFAULT_CV_CONFIG as DEFAULT_CONFIG
 
@@ -26,7 +24,7 @@ def prepare_cv(
         if folder_path and not folder_path.is_dir():
             raise ValueError(f"folder must be a directory: {folder_path}")
         body_file = body_path
-        target_folder = folder_path if folder_path else body_path.parent
+        target_folder = folder_path or body_path.parent
         generate_cv_mode = True
     else:
         # body_path is None, so folder_path must be not None

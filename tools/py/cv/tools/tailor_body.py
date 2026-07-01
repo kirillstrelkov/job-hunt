@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 import argparse
 import sys
+import time
 from pathlib import Path
 
-
 from loguru import logger
-from helpers.ollama_helper import get_eval_model, get_model_options
+
 from helpers.llm import get_agent
-import time
+from helpers.ollama_helper import get_eval_model
 
 
 def parse_args() -> argparse.Namespace:
@@ -122,7 +122,7 @@ def main() -> None:
     logger.info(f"Reading prompt from: {prompt_file}")
     prompt_content = prompt_file.read_text(encoding="utf-8")
 
-    model = args.model if args.model else get_eval_model()
+    model = args.model or get_eval_model()
 
     try:
         result = run_ollama(prompt_content, model)
