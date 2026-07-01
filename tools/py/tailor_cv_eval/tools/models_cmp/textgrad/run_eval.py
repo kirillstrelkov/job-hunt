@@ -14,7 +14,7 @@ os.environ["OPENAI_BASE_URL"] = "http://localhost:11434/v1"
 import textgrad as tg
 
 
-def run_eval():
+def run_eval() -> None:
     eval_model = get_eval_model()
     models = get_model_names()
     subfolder = "job1"

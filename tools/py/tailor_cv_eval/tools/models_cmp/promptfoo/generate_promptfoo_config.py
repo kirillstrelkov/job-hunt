@@ -8,7 +8,7 @@ from helpers.promptfoo_helper import get_provider_id
 from helpers.tmp_helper import get_root_dir
 
 
-def main():
+def main() -> None:
     models = get_model_names()
     eval_model = get_eval_model()
     if eval_model not in models:
