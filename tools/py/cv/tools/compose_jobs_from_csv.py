@@ -20,7 +20,7 @@ def generate_id(title: str, company: str) -> str:
     """Generate a clean slug/id based on the first 4 words of 2 or more characters in title and first 2 in company."""
     title_words = WORD_PATTERN.findall(title.lower())[:5]
     company_words = WORD_PATTERN.findall(company.lower())[:2]
-    return "_".join(title_words + company_words)
+    return "_".join(company_words + title_words)
 
 
 def main() -> None:  # noqa: PLR0915

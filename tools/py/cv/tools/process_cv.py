@@ -78,11 +78,9 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def split_into_sections(filepath: str) -> list[Section]:
-    """Parse the CV file and split it into sections based on markdown headers."""
-    with Path(filepath).open("r", encoding="utf-8") as f:
-        lines_raw = f.read().splitlines()
-
+def split_markdown_into_sections(md: str, filepath: str = "CV.md") -> list[Section]:
+    """Parse the CV markdown string and split it into sections based on markdown headers."""
+    lines_raw = md.splitlines()
     sections = []
     cur_section = None
 
@@ -101,7 +99,14 @@ def split_into_sections(filepath: str) -> list[Section]:
 
     sections.append(cur_section)
 
-    return sections
+    return [s for s in sections if s is not None]
+
+
+def split_into_sections(filepath: str) -> list[Section]:
+    """Parse the CV file and split it into sections based on markdown headers."""
+    with Path(filepath).open("r", encoding="utf-8") as f:
+        content = f.read()
+    return split_markdown_into_sections(content, filepath=filepath)
 
 
 def get_sort_key(date_str: str) -> tuple[int, int]:
@@ -338,6 +343,22 @@ def fix_file(filepath: str, *, keep_thesis: bool = True) -> None:
         for section in sections:
             f.writelines(line_obj.raw_line + "\n" for line_obj in section.lines)
     logger.info("Fixes applied and file written")
+
+
+def check_markdown(md: str, *, filepath: str = "CV.md") -> list[Error]:
+    """Run verification checks on a CV markdown string, returning a list of Error objects."""
+    sections = split_markdown_into_sections(md, filepath=filepath)
+    return do_check(sections)
+
+
+def fix_markdown(md: str, *, keep_thesis: bool = True) -> str:
+    """Apply auto-formatting and structure fixes to a CV markdown string, returning the fixed string."""
+    sections = split_markdown_into_sections(md)
+    do_fix(sections, keep_thesis=keep_thesis)
+    output_lines = []
+    for section in sections:
+        output_lines.extend(line_obj.raw_line for line_obj in section.lines)
+    return "\n".join(output_lines) + ("\n" if output_lines else "")
 
 
 def main() -> None:

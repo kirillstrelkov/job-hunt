@@ -1,5 +1,6 @@
 """Streamlit user interface for CV tailoring, editing, checking and PDF conversion."""
 
+import importlib
 import argparse
 import base64
 import contextlib
@@ -18,6 +19,8 @@ from loguru import logger
 sys.path.append(str(Path(__file__).parent.parent))
 
 from cv.tools import process_cv
+
+importlib.reload(process_cv)
 from cv.tools.md2pdf import convert_md_to_pdf
 from helpers.llm_helper import get_model_names as get_gemini_models
 from helpers.llm_helper import run_model as run_gemini_model
@@ -107,20 +110,6 @@ def get_temp_generation_dir(jd_text: str | None = None) -> tuple[Path, str]:
 
     temp_dir.mkdir(parents=True, exist_ok=True)
     return temp_dir, dt_str
-
-
-def run_check_on_text(md_content: str) -> list[str]:
-    """Execute validation checks on the given markdown resume text."""
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False, encoding="utf-8") as temp_file:
-        temp_file.write(md_content)
-        temp_path = temp_file.name
-    try:
-        sections = process_cv.split_into_sections(temp_path)
-        errors = process_cv.do_check(sections)
-        return [f"Line {err.line_num}: {err.msg} (content: `{err.line}`)" for err in errors]
-    finally:
-        with contextlib.suppress(Exception):
-            Path(temp_path).unlink()
 
 
 st.set_page_config(layout="wide", page_title="CV Composer")
@@ -524,12 +513,12 @@ with tabs[0]:
                 st.session_state["local_tailor_warning"] = "No CV text to check."
                 st.rerun()
             else:
-                errors = run_check_on_text(edited_full_cv)
-                st.session_state["local_cv_errors"] = errors
+                errors = process_cv.check_markdown(edited_full_cv)
                 st.session_state["local_cv_checked"] = True
                 if errors:
                     st.session_state["local_tailor_error"] = (
-                        f"CV check failed with {len(errors)} errors:\n" + "\n".join([f"- {err}" for err in errors])
+                        f"CV check failed with {len(errors)} errors:\n"
+                        + "\n".join(f"- Line {err.line_num}: {err.msg} (content: `{err.line}`)" for err in errors)
                     )
                 else:
                     st.session_state["local_tailor_note"] = "No CV errors found!"
@@ -626,19 +615,7 @@ with tabs[0]:
                         footer = st.session_state["master_texts"]["footer"]
                         full_cv_md = f"{header}\n\n{trimmed_text}\n\n{footer}"
                         if fix_markdown:
-                            # Fix the assembled CV and display the fixed version
-                            with tempfile.NamedTemporaryFile(
-                                mode="w", suffix=".md", delete=False, encoding="utf-8"
-                            ) as _tf:
-                                _tf.write(full_cv_md)
-                                _tf_path = _tf.name
-                            try:
-                                process_cv.fix_file(_tf_path)
-                                with Path(_tf_path).open(encoding="utf-8") as _tf:
-                                    full_cv_md = _tf.read()
-                            finally:
-                                with contextlib.suppress(Exception):
-                                    Path(_tf_path).unlink()
+                            full_cv_md = process_cv.fix_markdown(full_cv_md)
                         st.session_state["edited_cv_local"] = full_cv_md
                         st.session_state["_persistent_edited_cv_local"] = full_cv_md
                         st.session_state.pop("pdf_bytes", None)
@@ -844,12 +821,12 @@ with tabs[1]:
                 st.session_state["manual_tailor_warning"] = "No CV text to check."
                 st.rerun()
             else:
-                errors = run_check_on_text(edited_full_cv)
-                st.session_state["manual_cv_errors"] = errors
+                errors = process_cv.check_markdown(edited_full_cv)
                 st.session_state["manual_cv_checked"] = True
                 if errors:
                     st.session_state["manual_tailor_error"] = (
-                        f"CV check failed with {len(errors)} errors:\n" + "\n".join([f"- {err}" for err in errors])
+                        f"CV check failed with {len(errors)} errors:\n"
+                        + "\n".join(f"- Line {err.line_num}: {err.msg} (content: `{err.line}`)" for err in errors)
                     )
                 else:
                     st.session_state["manual_tailor_note"] = "No CV errors found!"
@@ -889,16 +866,7 @@ with tabs[1]:
                 header = st.session_state["master_texts"]["header"]
                 footer = st.session_state["master_texts"]["footer"]
                 full_cv_md = f"{header}\n\n{trimmed_text}\n\n{footer}"
-                with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False, encoding="utf-8") as _tf:
-                    _tf.write(full_cv_md)
-                    _tf_path = _tf.name
-                try:
-                    process_cv.fix_file(_tf_path)
-                    with Path(_tf_path).open(encoding="utf-8") as _tf:
-                        full_cv_md = _tf.read()
-                finally:
-                    with contextlib.suppress(Exception):
-                        Path(_tf_path).unlink()
+                full_cv_md = process_cv.fix_markdown(full_cv_md)
                 st.session_state["edited_cv_manual"] = full_cv_md
                 st.session_state["_persistent_edited_cv_manual"] = full_cv_md
                 st.session_state.pop("pdf_bytes", None)
@@ -1009,13 +977,12 @@ with tabs[1]:
             st.markdown(st.session_state.get("edited_notes_manual", ""))
 
 with tabs[2]:
-    st.header("MD to PDF Converter")
     if "_arbitrary_md_pending" in st.session_state:
         st.session_state["arbitrary_md"] = st.session_state.pop("_arbitrary_md_pending")
     col_md, col_pdf = st.columns([1, 1])
     with col_md:
         st.subheader("Markdown Input")
-        col_up, col_sv = st.columns([3, 1])
+        col_up, col_chk, col_fix, col_sv = st.columns([5, 2, 2, 2])
         with col_up:
             uploaded_file = st.file_uploader("Upload a Markdown file (.md)", type=["md"], key="uploaded_md_file")
             if uploaded_file is not None:
@@ -1025,12 +992,54 @@ with tabs[2]:
                     st.session_state["arbitrary_md"] = uploaded_content
                     st.session_state["original_md_content"] = uploaded_content
                     st.session_state["last_uploaded_file_key"] = file_key
+                    st.session_state.pop("arbitrary_check_error", None)
+                    st.session_state.pop("arbitrary_check_note", None)
+
+        current_md = st.session_state.get("arbitrary_md", "")
+
+        with col_chk:
+            st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
+            btn_check_clicked = st.button(
+                "Check",
+                key="btn_check_arbitrary_md",
+                use_container_width=True,
+            )
+            if btn_check_clicked:
+                st.session_state.pop("arbitrary_check_error", None)
+                st.session_state.pop("arbitrary_check_note", None)
+                if not current_md.strip():
+                    st.session_state["arbitrary_check_error"] = "No markdown content to check."
+                else:
+                    errors = process_cv.check_markdown(current_md)
+                    if errors:
+                        st.session_state["arbitrary_check_error"] = (
+                            f"CV check failed with {len(errors)} errors:\n"
+                            + "\n".join(f"- Line {err.line_num}: {err.msg} (content: `{err.line}`)" for err in errors)
+                        )
+                    else:
+                        st.session_state["arbitrary_check_note"] = "No errors found!"
+                st.rerun()
+
+        with col_fix:
+            st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
+            btn_fix_clicked = st.button(
+                "Fix",
+                key="btn_fix_arbitrary_md",
+                use_container_width=True,
+            )
+            if btn_fix_clicked:
+                st.session_state.pop("arbitrary_check_error", None)
+                st.session_state.pop("arbitrary_check_note", None)
+                if not current_md.strip():
+                    st.session_state["arbitrary_check_error"] = "No markdown content to fix."
+                else:
+                    fixed_md = process_cv.fix_markdown(current_md)
+                    st.session_state["_arbitrary_md_pending"] = fixed_md
+                    st.session_state["arbitrary_check_note"] = "Markdown formatting fixed!"
+                st.rerun()
 
         with col_sv:
             st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
-            current_md = st.session_state.get("arbitrary_md", "")
-            original_md = st.session_state.get("original_md_content", "")
-            has_changes = (current_md != original_md) and bool(current_md.strip())
 
             def on_save_click() -> None:
                 """Save current markdown content to session state."""
@@ -1041,11 +1050,15 @@ with tabs[2]:
                 data=current_md,
                 file_name=uploaded_file.name if uploaded_file else "document.md",
                 mime="text/markdown",
-                disabled=not has_changes,
                 key="btn_save_arbitrary_md",
                 on_click=on_save_click,
                 use_container_width=True,
             )
+
+        if st.session_state.get("arbitrary_check_error"):
+            st.error(st.session_state["arbitrary_check_error"])
+        if st.session_state.get("arbitrary_check_note"):
+            st.info(st.session_state["arbitrary_check_note"])
 
         arbitrary_edit_tab, arbitrary_preview_tab = st.tabs(["Edit", "Preview"])
         with arbitrary_edit_tab:
@@ -1057,9 +1070,7 @@ with tabs[2]:
         arbitrary_md = st.session_state.get("arbitrary_md", "")
     with col_pdf:
         st.subheader("PDF Output")
-        btn_gen_arb_clicked = st.button(
-            "Generate PDF", key="btn_gen_arbitrary_pdf", use_container_width=True, disabled=not arbitrary_md.strip()
-        )
+        btn_gen_arb_clicked = st.button("Generate PDF", key="btn_gen_arbitrary_pdf", use_container_width=True)
         if btn_gen_arb_clicked:
             with st.spinner("Generating PDF..."):
                 jd_context = st.session_state.get("shared_jd", "")
@@ -1072,11 +1083,7 @@ with tabs[2]:
                         f_md.write(arbitrary_md)
 
                     # Fix CV markdown using process_cv
-                    process_cv.fix_file(f_md_name)
-
-                    # Read back the fixed content to update the UI
-                    with Path(f_md_name).open(encoding="utf-8") as f_md:
-                        fixed_content = f_md.read()
+                    fixed_content = process_cv.fix_markdown(arbitrary_md)
                     st.session_state["_arbitrary_md_pending"] = fixed_content
 
                     # Convert to PDF

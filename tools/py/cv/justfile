@@ -87,7 +87,6 @@ md2pdf input output options="--check --fix":
     uv run python tools/md2pdf.py "{{ input }}" --output "{{ output }}"
 
 auto-compose-cv folder:
-    # uv run python tools/compose_cv_locally.py {{ folder }} --model gemma4:e2b-ctx32k
     uv run python tools/compose_cv_locally.py {{ folder }} --model "gemma-4-26b-a4b-it"
 
 auto-compose-cv-top-models folder:
@@ -106,5 +105,4 @@ auto-compose-cv-top-models folder:
     # uv run python tools/compose_cv_locally.py {{ folder }} --model "gemma-4-31b-it"
 
 auto-compose-csv path:
-    uv run python tools/compose_jobs_from_csv.py --path {{ path }} --folder ./tmp/from_csv --model "gemma4:e2b-ctx32k"
     uv run python tools/compose_jobs_from_csv.py --path {{ path }} --folder ./tmp/from_csv --model "gemma-4-26b-a4b-it"
