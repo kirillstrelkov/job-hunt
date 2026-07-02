@@ -1,10 +1,10 @@
 """Streamlit user interface for CV tailoring, editing, checking and PDF conversion."""
 
-import importlib
 import argparse
 import base64
 import contextlib
 import hashlib
+import importlib
 import io
 import os
 import sys

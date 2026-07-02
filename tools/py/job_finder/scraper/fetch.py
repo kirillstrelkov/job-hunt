@@ -4,8 +4,8 @@ from collections import defaultdict
 from pathlib import Path
 from urllib.parse import urlsplit
 
-from loguru import logger
 import pandas as pd
+from loguru import logger
 
 from config.config import DEFAULT_CONFIG
 from job_finder.scraper.base import Job, browser_context
