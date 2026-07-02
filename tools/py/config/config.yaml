@@ -18,6 +18,7 @@ llm:
     keep_alive: 0
     temperature: 0.1
     repeat_penalty: 1.1
+    timeout: 300
 
   top_models:
     - "gemma4:e4b-it-qat"
