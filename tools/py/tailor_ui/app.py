@@ -1010,6 +1010,8 @@ with tabs[1]:
 
 with tabs[2]:
     st.header("MD to PDF Converter")
+    if "_arbitrary_md_pending" in st.session_state:
+        st.session_state["arbitrary_md"] = st.session_state.pop("_arbitrary_md_pending")
     col_md, col_pdf = st.columns([1, 1])
     with col_md:
         st.subheader("Markdown Input")
@@ -1075,7 +1077,7 @@ with tabs[2]:
                     # Read back the fixed content to update the UI
                     with Path(f_md_name).open(encoding="utf-8") as f_md:
                         fixed_content = f_md.read()
-                    st.session_state["arbitrary_md"] = fixed_content
+                    st.session_state["_arbitrary_md_pending"] = fixed_content
 
                     # Convert to PDF
                     compile_pdf(f_md_name, pdf_name)
