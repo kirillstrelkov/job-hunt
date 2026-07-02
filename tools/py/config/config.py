@@ -101,6 +101,14 @@ class DataConfig:
     jobs: list[InputJob]
 
 
+@dataclass
+class ScraperConfig:
+    """Scraper configuration for excluded companies and keywords."""
+
+    excluded_companies: list[str]
+    excluded_title_keywords: list[str]
+
+
 def _resolve_val(val: Any, context: dict[str, str]) -> tuple[Any, bool]:  # noqa: ANN401
     """Recursively resolve values using context, returning (new_val, has_changed)."""
     if isinstance(val, str):
@@ -170,6 +178,7 @@ class ConfigManager:
         self.llm: LLMConfig = None
         self.paths: PathsConfig = None
         self.data: DataConfig = None
+        self.scraper: ScraperConfig = None
         if self.config_path.exists():
             self.load()
 
@@ -303,6 +312,13 @@ class ConfigManager:
                 )
                 for job in dt.get("jobs", [])
             ]
+        )
+
+        # Parse scraper
+        scr = config.get("scraper", {})
+        self.scraper = ScraperConfig(
+            excluded_companies=list(scr.get("excluded_companies", [])),
+            excluded_title_keywords=list(scr.get("excluded_title_keywords", [])),
         )
 
     def get_config_value(self, query: str) -> Any:  # noqa: ANN401

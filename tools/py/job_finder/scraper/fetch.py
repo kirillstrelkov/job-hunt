@@ -5,22 +5,14 @@ from urllib.parse import urlsplit
 
 from loguru import logger
 
+from config.config import DEFAULT_CONFIG
 from job_finder.scraper.base import Job, browser_context
 from job_finder.scraper.indeed import IndeedBoard
 from job_finder.scraper.linkedin import LinkedinBoard
 from job_finder.scraper.stepstone import StepstoneBoard
 
-EXCLUDED_COMPANIES = {
-    "mindrift",
-    "turing",
-}
-
-EXCLUDED_TITLE_KEYWORDS = {
-    "intern",
-    "student",
-    "manager",
-    "marketing",
-}
+EXCLUDED_COMPANIES = set(DEFAULT_CONFIG.scraper.excluded_companies)
+EXCLUDED_TITLE_KEYWORDS = set(DEFAULT_CONFIG.scraper.excluded_title_keywords)
 
 
 def _filter_jobs(jobs: list[Job]) -> list[Job]:
