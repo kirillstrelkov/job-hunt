@@ -98,6 +98,8 @@ data:
       llm_prompt: "{tmp_output_dir}/job_tesla/llm_prompt.md"
 
 scraper:
+  jobs_path: "{root_dir}/tmp/outputs/jobs.csv"
+  job_matches_path: "{root_dir}/tmp/outputs/job_matches.csv"
   excluded_companies:
     - mindrift
     - turing

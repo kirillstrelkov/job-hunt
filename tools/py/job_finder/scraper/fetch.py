@@ -1,9 +1,11 @@
 """Scraper coordinator to fetch job postings from specified URLs."""
 
 from collections import defaultdict
+from pathlib import Path
 from urllib.parse import urlsplit
 
 from loguru import logger
+import pandas as pd
 
 from config.config import DEFAULT_CONFIG
 from job_finder.scraper.base import Job, browser_context
@@ -11,30 +13,50 @@ from job_finder.scraper.indeed import IndeedBoard
 from job_finder.scraper.linkedin import LinkedinBoard
 from job_finder.scraper.stepstone import StepstoneBoard
 
-EXCLUDED_COMPANIES = set(DEFAULT_CONFIG.scraper.excluded_companies)
-EXCLUDED_TITLE_KEYWORDS = set(DEFAULT_CONFIG.scraper.excluded_title_keywords)
+_SCRAPER = DEFAULT_CONFIG.scraper
+_EXCLUDED_COMPANIES = set(_SCRAPER.excluded_companies)
+_EXCLUDED_TITLE_KEYWORDS = set(_SCRAPER.excluded_title_keywords)
+
+
+def _load_scraped_jobs(jobs_path: Path) -> list[Job]:
+    """Load and return the list of previously scraped jobs from the CSV file."""
+    if not jobs_path.exists():
+        return []
+
+    df = pd.read_csv(jobs_path).fillna("")
+    return [Job(**row) for row in df.to_dict(orient="records")]
 
 
 def _filter_jobs(jobs: list[Job]) -> list[Job]:
-    """Remove duplicates and filter out jobs from excluded companies and keywords.
+    """Remove duplicates, filter out jobs from excluded companies/keywords, and skip already scraped jobs by URL.
 
     Args:
         jobs: List of Job instances.
 
     Returns:
-        A list of unique Job instances not belonging to excluded companies/keywords.
+        A list of unique Job instances not belonging to excluded companies/keywords or already scraped.
 
     """
     logger.debug("Total jobs: {}", len(jobs))
     uniq_jobs = list(set(jobs))
     logger.debug("Unique jobs: {}", len(uniq_jobs))
 
-    # filter for excluded companies and keywords
+    # Load already scraped jobs to filter by URL
+    scraped_jobs = _load_scraped_jobs(Path(_SCRAPER.jobs_path))
+    scraped_urls = {j.url for j in scraped_jobs}
+
+    # filter for excluded companies, keywords, and already scraped URLs
     filtered_jobs = []
     excluded_jobs = defaultdict(list)
+    skipped_by_url_count = 0
+
     for job in uniq_jobs:
+        if job.url in scraped_urls:
+            skipped_by_url_count += 1
+            continue
+
         is_excluded = False
-        for company in EXCLUDED_COMPANIES:
+        for company in _EXCLUDED_COMPANIES:
             if company in job.company.lower():
                 excluded_jobs[company].append(job)
                 is_excluded = True
@@ -43,7 +65,7 @@ def _filter_jobs(jobs: list[Job]) -> list[Job]:
         if is_excluded:
             continue
 
-        for keyword in EXCLUDED_TITLE_KEYWORDS:
+        for keyword in _EXCLUDED_TITLE_KEYWORDS:
             if keyword in job.title.lower():
                 excluded_jobs[keyword].append(job)
                 is_excluded = True
@@ -51,6 +73,8 @@ def _filter_jobs(jobs: list[Job]) -> list[Job]:
 
         if not is_excluded:
             filtered_jobs.append(job)
+
+    logger.debug("Skipped {} jobs already present in scraped_jobs", skipped_by_url_count)
 
     for trigger, ex_jobs in excluded_jobs.items():
         logger.warning("Jobs {} excluded due to {}", len(ex_jobs), trigger)

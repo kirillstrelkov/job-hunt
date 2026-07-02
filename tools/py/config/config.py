@@ -105,6 +105,8 @@ class DataConfig:
 class ScraperConfig:
     """Scraper configuration for excluded companies and keywords."""
 
+    jobs_path: Path
+    job_matches_path: Path
     excluded_companies: list[str]
     excluded_title_keywords: list[str]
 
@@ -317,6 +319,8 @@ class ConfigManager:
         # Parse scraper
         scr = config.get("scraper", {})
         self.scraper = ScraperConfig(
+            jobs_path=Path(scr.get("jobs_path", "")),
+            job_matches_path=Path(scr.get("job_matches_path", "")),
             excluded_companies=list(scr.get("excluded_companies", [])),
             excluded_title_keywords=list(scr.get("excluded_title_keywords", [])),
         )
