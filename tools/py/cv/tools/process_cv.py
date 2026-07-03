@@ -9,7 +9,6 @@ from pathlib import Path
 
 from loguru import logger
 
-
 # TODO: create tests to check:
 # ". " at the end of lines should be remove everywhere except Summary
 # "  " two spaces should be removed with do_fix and add "  " in seconds where it is needed - Certificates
