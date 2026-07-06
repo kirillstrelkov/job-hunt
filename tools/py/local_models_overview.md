@@ -71,7 +71,7 @@ qwen3.5:9b-q4_K_M                  6488c96fa5fa    6.6 GB    3 days ago
 
 Check [result_analysis.ipynb](./tailor_cv_eval/tools/eval_performance/result_analysis.ipynb) and [eval_performance](./tailor_cv_eval/tools/eval_performance) for more information
 
-|     | Model                           | GPU Usage | GPU Info           | Options                         | Run Name                   |
+| N   | Model                           | GPU Usage | GPU Info           | Options                         | Run Name                   |
 | --- | ------------------------------- | --------- | ------------------ | ------------------------------- | -------------------------- |
 | 0   | llama3.1:8b-instruct-q6_K       | 0.530     | 6.19 GB / 11.67 GB | ctx: 32768, pred: -1, temp: 0.1 | m30_ctx32k_temp01_predneg1 |
 | 1   | gemma2:9b-instruct-q5_K_M       | 0.595     | 5.27 GB / 8.84 GB  | ctx: 32768, pred: -1, temp: 0.1 | m30_ctx32k_temp01_predneg1 |
@@ -90,19 +90,46 @@ Check [result_analysis.ipynb](./tailor_cv_eval/tools/eval_performance/result_ana
 
 ## Ollama models that use 100% GPU
 
-| Model | GPU Usage                      | GPU Info | Options           | Run Name                        |
-| ----- | ------------------------------ | -------- | ----------------- | ------------------------------- | -------------------------- |
-| 0     | gemma4:e2b                     | 1.0      | 1.52 GB / 1.52 GB | ctx: 32768, pred: -1, temp: 0.1 | m30_ctx32k_temp01_predneg1 |
-| 1     | gemma4:e2b-ctx16k              | 1.0      | 1.52 GB / 1.52 GB | ctx: 32768, pred: -1, temp: 0.1 | m30_ctx32k_temp01_predneg1 |
-| 2     | gemma4:e2b-ctx32k              | 1.0      | 1.52 GB / 1.52 GB | ctx: 32768, pred: -1, temp: 0.1 | m30_ctx32k_temp01_predneg1 |
-| 3     | gemma4:e2b-it-qat              | 1.0      | 1.62 GB / 1.62 GB | ctx: 32768, pred: -1, temp: 0.1 | m30_ctx32k_temp01_predneg1 |
-| 4     | deepseek-r1:1.5b               | 1.0      | 1.97 GB / 1.97 GB | ctx: 32768, pred: -1, temp: 0.1 | m30_ctx32k_temp01_predneg1 |
-| 5     | gemma4:e4b-it-qat              | 1.0      | 2.80 GB / 2.80 GB | ctx: 32768, pred: -1, temp: 0.1 | m30_ctx32k_temp01_predneg1 |
-| 6     | qwen2.5-coder:3b               | 1.0      | 3.13 GB / 3.13 GB | ctx: 32768, pred: -1, temp: 0.1 | m30_ctx32k_temp01_predneg1 |
-| 7     | qwen3.5:4b-q4_K_M              | 1.0      | 3.76 GB / 3.76 GB | ctx: 32768, pred: -1, temp: 0.1 | m30_ctx32k_temp01_predneg1 |
-| 8     | nemotron-mini:4b-instruct-q8_0 | 1.0      | 3.91 GB / 3.91 GB | ctx: 32768, pred: -1, temp: 0.1 | m30_ctx32k_temp01_predneg1 |
-| 9     | nemotron-3-nano:4b-q8_0        | 1.0      | 4.38 GB / 4.38 GB | ctx: 32768, pred: -1, temp: 0.1 | m30_ctx32k_temp01_predneg1 |
-| 10    | qwen2.5:3b-instruct-q8_0       | 1.0      | 4.39 GB / 4.39 GB | ctx: 32768, pred: -1, temp: 0.1 | m30_ctx32k_temp01_predneg1 |
-| 11    | deepseek-r1:7b                 | 1.0      | 5.98 GB / 5.98 GB | ctx: 32768, pred: -1, temp: 0.1 | m30_ctx32k_temp01_predneg1 |
-| 12    | qwen2.5-coder:7b               | 1.0      | 5.98 GB / 5.98 GB | ctx: 32768, pred: -1, temp: 0.1 | m30_ctx32k_temp01_predneg1 |
-| 13    | qwen2.5:7b                     | 1.0      | 5.98 GB / 5.98 GB | ctx: 32768, pred: -1, temp: 0.1 | m30_ctx32k_temp01_predneg1 |
+| N   | Model                          | GPU Usage | GPU Info          | Options                         | Run Name                   |
+| --- | ------------------------------ | --------- | ----------------- | ------------------------------- | -------------------------- |
+| 0   | gemma4:e2b                     | 1.0       | 1.52 GB / 1.52 GB | ctx: 32768, pred: -1, temp: 0.1 | m30_ctx32k_temp01_predneg1 |
+| 1   | gemma4:e2b-ctx16k              | 1.0       | 1.52 GB / 1.52 GB | ctx: 32768, pred: -1, temp: 0.1 | m30_ctx32k_temp01_predneg1 |
+| 2   | gemma4:e2b-ctx32k              | 1.0       | 1.52 GB / 1.52 GB | ctx: 32768, pred: -1, temp: 0.1 | m30_ctx32k_temp01_predneg1 |
+| 3   | gemma4:e2b-it-qat              | 1.0       | 1.62 GB / 1.62 GB | ctx: 32768, pred: -1, temp: 0.1 | m30_ctx32k_temp01_predneg1 |
+| 4   | deepseek-r1:1.5b               | 1.0       | 1.97 GB / 1.97 GB | ctx: 32768, pred: -1, temp: 0.1 | m30_ctx32k_temp01_predneg1 |
+| 5   | gemma4:e4b-it-qat              | 1.0       | 2.80 GB / 2.80 GB | ctx: 32768, pred: -1, temp: 0.1 | m30_ctx32k_temp01_predneg1 |
+| 6   | qwen2.5-coder:3b               | 1.0       | 3.13 GB / 3.13 GB | ctx: 32768, pred: -1, temp: 0.1 | m30_ctx32k_temp01_predneg1 |
+| 7   | qwen3.5:4b-q4_K_M              | 1.0       | 3.76 GB / 3.76 GB | ctx: 32768, pred: -1, temp: 0.1 | m30_ctx32k_temp01_predneg1 |
+| 8   | nemotron-mini:4b-instruct-q8_0 | 1.0       | 3.91 GB / 3.91 GB | ctx: 32768, pred: -1, temp: 0.1 | m30_ctx32k_temp01_predneg1 |
+| 9   | nemotron-3-nano:4b-q8_0        | 1.0       | 4.38 GB / 4.38 GB | ctx: 32768, pred: -1, temp: 0.1 | m30_ctx32k_temp01_predneg1 |
+| 10  | qwen2.5:3b-instruct-q8_0       | 1.0       | 4.39 GB / 4.39 GB | ctx: 32768, pred: -1, temp: 0.1 | m30_ctx32k_temp01_predneg1 |
+| 11  | deepseek-r1:7b                 | 1.0       | 5.98 GB / 5.98 GB | ctx: 32768, pred: -1, temp: 0.1 | m30_ctx32k_temp01_predneg1 |
+| 12  | qwen2.5-coder:7b               | 1.0       | 5.98 GB / 5.98 GB | ctx: 32768, pred: -1, temp: 0.1 | m30_ctx32k_temp01_predneg1 |
+| 13  | qwen2.5:7b                     | 1.0       | 5.98 GB / 5.98 GB | ctx: 32768, pred: -1, temp: 0.1 | m30_ctx32k_temp01_predneg1 |
+
+## Evaluation of models again ground truth
+
+[result_analysis.ipynb](./tailor_cv_eval/tools/eval_quality_with_gt/result_analysis.ipynb)
+
+| N   | Provider Label                                               | Prompt Label  | Success | Score    | Passed | Failed | Latency (s) | Completion Tokens | Failure Reason                                                                                                            |
+| --- | ------------------------------------------------------------ | ------------- | ------- | -------- | ------ | ------ | ----------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| 0   | gemma-4-26b-a4b-it (ctx=256000,pred=default, temp=0.1)       | llm_prompt.md | PASS    | 0.980152 | 23     | 0      | 176.250     | 2284              | NaN                                                                                                                       |
+| 1   | gemma-4-31b-it (ctx=256000,pred=default, temp=0.1)           | llm_prompt.md | PASS    | 0.978045 | 23     | 0      | 188.828     | 2085              | NaN                                                                                                                       |
+| 2   | gemma4:e2b-it-qat (ctx=32768,pred=-1, temp=0.1)              | llm_prompt.md | FAIL    | 0.890888 | 21     | 2      | 41.732      | 3573              | Expected output to contain "**Software Engineer**, _CARIAD SE, Berlin, Germany_                                           |
+| 3   | gemma4:e4b-it-qat (ctx=32768,pred=-1, temp=0.1)              | llm_prompt.md | FAIL    | 0.845263 | 20     | 3      | 70.638      | 3414              | Expected output to contain "\*\*[University of Helsinki DevOps Labs: Cloud-Native Microservices](https://github.com/ki... |
+| 4   | gemma4:e2b-ctx16k (ctx=32768,pred=-1, temp=0.1)              | llm_prompt.md | FAIL    | 0.806141 | 19     | 4      | 21.276      | 2817              | Expected output to contain "\*\*[University of Helsinki DevOps Labs: Cloud-Native Microservices](https://github.com/ki... |
+| 5   | gemma4:e2b-ctx32k (ctx=32768,pred=-1, temp=0.1)              | llm_prompt.md | FAIL    | 0.806141 | 19     | 4      | 24.484      | 2817              | Expected output to contain "\*\*[University of Helsinki DevOps Labs: Cloud-Native Microservices](https://github.com/ki... |
+| 6   | gemini-3.1-flash-lite (ctx=1048576,pred=default, temp=0.1)   | llm_prompt.md | FAIL    | 0.801980 | 19     | 4      | 5.860       | 1380              | Expected output to contain "Ixonos Estonia OÜ"                                                                            |
+| 7   | gemma4:e2b (ctx=32768,pred=-1, temp=0.1)                     | llm_prompt.md | FAIL    | 0.761414 | 18     | 5      | 25.704      | 2839              | Expected output to contain "\*\*[University of Helsinki DevOps Labs: Cloud-Native Microservices](https://github.com/ki... |
+| 8   | qwen2.5-coder:7b (ctx=32768,pred=-1, temp=0.1)               | llm_prompt.md | FAIL    | 0.667854 | 16     | 7      | 36.979      | 1389              | Expected output to contain "\*\*[University of Helsinki DevOps Labs: Cloud-Native Microservices](https://github.com/ki... |
+| 9   | nemotron-3-nano:4b-q8_0 (ctx=32768,pred=-1, temp=0.1)        | llm_prompt.md | FAIL    | 0.663532 | 16     | 7      | 71.094      | 3967              | Python code returned false len(output.splitlines()) > 70                                                                  |
+| 10  | qwen2.5-coder:3b (ctx=32768,pred=-1, temp=0.1)               | llm_prompt.md | FAIL    | 0.627918 | 15     | 8      | 71.380      | 4131              | API response error: Error: No embedding found in Ollama embeddings API response: {"error":"the input length exceeds ...   |
+| 11  | qwen2.5:7b (ctx=32768,pred=-1, temp=0.1)                     | llm_prompt.md | FAIL    | 0.442148 | 11     | 12     | 31.574      | 875               | The submitted answer and the expert answer differ in the specific content of the tailored resume (Part 1) and the de...   |
+| 12  | qwen2.5:3b-instruct-q8_0 (ctx=32768,pred=-1, temp=0.1)       | llm_prompt.md | FAIL    | 0.402386 | 10     | 13     | 30.505      | 1555              | The submitted answer differs from the expert answer in the structure of the final output (Part 1, Part 2, and Part 3...   |
+| 13  | qwen3.5:4b-q4_K_M (ctx=32768,pred=-1, temp=0.1)              | llm_prompt.md | FAIL    | 0.305365 | 7      | 16     | 108.180     | 7349              | ROUGE-N score 0.26 is less than threshold 0.3                                                                             |
+| 14  | deepseek-r1:1.5b (ctx=32768,pred=-1, temp=0.1)               | llm_prompt.md | FAIL    | 0.185088 | 5      | 18     | 23.654      | 1895              | The submitted answer does not align with the structure, formatting, or strict constraints imposed by the prompt, whi...   |
+| 15  | deepseek-r1:7b (ctx=32768,pred=-1, temp=0.1)                 | llm_prompt.md | FAIL    | 0.171829 | 3      | 20     | 35.982      | 1226              | There is a disagreement between the submitted answer and the expert answer because the submitted answer fails to adh...   |
+| 16  | nemotron-mini:4b-instruct-q8_0 (ctx=32768,pred=-1, temp=0.1) | llm_prompt.md | FAIL    | 0.110786 | 2      | 21     | 17.859      | 90                | ROUGE-N score 0.06 is less than threshold 0.3                                                                             |
+| 17  | gemini-3.5-flash (ctx=1048576,pred=default, temp=0.1)        | llm_prompt.md | FAIL    | 0.000000 | 0      | 0      | 2.017       | 0                 | 2                                                                                                                         |
+
+> `gemini-3.5-flash` failed due higher limit on API requests
