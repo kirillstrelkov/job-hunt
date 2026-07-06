@@ -222,3 +222,21 @@ def get_provider_id(model_name: str) -> str:
         return f"google:{model_name}"
 
     return f"ollama:chat:{model_name}"
+
+
+def get_embeddings_provider_id(model_name: str) -> str:
+    """Resolve the Promptfoo provider ID for a given embeddings model name from the configuration.
+
+    Args:
+        model_name: The name of the model to resolve.
+
+    Returns:
+        The provider ID string.
+
+    """
+    gemini_models = DEFAULT_CONFIG.get_config_value(".gemini_models") or []
+    if model_name in gemini_models:
+        msg = f"Model '{model_name}' is a Gemini model and cannot be used for embeddings."
+        raise ValueError(msg)
+
+    return f"ollama:embeddings:{model_name}"

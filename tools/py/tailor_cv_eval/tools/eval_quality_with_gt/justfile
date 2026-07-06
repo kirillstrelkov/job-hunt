@@ -1,3 +1,6 @@
+set dotenv-path := "../../../private/.env"
+set dotenv-required := true
+
 # Run Promptfoo prompt evaluation to compare baseline prompt vs candidate prompt
 eval-prompts *args="":
     uv run python {{ justfile_directory() }}/run.py {{ args }}

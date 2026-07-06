@@ -75,7 +75,8 @@ class LLMGeminiConfig:
 class LLMConfig:
     """Root configuration options for LLMs."""
 
-    eval_mode: str
+    eval_model: str
+    embeddings_model: str
     model_default_options: dict[str, Any]
     top_models: list[str]
     ollama: LLMOllamaConfig
@@ -232,7 +233,8 @@ class ConfigManager:
             # Flatten llm configuration
             llm = raw_config.get("llm", {})
             if llm:
-                raw_config["eval_model"] = llm.get("eval_mode")
+                raw_config["eval_model"] = llm.get("eval_model")
+                raw_config["embeddings_model"] = llm.get("embeddings_model")
                 raw_config["model_default_options"] = llm.get("model_default_options")
                 raw_config["top_models"] = llm.get("top_models")
 
@@ -295,7 +297,8 @@ class ConfigManager:
         gemini_models = [ModelConfig(name=m["name"], options=m.get("options")) for m in gemini_data.get("models", [])]
 
         self.llm = LLMConfig(
-            eval_mode=str(ll.get("eval_mode", "")),
+            eval_model=str(ll.get("eval_model", "")),
+            embeddings_model=str(ll.get("embeddings_model", "qwen3-embedding:0.6b")),
             model_default_options=dict(ll.get("model_default_options", {})),
             top_models=list(ll.get("top_models", [])),
             ollama=LLMOllamaConfig(models=ollama_models),

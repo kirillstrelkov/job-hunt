@@ -10,9 +10,10 @@ tailor:
 
 # LLM / Ollama Configuration
 llm:
-  eval_mode: gemma4:e2b
+  eval_model: gemma4:e2b
+  embeddings_model: qwen3-embedding:4b
   model_default_options:
-    num_ctx: 16384
+    num_ctx: 32768
     num_predict: -1
     seed: 42
     keep_alive: 0
@@ -21,63 +22,79 @@ llm:
     timeout: 300
 
   top_models:
-    - "gemma4:e4b-it-qat"
-    - "qwen3.5:4b-q8_0"
-    - "qwen3.5:9b-q4_K_M"
-    - "llama3.1:8b-text-q4_K_M"
     - "gemma4:e2b"
+    - "gemma4:e2b-ctx16k"
+    - "gemma4:e2b-ctx32k"
+    - "gemma4:e2b-it-qat"
+    - "deepseek-r1:1.5b"
+    - "gemma4:e4b-it-qat"
+    - "qwen2.5-coder:3b"
+    - "qwen3.5:4b-q4_K_M"
+    - "nemotron-mini:4b-instruct-q8_0"
+    - "nemotron-3-nano:4b-q8_0"
+    - "qwen2.5:3b-instruct-q8_0"
+    - "deepseek-r1:7b"
+    - "qwen2.5-coder:7b"
+    - "qwen2.5:7b"
+    # gemini models
+    - "gemini-3.1-flash-lite"
+    - "gemini-3.5-flash"
+    - "gemma-4-26b-a4b-it"
+    - "gemma-4-31b-it"
 
   ollama:
     models:
-      - name: "llama3.1:8b-text-q4_K_M"
-      - name: "gemma4:e4b-it-qat"
-      - name: "llama3.2:3b-instruct-q8_0"
-      - name: "qwen2.5:3b-instruct-q8_0"
-      - name: "qwen2.5:7b-instruct-q4_K_M"
-      - name: "mistral:7b-instruct-v0.3-q4_K_M"
-      - name: "qwen3.5:9b-q4_K_M"
-      - name: "gemma4:12b-it-qat"
-        options:
-          num_predict: 4000
-          repeat_penalty: 1.15
-      - name: "qwen3.5:4b-q8_0"
-      - name: "llama3.1:8b-instruct-q6_K"
-        options:
-          temperature: 0.3
-          top_p: 0.85
-          repeat_penalty: 1.05
-      - name: "gemma2:9b-instruct-q5_K_M"
-      - name: "gemma4:e2b"
-      - name: "gemma4:e2b-it-qat"
-      - name: "deepseek-r1:7b"
-        options:
-          num_predict: 8192
-      - name: "qwen2.5-coder:7b"
-      - name: "llama3.1:8b"
       - name: "codegemma:7b-code"
       - name: "deepseek-r1:1.5b"
-      - name: "phi4-mini:3.8b-q8_0"
+      - name: "deepseek-r1:7b"
       - name: "falcon3:7b"
+      - name: "gemma2:9b-instruct-q5_K_M"
+      - name: "gemma4:12b-it-qat"
+      - name: "gemma4:e2b-ctx16k"
+      - name: "gemma4:e2b-ctx32k"
+      - name: "gemma4:e2b-it-qat"
+      - name: "gemma4:e2b"
+      - name: "gemma4:e4b-it-qat"
+      - name: "llama3.1:8b-instruct-q6_K"
+      - name: "llama3.1:8b-text-q4_K_M"
+      - name: "llama3.1:8b"
+      - name: "llama3.2:3b-instruct-q8_0"
+      - name: "mistral:7b-instruct-v0.3-q4_K_M"
+      - name: "nemotron-3-nano:4b-q8_0"
+      - name: "nemotron-mini:4b-instruct-q8_0"
+      - name: "phi4-mini:3.8b-q8_0"
+      - name: "qwen2.5-coder:3b"
+      - name: "qwen2.5-coder:7b"
+      - name: "qwen2.5:3b-instruct-q8_0"
+      - name: "qwen2.5:7b-instruct-q4_K_M"
+      - name: "qwen2.5:7b"
+      - name: "qwen3.5:4b-q4_K_M"
+      - name: "qwen3.5:4b-q8_0"
+      - name: "qwen3.5:9b-q4_K_M"
 
   gemini:
     models:
       - name: "gemini-3.1-flash-lite"
         options:
+          num_ctx: 1048576
           use_default: False
           temperature: 0.1
           maxRetries: 3
       - name: "gemini-3.5-flash"
         options:
+          num_ctx: 1048576
           use_default: False
           temperature: 0.1
           maxRetries: 3
       - name: "gemma-4-26b-a4b-it"
         options:
+          num_ctx: 256000
           use_default: False
           temperature: 0.1
           maxRetries: 3
       - name: "gemma-4-31b-it"
         options:
+          num_ctx: 256000
           use_default: False
           temperature: 0.1
           maxRetries: 3

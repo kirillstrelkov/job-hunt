@@ -65,6 +65,7 @@ qwen3.5:9b-q4_K_M                  6488c96fa5fa    6.6 GB    3 days ago
 ```
 
 > Models for embeddings are skipped
+> `gemma4:e2b-ctx*k` - same model as `gemma4:e2b` but different context, is needed for Pydantic AI because passing ctx_num doesn't work
 
 ## Ollama models that won't fit into GPU
 

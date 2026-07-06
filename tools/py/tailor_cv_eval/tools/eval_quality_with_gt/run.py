@@ -6,18 +6,20 @@ import sys
 from pathlib import Path
 
 import yaml
-from helpers.config import DEFAULT_CONFIG
 from loguru import logger
 
+from config.config import DEFAULT_CONFIG
 from helpers.notebook import run_jupyter_notebook
 from helpers.ollama_helper import (
     check_if_file_fits_into_ctx_num,
+    get_embeddings_model,
     get_eval_model,
     get_model_options,
     get_top_model_names,
 )
 from helpers.promptfoo_helper import (
     convert_json_to_csv,
+    get_embeddings_provider_id,
     get_provider_id,
     run_promptfoo_eval,
     write_yaml_config,
@@ -46,6 +48,8 @@ providers: [] # Dynamically populated from config.yaml models
 tests:
   - vars:
       expected: file://{{GT_FILE}} # Dynamically populated ground truth file path
+    options:
+      transform: 'output.substring(output.search(/##\\s*PART\\s*1/i)).trim()'
     assert:
       - type: contains
         value: "PART 1"
@@ -94,9 +98,10 @@ tests:
         value: '{{expected}}'
         threshold: 0.7
         provider:
-          id: ollama:embeddings:qwen3-embedding:0.6b
+          id: {{EMBEDDINGS_PROVIDER_ID}}
           config:
-            num_ctx: 32768
+            options:
+              num_ctx: 32768
       - type: llm-rubric
         value: |
           Compare the actual output to the expected output: {{expected}}.
@@ -120,15 +125,18 @@ def generate_config(prompt_files: list[Path], gt_file: Path, output_file: Path) 
     """Load configuration template, resolve placeholder values, and write output config file."""
     eval_model = get_eval_model()
     eval_provider_id = get_provider_id(eval_model)
+    embeddings_model = get_embeddings_model()
+    embeddings_provider_id = get_embeddings_provider_id(embeddings_model)
 
     template_text = PROMPTFOO_CONFIG_TEMPLATE.replace("{{EVAL_PROVIDER_ID}}", eval_provider_id)
+    template_text = template_text.replace("{{EMBEDDINGS_PROVIDER_ID}}", embeddings_provider_id)
     template_text = template_text.replace("{{GT_FILE}}", str(gt_file.resolve()))
     template_text = template_text.replace("{{HELSINKI_VAL}}", HELSINKI_VAL)
 
     config = yaml.safe_load(template_text)
     config["prompts"] = [f"file://{pf.resolve()}" for pf in prompt_files]
 
-    models = get_top_model_names()
+    models = get_top_model_names(check_models=False)
     models_str = "\n".join(models)
     logger.debug(f"Using {len(models)} models:\n{models_str}")
 
@@ -136,7 +144,11 @@ def generate_config(prompt_files: list[Path], gt_file: Path, output_file: Path) 
     for model in models:
         base_options = get_model_options(model)
         ctx_num = base_options["num_ctx"]
-        label = f"{model} (ctx={ctx_num}, pred={base_options['num_predict']}, temp={base_options['temperature']})"
+        label = (
+            f"{model} (ctx={ctx_num},"
+            f"pred={base_options.get('num_predict', 'default')}, "
+            f"temp={base_options['temperature']})"
+        )
         providers.append(
             {
                 "id": get_provider_id(model),
@@ -153,7 +165,7 @@ def generate_config(prompt_files: list[Path], gt_file: Path, output_file: Path) 
     config["providers"] = providers
 
     write_yaml_config(config, output_file)
-    logger.info(f"Generated Promptfoo config at {output_file.relative_to(get_root_dir())}")
+    logger.info(f"Generated Promptfoo config at {output_file.relative_to(get_root_dir()).resolve()}")
 
 
 def get_prompt_files(prompts_dir: Path, baseline_prompt_file: Path) -> list[Path]:

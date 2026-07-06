@@ -42,10 +42,13 @@ def __check_models_in_ollama(models: list[str]) -> None:
             raise ValueError(msg)
 
 
-def get_top_model_names(config_manager: ConfigManager = DEFAULT_CONFIG) -> list[str]:
+def get_top_model_names(config_manager: ConfigManager = DEFAULT_CONFIG, check_models: bool = True) -> list[str]:
     """Get top model names."""
     models = config_manager.get_config_value(".top_models")
-    __check_models_in_ollama(models)
+
+    if check_models:
+        __check_models_in_ollama(models)
+
     return models
 
 
@@ -81,6 +84,13 @@ def get_eval_model(config_manager: ConfigManager = DEFAULT_CONFIG) -> str:
 
     __check_models_in_ollama([eval_model])
     return eval_model
+
+
+def get_embeddings_model(config_manager: ConfigManager = DEFAULT_CONFIG) -> str:
+    """Get the configured embeddings model name."""
+    embeddings_model = config_manager.get_config_value(".embeddings_model")
+    __check_models_in_ollama([embeddings_model])
+    return embeddings_model
 
 
 def get_model_options(model: str, config_manager: ConfigManager = DEFAULT_CONFIG) -> dict:
