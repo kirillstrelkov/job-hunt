@@ -4,17 +4,17 @@ import sys
 from pathlib import Path
 
 import pandas as pd
-from helpers.config import (
-    DEFAULT_CONFIG,
-    ConfigManager,
-)
 from loguru import logger
 from tqdm import tqdm
 
+from config.config import (
+    DEFAULT_CONFIG,
+    ConfigManager,
+)
 from helpers.config_generator import create_config
 from helpers.df_helper import ModelStatsCols
 from helpers.notebook import run_jupyter_notebook
-from helpers.ollama_helper import get_top_model_names, run_model
+from helpers.ollama_helper import _get_ollama_models, run_model
 from helpers.tmp_helper import get_llm_prompt_for_job, get_tmp_input_folder, get_tmp_output_folder
 
 RESULTS_DIR = get_tmp_output_folder(__file__)
@@ -122,12 +122,12 @@ def run_evaluation_for_config(config_path: Path, run_name: str | None = None) ->
 
 def generate_run_configs() -> list[tuple[Path, str]]:
     """Generate YAML configuration files programmatically for different evaluation parameters."""
-    models = get_top_model_names()
+    models = _get_ollama_models()
     active_count = len(models)
     logger.info(f"Number of models to be used: {active_count} ({', '.join(models)})")
 
-    temperatures = [0.0, 0.1]
-    num_ctx_values = [16384]
+    temperatures = [0.1]
+    num_ctx_values = [16384 * 2]
     num_predict_values = [-1]
 
     runs_data = []

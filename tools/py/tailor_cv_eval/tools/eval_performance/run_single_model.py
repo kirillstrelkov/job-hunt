@@ -4,9 +4,9 @@ import argparse
 import sys
 from pathlib import Path
 
-from helpers.config import DEFAULT_CONFIG
 from loguru import logger
 
+from config.config import DEFAULT_CONFIG
 from helpers.ollama_helper import get_eval_model, get_model_options, run_model
 from helpers.tmp_helper import get_llm_prompt_for_job
 

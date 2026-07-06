@@ -27,12 +27,12 @@ def check_if_file_fits_into_ctx_num(path: str | Path, ctx_num: int) -> bool:
 
 
 @lru_cache
-def __get_ollama_models() -> list[str]:
-    return [m.model for m in ollama.list().models]
+def _get_ollama_models() -> list[str]:
+    return [m.model for m in ollama.list().models if m.model]
 
 
 def __check_models_in_ollama(models: list[str]) -> None:
-    ollama_models = __get_ollama_models()
+    ollama_models = _get_ollama_models()
     for model in models:
         if model not in ollama_models:
             msg = (
