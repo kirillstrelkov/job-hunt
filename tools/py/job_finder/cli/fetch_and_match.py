@@ -2,7 +2,6 @@
 
 import argparse
 import sys
-import tempfile
 from dataclasses import asdict, is_dataclass
 from pathlib import Path
 
@@ -97,13 +96,9 @@ if __name__ == "__main__":
     urls = yaml.safe_load(Path(args.yaml_path).read_text(encoding="utf-8"))
 
     # Resolve output directory: command-line argument or get_tmp_folder fallback
-    if args.output:
-        output_dir = Path(args.output)
-    else:
-        output_dir = get_tmp_folder(__file__)
+    output_dir = Path(args.output) if args.output else get_tmp_folder(__file__)
 
     output_dir.mkdir(parents=True, exist_ok=True)
     logger.info(f"Using output directory: {output_dir}")
 
     _main(urls, output_dir, use_cache=not args.no_cache)
-

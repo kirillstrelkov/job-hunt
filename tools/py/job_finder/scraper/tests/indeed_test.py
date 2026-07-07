@@ -53,7 +53,7 @@ def test_get_job_with_company(page: IndeedBoard) -> None:
 
 
 def test_get_jobs(page: IndeedBoard) -> None:
-    url = "https://de.indeed.com/jobs?q=software&l=berlin&fromage=14&radius=50&from=searchOnDesktopSerp"
+    url = "https://de.indeed.com/jobs?q=software&l=berlin&fromage=30&radius=50&from=searchOnDesktopSerp"
     limit = 21
     page.open(url)
     jobs = page.get_jobs(limit=limit)

@@ -15,7 +15,6 @@ from helpers.telemetry import OpenInferenceSpanKindValues, SpanAttributes, Statu
 tracer = get_tracer("job-finder-reviewer")
 
 
-
 # Fallback model: "gemma4:e2b"
 MODEL = "gemma4:e4b-it-qat"
 
@@ -100,30 +99,33 @@ def _create_prompt(system: None | str = None, user: str | None = None) -> dict:
 
 def llm_send(*prompts: dict, model: str = MODEL) -> str:
     """Send a prompt + content to Ollama."""
-    if _DEBUG:
-        content = "-----\n".join([p["content"] for p in prompts])
-        path = Path(tempfile.gettempdir()) / "llm_prompt_debug.txt"
-        path.write_text(content)
-        logger.debug(f"Prompt debug file created: {path}")
+    content = "-----\n".join([p["content"] for p in prompts])
+    path = Path(tempfile.gettempdir()) / "llm_prompt_debug.txt"
+    path.write_text(content)
 
     with tracer.start_as_current_span("llm_send") as span:
-        span.set_attribute(SpanAttributes.OPENINFERENCE_SPAN_KIND, OpenInferenceSpanKindValues.LLM.value)
-        span.set_attribute(SpanAttributes.LLM_MODEL_NAME, model)
-        try:
-            span.set_attribute(SpanAttributes.INPUT_VALUE, json.dumps(prompts))
-        except Exception:  # noqa: BLE001
-            span.set_attribute(SpanAttributes.INPUT_VALUE, str(prompts))
+        options = {
+            "temperature": 0,
+            "num_ctx": 16384,
+            "num_predict": 3072,
+            "seed": 42,
+        }
+
+        span.set_attributes(
+            {
+                SpanAttributes.OPENINFERENCE_SPAN_KIND: OpenInferenceSpanKindValues.LLM.value,
+                SpanAttributes.LLM_MODEL_NAME: model,
+                SpanAttributes.INPUT_VALUE: str(prompts),
+                SpanAttributes.LLM_INVOCATION_PARAMETERS: str(options),
+                SpanAttributes.LLM_REQUEST_INPUT_TEXT: str(prompts),
+            }
+        )
 
         try:
             response = ollama.chat(
                 model=model,
                 messages=prompts,
-                options={
-                    "temperature": 0,
-                    "num_ctx": 16384,
-                    "num_predict": 3072,
-                    "seed": 42,
-                },
+                options=options,
             )
             response_content = response["message"]["content"]
             span.set_attribute(SpanAttributes.OUTPUT_VALUE, response_content)
@@ -133,7 +135,6 @@ def llm_send(*prompts: dict, model: str = MODEL) -> str:
             span.set_status(StatusCode.ERROR, str(e))
             logger.error(f"LLM Error: {e}")
             return ""
-
 
 
 def _get_screening(job_description: str, model: str = MODEL) -> Screening:
