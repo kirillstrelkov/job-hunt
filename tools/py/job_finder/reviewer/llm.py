@@ -10,6 +10,12 @@ from loguru import logger
 
 from .llm_with_pydantic import Analysis, JobMatchResult, Screening
 
+from helpers.telemetry import OpenInferenceSpanKindValues, SpanAttributes, StatusCode, get_tracer
+
+tracer = get_tracer("job-finder-reviewer")
+
+
+
 # Fallback model: "gemma4:e2b"
 MODEL = "gemma4:e4b-it-qat"
 
@@ -100,21 +106,34 @@ def llm_send(*prompts: dict, model: str = MODEL) -> str:
         path.write_text(content)
         logger.debug(f"Prompt debug file created: {path}")
 
-    try:
-        response = ollama.chat(
-            model=model,
-            messages=prompts,
-            options={
-                "temperature": 0,
-                "num_ctx": 16384,
-                "num_predict": 3072,
-                "seed": 42,
-            },
-        )
-        return response["message"]["content"]
-    except Exception as e:  # noqa: BLE001
-        logger.error(f"LLM Error: {e}")
-        return ""
+    with tracer.start_as_current_span("llm_send") as span:
+        span.set_attribute(SpanAttributes.OPENINFERENCE_SPAN_KIND, OpenInferenceSpanKindValues.LLM.value)
+        span.set_attribute(SpanAttributes.LLM_MODEL_NAME, model)
+        try:
+            span.set_attribute(SpanAttributes.INPUT_VALUE, json.dumps(prompts))
+        except Exception:  # noqa: BLE001
+            span.set_attribute(SpanAttributes.INPUT_VALUE, str(prompts))
+
+        try:
+            response = ollama.chat(
+                model=model,
+                messages=prompts,
+                options={
+                    "temperature": 0,
+                    "num_ctx": 16384,
+                    "num_predict": 3072,
+                    "seed": 42,
+                },
+            )
+            response_content = response["message"]["content"]
+            span.set_attribute(SpanAttributes.OUTPUT_VALUE, response_content)
+            return response_content
+        except Exception as e:  # noqa: BLE001
+            span.record_exception(e)
+            span.set_status(StatusCode.ERROR, str(e))
+            logger.error(f"LLM Error: {e}")
+            return ""
+
 
 
 def _get_screening(job_description: str, model: str = MODEL) -> Screening:
