@@ -128,7 +128,10 @@ def llm_send(*prompts: dict, model: str = MODEL) -> str:
                 options=options,
             )
             response_content = response["message"]["content"]
+
             span.set_attribute(SpanAttributes.OUTPUT_VALUE, response_content)
+            span.set_status(StatusCode.OK)
+
             return response_content
         except Exception as e:  # noqa: BLE001
             span.record_exception(e)

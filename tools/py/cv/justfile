@@ -104,5 +104,6 @@ auto-compose-cv-top-models folder:
     # uv run python tools/compose_cv_locally.py {{ folder }} --model "gemma-4-26b-a4b-it"
     # uv run python tools/compose_cv_locally.py {{ folder }} --model "gemma-4-31b-it"
 
+# Compose CV from CSV file
 auto-compose-csv path:
-    uv run python tools/compose_jobs_from_csv.py --path {{ path }} --folder ./tmp/from_csv --model "gemma-4-26b-a4b-it"
+    uv run python tools/compose_jobs_from_csv.py --path {{ path }} --force --folder ./tmp/from_csv2 --model "gemma4:e2b-ctx32k"

@@ -10,6 +10,11 @@ from loguru import logger
 from helpers.llm import get_agent
 from helpers.ollama_helper import get_eval_model
 
+from helpers.telemetry import OpenInferenceSpanKindValues, SpanAttributes, StatusCode, get_tracer
+
+
+tracer = get_tracer("tailor-cv-body")
+
 
 def parse_args() -> argparse.Namespace:
     """Parse command line arguments."""
@@ -44,34 +49,49 @@ def parse_args() -> argparse.Namespace:
 def run_ollama(prompt_content: str, model: str) -> dict:
     """Run Ollama model on the prompt content using Pydantic AI Agent."""
     logger.info(f"Running LLM model '{model}' via Ollama Pydantic AI agent...")
-    start_time = time.time()
     agent = get_agent(
         model_name=model,
         output_type=str,
     )
-    result = agent.run_sync(prompt_content)
-    elapsed = time.time() - start_time
 
-    response_text = result.output
+    with tracer.start_as_current_span("run_ollama") as span:
+        span.set_attributes(
+            {
+                SpanAttributes.OPENINFERENCE_SPAN_KIND: OpenInferenceSpanKindValues.LLM.value,
+                SpanAttributes.LLM_MODEL_NAME: model,
+                SpanAttributes.INPUT_VALUE: prompt_content,
+            }
+        )
 
-    usage = result.usage
-    prompt_tokens = usage.input_tokens or 0
-    gen_tokens = usage.output_tokens or 0
-    tokens_per_sec = gen_tokens / elapsed if elapsed > 0.001 else 0.0  # noqa: PLR2004
+        start_time = time.time()
+        result = agent.run_sync(prompt_content)
+        elapsed = time.time() - start_time
 
-    return {
-        "model": model,
-        "total_time": elapsed,
-        "load_time": 0.0,
-        "prompt_tokens": prompt_tokens,
-        "gen_tokens": gen_tokens,
-        "tokens_per_sec": tokens_per_sec,
-        "char_count": len(response_text),
-        "word_count": len(response_text.split()),
-        "gpu_usage": 0.0,
-        "gpu_info": None,
-        "response": response_text,
-    }
+        response_text = result.output
+
+        usage = result.usage
+        prompt_tokens = usage.input_tokens or 0
+        gen_tokens = usage.output_tokens or 0
+        tokens_per_sec = gen_tokens / elapsed if elapsed > 0.001 else 0.0  # noqa: PLR2004
+
+        resp = {
+            "model": model,
+            "total_time": elapsed,
+            "load_time": 0.0,
+            "prompt_tokens": prompt_tokens,
+            "gen_tokens": gen_tokens,
+            "tokens_per_sec": tokens_per_sec,
+            "char_count": len(response_text),
+            "word_count": len(response_text.split()),
+            "gpu_usage": 0.0,
+            "gpu_info": None,
+            "response": response_text,
+        }
+
+        span.set_attribute(SpanAttributes.OUTPUT_VALUE, str(resp))
+        span.set_status(StatusCode.OK)
+
+        return resp
 
 
 def process_output_of_ollama(result: dict, output_file: Path) -> None:

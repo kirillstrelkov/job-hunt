@@ -158,3 +158,36 @@ Check [result_analysis.ipynb](./tailor_cv_eval/tools/eval_performance/result_ana
 | ollama:chat:gemma4:e4b-it-qat              | 8    | 0    | 8     | 100.0            |
 | google:gemma-4-26b-a4b-it                  | 8    | 0    | 8     | 100.0            |
 | google:gemini-3.1-flash-lite               | 8    | 0    | 8     | 100.0            |
+
+## Combined Performance Comparison
+
+| Model / Provider Label         | Score (Ground Truth) | Passed (Ground Truth) | Success Rate (Job Finder) |
+| :----------------------------- | :------------------: | :-------------------: | :-----------------------: |
+| gemma-4-26b-a4b-it             |       0.980152       |          23           |          100.0%           |
+| gemma-4-31b-it                 |       0.978045       |          23           |           62.5%           |
+| gemma4:e2b-it-qat              |       0.890888       |          21           |           75.0%           |
+| gemma4:e4b-it-qat              |       0.845263       |          20           |          100.0%           |
+| gemma4:e2b-ctx16k              |       0.806141       |          19           |           62.5%           |
+| gemma4:e2b-ctx32k              |       0.806141       |          19           |           62.5%           |
+| gemini-3.1-flash-lite          |       0.801980       |          19           |          100.0%           |
+| gemma4:e2b                     |       0.761414       |          18           |           87.5%           |
+| qwen2.5-coder:7b               |       0.667854       |          16           |           87.5%           |
+| nemotron-3-nano:4b-q8_0        |       0.663532       |          16           |           25.0%           |
+| qwen2.5-coder:3b               |       0.627918       |          15           |           0.0%            |
+| qwen2.5:7b                     |       0.442148       |          11           |           87.5%           |
+| qwen2.5:3b-instruct-q8_0       |       0.402386       |          10           |           50.0%           |
+| qwen3.5:4b-q4_K_M              |       0.305365       |           7           |           37.5%           |
+| deepseek-r1:1.5b               |       0.185088       |           5           |           0.0%            |
+| deepseek-r1:7b                 |       0.171829       |           3           |           0.0%            |
+| nemotron-mini:4b-instruct-q8_0 |       0.110786       |           2           |           0.0%            |
+| gemini-3.5-flash               |       0.000000       |           0           |           25.0%           |
+
+> `gemini-3.5-flash` is bad at ground truth due to limit on tokens
+> `qwen2.5-coder:7b` and `qwen2.5:7b` probably need update in logic/prompt to perform better
+
+For cloud free models, use `gemma-4-26b-a4b-it`, `gemini-3.5-flash` fails on high demand error,
+`gemini-3.1-flash-lite` is good if enough tokens are left.
+
+For local models, `gemma4:e2b-it-qat`/`gemma4:e2b` if you need fastest model or
+`gemma4:e4b-it-qat` if you need stable but a bit slower model.
+**Pydantic AI does NOT support context change via model settings - model with changed context should be created, check [./helpers/llm/models/README.md](./helpers/llm/models/README.md)**

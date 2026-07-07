@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 from cv.tools.md2pdf import convert_md_to_pdf
 from cv.tools.prepare_cv import prepare_cv
 from cv.tools.process_cv import check_file, fix_file
-from cv.tools.tailor_body import get_eval_model, process_output_of_ollama, run_ollama
+from cv.tools.tailor_cv_body import get_eval_model, process_output_of_ollama, run_ollama
 from helpers.llm import get_agent
 
 
