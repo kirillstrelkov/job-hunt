@@ -133,3 +133,28 @@ Check [result_analysis.ipynb](./tailor_cv_eval/tools/eval_performance/result_ana
 | 17  | gemini-3.5-flash (ctx=1048576,pred=default, temp=0.1)        | llm_prompt.md | FAIL    | 0.000000 | 0      | 0      | 2.017       | 0                 | 2                                                                                                                         |
 
 > `gemini-3.5-flash` failed due higher limit on API requests
+
+## Evaluation of models in job_finder
+
+[models_analys.ipynb](./job_finder/promptfoo/models_analys.ipynb)
+
+| Provider Id                                | PASS | FAIL | Total | Success Rate (%) |
+| ------------------------------------------ | ---- | ---- | ----- | ---------------- |
+| ollama:chat:qwen2.5-coder:3b               | 0    | 8    | 8     | 0.0              |
+| ollama:chat:deepseek-r1:1.5b               | 0    | 8    | 8     | 0.0              |
+| ollama:chat:deepseek-r1:7b                 | 0    | 8    | 8     | 0.0              |
+| ollama:chat:nemotron-mini:4b-instruct-q8_0 | 0    | 8    | 8     | 0.0              |
+| google:gemini-3.5-flash                    | 2    | 6    | 8     | 25.0             |
+| ollama:chat:nemotron-3-nano:4b-q8_0        | 2    | 6    | 8     | 25.0             |
+| ollama:chat:qwen3.5:4b-q4_K_M              | 3    | 5    | 8     | 37.5             |
+| ollama:chat:qwen2.5:3b-instruct-q8_0       | 4    | 4    | 8     | 50.0             |
+| ollama:chat:gemma4:e2b-ctx32k              | 5    | 3    | 8     | 62.5             |
+| ollama:chat:gemma4:e2b-ctx16k              | 5    | 3    | 8     | 62.5             |
+| google:gemma-4-31b-it                      | 5    | 3    | 8     | 62.5             |
+| ollama:chat:gemma4:e2b-it-qat              | 6    | 2    | 8     | 75.0             |
+| ollama:chat:gemma4:e2b                     | 7    | 1    | 8     | 87.5             |
+| ollama:chat:qwen2.5-coder:7b               | 7    | 1    | 8     | 87.5             |
+| ollama:chat:qwen2.5:7b                     | 7    | 1    | 8     | 87.5             |
+| ollama:chat:gemma4:e4b-it-qat              | 8    | 0    | 8     | 100.0            |
+| google:gemma-4-26b-a4b-it                  | 8    | 0    | 8     | 100.0            |
+| google:gemini-3.1-flash-lite               | 8    | 0    | 8     | 100.0            |
