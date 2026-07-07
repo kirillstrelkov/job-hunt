@@ -3,7 +3,7 @@
 from dotenv import load_dotenv
 from pydantic import BaseModel
 from pydantic_ai import Agent
-from pydantic_ai.models.gemini import GeminiModel
+from pydantic_ai.models.google import GoogleModel
 
 from config.config import DEFAULT_CONFIG
 from helpers.constants import SYS_PROMPT_WITH_TAILORED_CV
@@ -20,7 +20,7 @@ def get_agent(
     """Return a configured Gemini Pydantic AI agent."""
     options = get_model_options(model_name)
     settings = dict_to_model_settings(options)
-    model = GeminiModel(model_name)
+    model = GoogleModel(model_name)
 
     return Agent(
         model,

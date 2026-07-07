@@ -1,6 +1,7 @@
 """Reviewer module to evaluate job descriptions against candidate CV."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from pathlib import Path
 from pprint import pformat
 
@@ -14,17 +15,14 @@ from job_finder.utils.caching_utils import get_cached_value, get_hashsum
 _CV_TEXT = (Path(__file__).resolve().parent.parent / "data/private/cv.txt").read_text(encoding="utf-8")
 
 
-@dataclass
-class JobMatch:
+@dataclass(frozen=True)
+class JobMatch(Job):
     """Dataclass holding the results of a CV-to-job match assessment."""
 
-    url: str
-    title: str
-    company: str
-    description: str
-    match_percentage: int
-    llm_text: str
-    check_passed: bool
+    match_percentage: int = -1
+    llm_text: str = ""
+    check_passed: bool = False
+    processed_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc), compare=False)
 
 
 def _match_cv_and_job_desc(job_desc: Job) -> JobMatch:
@@ -49,6 +47,8 @@ def _match_cv_and_job_desc(job_desc: Job) -> JobMatch:
             company=job_desc.company,
             url=job_desc.url,
             description=job_desc.description,
+            error=job_desc.error,
+            created_at=job_desc.created_at,
             match_percentage=match,
             llm_text=pformat(res),
             check_passed=check_passed,
@@ -64,6 +64,8 @@ def _match_cv_and_job_desc(job_desc: Job) -> JobMatch:
             company=job_desc.company,
             url=job_desc.url,
             description=job_desc.description,
+            error=job_desc.error,
+            created_at=job_desc.created_at,
             match_percentage=-1,
             llm_text="",
             check_passed=False,

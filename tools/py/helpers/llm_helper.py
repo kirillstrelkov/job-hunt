@@ -7,7 +7,7 @@ from typing import Any
 
 from loguru import logger
 from pydantic_ai import Agent, ModelSettings
-from pydantic_ai.models.gemini import GeminiModel
+from pydantic_ai.models.google import GoogleModel
 
 from config.config import DEFAULT_CONFIG, ConfigManager
 
@@ -122,10 +122,10 @@ def run_model(model: str, prompt_content: str, options: dict | None = None) -> d
         raise RuntimeError(msg)
 
     model_settings = dict_to_model_settings(options)
-    gemini_model = GeminiModel(model)
-    agent = Agent(gemini_model)
+    gemini_model = GoogleModel(model)
+    agent = Agent(gemini_model, model_settings=model_settings)
 
-    result = agent.run_sync(prompt_content, model_settings=model_settings)
+    result = agent.run_sync(prompt_content)
     elapsed = time.time() - start_time
 
     response = result.output
@@ -168,10 +168,10 @@ def generate_response(model: str, prompt: str, options: dict | None = None) -> s
         raise RuntimeError(msg)
 
     model_settings = dict_to_model_settings(merged_options)
-    gemini_model = GeminiModel(model)
-    agent = Agent(gemini_model)
+    gemini_model = GoogleModel(model)
+    agent = Agent(gemini_model, model_settings=model_settings)
 
-    result = agent.run_sync(prompt, model_settings=model_settings)
+    result = agent.run_sync(prompt)
     return result.output
 
 

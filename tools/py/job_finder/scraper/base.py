@@ -2,6 +2,7 @@
 
 import atexit
 from collections.abc import Generator
+from datetime import datetime, timezone
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from traceback import format_exc
@@ -64,11 +65,29 @@ class Job:
     url: str = field(compare=False)
     description: str
     error: str
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc), compare=False)
 
 
-def make_job(title: str = "", company: str = "", url: str = "", description: str = "", error: str = "") -> Job:
+def make_job(
+    *,
+    title: str = "",
+    company: str = "",
+    url: str = "",
+    description: str = "",
+    error: str = "",
+    created_at: datetime | None = None,
+) -> Job:
     """Create a Job instance."""
-    return Job(title=title, company=company, url=url, description=description, error=error)
+    kwargs = {
+        "title": title,
+        "company": company,
+        "url": url,
+        "description": description,
+        "error": error,
+    }
+    if created_at is not None:
+        kwargs["created_at"] = created_at
+    return Job(**kwargs)
 
 
 class JobBoard:
