@@ -12,6 +12,7 @@ This tool helps compare and benchmark different LLM prompts side-by-side using P
 ## Configuration
 
 This tool respects your `config.yaml` configuration at the root:
+
 - `eval_model`: The local Ollama model to use as an evaluator judge (e.g., `llama3.1:8b`).
 - `tmp_output_dir`: The root directory for temporary artifacts (defaults to `tmp/outputs`).
 - `llm_prompt_output_file`: The filename of the baseline prompt (defaults to `llm_prompt.md`).
@@ -23,29 +24,39 @@ This tool respects your `config.yaml` configuration at the root:
 Follow these steps to evaluate prompt template modifications:
 
 ### Step 1: Generate a Baseline
+
 Ensure you have generated the baseline prompt from the project root:
+
 ```bash
 just generate-prompt-for-jd
 ```
+
 This saves the baseline prompt to `tmp/outputs/job1/llm_prompt.md`.
 
 ### Step 2: Run the Prompt Evaluation
+
 Execute the evaluation command:
+
 ```bash
 just eval-prompts
 ```
 
 ### Step 3: Add Candidate Prompts
+
 When the script runs, it will copy the baseline and prompt you if only the baseline is found:
+
 ```text
 [INFO] Only the baseline prompt was found in tmp/outputs/prompt_eval.
 Please copy or create your new candidate prompt *.md files in: tmp/outputs/prompt_eval
 Press ENTER once you have added your candidate prompt(s) to continue evaluation...
 ```
+
 Place your modified prompt files into `tmp/outputs/prompt_eval/` and press **ENTER**.
 
 ### Step 4: View Results
+
 Once execution is complete, you can review the console grid output or launch the interactive dashboard to view detailed scores, diffs, and generated text:
+
 ```bash
 just view-promptfoo
 ```

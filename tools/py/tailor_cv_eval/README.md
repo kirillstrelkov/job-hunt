@@ -9,6 +9,7 @@ All evaluation tools share a centralized configuration file: `config.yaml`.
 ## Shared Configuration (`config.yaml`)
 
 All frameworks pull their model lists and evaluator model settings from this single file:
+
 ```yaml
 models:
   - name: "gemma4:e2b"
@@ -28,44 +29,51 @@ eval_model: "llama3.1:8b"
 The framework is organized into the `tools/models_cmp/` folder, each containing its own evaluation implementation:
 
 ### 1. **DeepEval** (`tools/models_cmp/deepeval/`)
-* **What it evaluates**: Performs factual correctness evaluation using Pytest-native unit tests. It runs a single model-graded check with `GEval` powered by your local `llama3.1:8b`.
-* **Commands**:
-   * `just test-jd` (Evaluate job description variant)
-   * `just deepeval-view` (View local Pytest HTML reports)
+
+- **What it evaluates**: Performs factual correctness evaluation using Pytest-native unit tests. It runs a single model-graded check with `GEval` powered by your local `llama3.1:8b`.
+- **Commands**:
+  - `just test-jd` (Evaluate job description variant)
+  - `just deepeval-view` (View local Pytest HTML reports)
 
 ### 2. **Promptfoo** (`tools/models_cmp/promptfoo/`)
-* **What it evaluates**: A visual prompt engineering dashboard evaluating three criteria:
+
+- **What it evaluates**: A visual prompt engineering dashboard evaluating three criteria:
   1. **Semantic Similarity (`similar`)**: Cosine similarity of vector embeddings via local Ollama.
   2. **Factual Consistency (`llm-rubric`)**: Local LLM judge check.
   3. **Lexical Overlap (`rouge-n`)**: Word sequence overlap metric.
-* **Commands**:
-   * `just promptfoo-test-jd`
-   * `just promptfoo-view` (Open local interactive React dashboard)
+- **Commands**:
+  - `just promptfoo-test-jd`
+  - `just promptfoo-view` (Open local interactive React dashboard)
 
 ### 3. **LlamaIndex** (`tools/models_cmp/llamaindex/`)
-* **What it evaluates**: Uses LlamaIndex's native `CorrectnessEvaluator` powered by Ollama to assess correctness and relevance of the output against ground truth.
-* **Commands**:
-   * `just llamaindex-test-jd`
+
+- **What it evaluates**: Uses LlamaIndex's native `CorrectnessEvaluator` powered by Ollama to assess correctness and relevance of the output against ground truth.
+- **Commands**:
+  - `just llamaindex-test-jd`
 
 ### 4. **Ragas** (`tools/models_cmp/ragas/`)
-* **What it evaluates**: Uses `faithfulness` and `answer_relevance` metrics by constructing a local HuggingFace evaluation dataset.
-* **Commands**:
-   * `just ragas-test-jd`
+
+- **What it evaluates**: Uses `faithfulness` and `answer_relevance` metrics by constructing a local HuggingFace evaluation dataset.
+- **Commands**:
+  - `just ragas-test-jd`
 
 ### 5. **TruLens** (`tools/models_cmp/trulens/`)
-* **What it evaluates**: Sets up local feedback functions and logs all model runs and scores into a local TruLens database.
-* **Commands**:
-   * `just trulens-test-jd`
+
+- **What it evaluates**: Sets up local feedback functions and logs all model runs and scores into a local TruLens database.
+- **Commands**:
+  - `just trulens-test-jd`
 
 ### 6. **Giskard** (`tools/models_cmp/giskard/`)
-* **What it evaluates**: Sets up a Giskard Dataset and runs a custom model-graded test suite verifying factual correctness.
-* **Commands**:
-   * `just giskard-test-jd`
+
+- **What it evaluates**: Sets up a Giskard Dataset and runs a custom model-graded test suite verifying factual correctness.
+- **Commands**:
+  - `just giskard-test-jd`
 
 ### 7. **Text-Grad** (`tools/models_cmp/textgrad/`)
-* **What it evaluates**: Employs Stanford's backpropagation-through-text to evaluate model output and generates precise "textual gradients" (detailed feedback showing exactly what sections, words, or styles need improvement to match the ground truth).
-* **Commands**:
-   * `just textgrad-test-jd`
+
+- **What it evaluates**: Employs Stanford's backpropagation-through-text to evaluate model output and generates precise "textual gradients" (detailed feedback showing exactly what sections, words, or styles need improvement to match the ground truth).
+- **Commands**:
+  - `just textgrad-test-jd`
 
 ---
 
@@ -74,12 +82,14 @@ The framework is organized into the `tools/models_cmp/` folder, each containing 
 These tools help tune the prompt templates and generation parameters themselves:
 
 ### 1. **Prompt Evaluation** (`tools/prompt_eval/`)
-* **Purpose**: Evaluates modifications to `prepare_llm_prompt.py` by running candidate prompts against the baseline prompt generated in the outputs directory (configured via `llm_prompt` on the job).
-* **Command**: `just eval-prompts`
+
+- **Purpose**: Evaluates modifications to `prepare_llm_prompt.py` by running candidate prompts against the baseline prompt generated in the outputs directory (configured via `llm_prompt` on the job).
+- **Command**: `just eval-prompts`
 
 ### 2. **Parameter Tuning** (`tools/parameter_eval/`)
-* **Purpose**: Evaluates different generation settings (temperature, top_p, repeat_penalty) configured in `tools/py/helpers/ollama_helper.py` through a custom Promptfoo Python provider.
-* **Command**: `just eval-params`
+
+- **Purpose**: Evaluates different generation settings (temperature, top_p, repeat_penalty) configured in `tools/py/helpers/ollama_helper.py` through a custom Promptfoo Python provider.
+- **Command**: `just eval-params`
 
 ---
 
@@ -93,23 +103,27 @@ You can customize the evaluation parameters by editing the `config.yaml` file in
 
 1. **Install Dependencies**:
    Ensure you have `uv` installed, then synchronize all dependencies:
+
    ```bash
    uv sync
    ```
 
 2. **Start Ollama & Pull Models**:
    Ensure Ollama is running and download the evaluator model:
+
    ```bash
    ollama pull llama3.1:8b
    ```
 
 3. **Generate Baseline Prompts**:
+
    ```bash
    just generate-prompt-for-jd
    ```
 
 4. **Run All Comparison Evaluations**:
    To run all 7 comparison tools sequentially:
+
    ```bash
    just test-jd
    ```
