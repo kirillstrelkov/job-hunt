@@ -1,7 +1,8 @@
 import pytest
+
 from md_parser.models import (
-    BulletPoint,
     Body,
+    BulletPoint,
     CourseOrCertificate,
     Degree,
     Duration,
@@ -9,7 +10,6 @@ from md_parser.models import (
     Language,
     PersonalProjects,
     Skill,
-    SkillGroup,
     Skills,
     Summary,
     Thesis,

@@ -2,9 +2,9 @@
 
 import atexit
 from collections.abc import Generator
-from datetime import datetime, timezone
 from contextlib import contextmanager
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from traceback import format_exc
 from typing import Self
 
@@ -65,7 +65,7 @@ class Job:
     url: str = field(compare=False)
     description: str
     error: str
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc), compare=False)
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC), compare=False)
 
 
 def make_job(

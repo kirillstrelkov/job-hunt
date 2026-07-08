@@ -9,9 +9,7 @@ from loguru import logger
 
 from helpers.llm import get_agent
 from helpers.ollama_helper import get_eval_model
-
 from helpers.telemetry import OpenInferenceSpanKindValues, SpanAttributes, StatusCode, get_tracer
-
 
 tracer = get_tracer("tailor-cv-body")
 

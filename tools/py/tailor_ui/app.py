@@ -805,9 +805,7 @@ with tabs[1]:
                 "Check CV", use_container_width=True, key="btn_check_manual", type="secondary"
             )
         with col_btn3:
-            btn_fix_manual_clicked = st.button(
-                "Fix", use_container_width=True, key="btn_fix_manual", type="secondary"
-            )
+            btn_fix_manual_clicked = st.button("Fix", use_container_width=True, key="btn_fix_manual", type="secondary")
         with col_btn4:
             st.download_button(
                 "Save Composed CV as Markdown",

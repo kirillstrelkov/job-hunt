@@ -1,13 +1,14 @@
 import re
-from typing import Optional
+
 from pydantic import BaseModel, Field
+
 from cv.tools.process_cv import split_markdown_into_sections
 
 
 class Duration(BaseModel):
     """Pydantic model representing duration with optional start date and end date."""
 
-    start_date: Optional[str] = None
+    start_date: str | None = None
     end_date: str
 
     @classmethod
@@ -172,7 +173,7 @@ class Degree(BaseModel):
     degree: str
     institution: str
     duration: Duration
-    thesis: Optional[Thesis] = None
+    thesis: Thesis | None = None
 
     @classmethod
     def from_string(cls, s: str) -> "Degree":
@@ -227,11 +228,11 @@ class WorkExperience(BaseModel):
 
     title: str
     company: str
-    location: Optional[str] = None
+    location: str | None = None
     duration: Duration
     bullet_points: list[BulletPoint]
-    reason_for_resignation: Optional[str] = None
-    skills: Optional[list[Skill]] = None
+    reason_for_resignation: str | None = None
+    skills: list[Skill] | None = None
 
     @classmethod
     def from_string(cls, s: str) -> "WorkExperience":
@@ -651,9 +652,9 @@ class Body(BaseModel):
 class CV(BaseModel):
     """Pydantic model representing the entire CV structure."""
 
-    header: Optional[Header] = None
+    header: Header | None = None
     body: Body
-    footer: Optional[Footer] = None
+    footer: Footer | None = None
 
     @classmethod
     def from_string(cls, s: str) -> "CV":

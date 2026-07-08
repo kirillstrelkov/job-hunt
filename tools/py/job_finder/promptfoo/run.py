@@ -6,7 +6,6 @@ import sys
 from pathlib import Path
 
 from loguru import logger
-from job_finder.reviewer.llm import CV_PROMPT, JD_PROMPT, SYSTEM_PROMPT_CANDIDATE
 
 from helpers.notebook import run_jupyter_notebook
 from helpers.ollama_helper import get_model_options, get_top_model_names
@@ -16,7 +15,8 @@ from helpers.promptfoo_helper import (
     run_promptfoo_eval,
     write_yaml_config,
 )
-from helpers.tmp_helper import get_root_dir, get_tmp_folder
+from helpers.tmp_helper import get_tmp_folder
+from job_finder.reviewer.llm import CV_PROMPT, JD_PROMPT, SYSTEM_PROMPT_CANDIDATE
 
 MODELS = get_top_model_names(check_models=False)
 PRJ_ROOT_DIR = Path(__file__).parent.parent

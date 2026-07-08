@@ -1,19 +1,22 @@
 """Telemetry initialization and helper utilities for OpenTelemetry and Arize Phoenix."""
 
 import os
+
 from loguru import logger
-from openinference.semconv.trace import OpenInferenceSpanKindValues, SpanAttributes
 from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from opentelemetry.trace import StatusCode
 
 
 def init_telemetry() -> None:
     """Initialize OpenTelemetry tracer provider with OTLP exporter pointing to Arize Phoenix."""
     # Check if telemetry is enabled via env (or default to local Phoenix)
-    endpoint = os.getenv("PHOENIX_COLLECTOR_ENDPOINT") or os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT") or "http://localhost:6006/v1/traces"
+    endpoint = (
+        os.getenv("PHOENIX_COLLECTOR_ENDPOINT")
+        or os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
+        or "http://localhost:6006/v1/traces"
+    )
 
     try:
         # Avoid duplicate initialization
@@ -28,7 +31,6 @@ def init_telemetry() -> None:
         logger.info(f"OpenTelemetry tracing initialized. Exporting to Phoenix at {endpoint}")
     except Exception as e:
         logger.warning(f"Failed to initialize OpenTelemetry tracing: {e}")
-
 
 
 # Initialize telemetry immediately on module import

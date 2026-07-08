@@ -8,9 +8,9 @@ from pathlib import Path
 import ollama
 from loguru import logger
 
-from .llm_with_pydantic import Analysis, JobMatchResult, Screening
-
 from helpers.telemetry import OpenInferenceSpanKindValues, SpanAttributes, StatusCode, get_tracer
+
+from .llm_with_pydantic import Analysis, JobMatchResult, Screening
 
 tracer = get_tracer("job-finder-reviewer")
 

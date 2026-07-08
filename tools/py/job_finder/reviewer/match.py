@@ -1,7 +1,7 @@
 """Reviewer module to evaluate job descriptions against candidate CV."""
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from pprint import pformat
 
@@ -22,7 +22,7 @@ class JobMatch(Job):
     match_percentage: int = -1
     llm_text: str = ""
     check_passed: bool = False
-    processed_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc), compare=False)
+    processed_at: datetime = field(default_factory=lambda: datetime.now(UTC), compare=False)
 
 
 def _match_cv_and_job_desc(job_desc: Job) -> JobMatch:

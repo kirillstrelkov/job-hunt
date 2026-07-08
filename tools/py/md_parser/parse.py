@@ -9,5 +9,6 @@ def parse(text: str) -> CV:
 
     Returns:
         CV: The parsed CV Pydantic model.
+
     """
     return CV.from_string(text)
