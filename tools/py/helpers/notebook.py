@@ -15,7 +15,7 @@ def run_jupyter_notebook(notebook_path: Path) -> None:
         sys.exit(1)
 
     res = subprocess.run(  # noqa: S603
-        [  # noqa: S607
+        [
             "uv",
             "run",
             "--with",

@@ -202,7 +202,7 @@ def convert_json_to_csv(results_json_path: Path, results_csv_path: Path) -> None
         logger.info("Provider Performance (Passed / Failed):\n" + perf_df.to_string(index=False))
 
         logger.info(f"Successfully created: {results_csv_path}")
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         logger.error(f"Failed to process JSON results: {e}")
         sys.exit(1)
 

@@ -73,7 +73,7 @@ def main() -> None:  # noqa: PLR0915
 
     try:
         df = pd.read_csv(csv_path, sep=None, engine="python")
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         logger.error(f"Failed to read CSV file {csv_path}: {e}")
         sys.exit(1)
 
@@ -114,7 +114,7 @@ def main() -> None:  # noqa: PLR0915
 
         try:
             compose_cv(folder=job_folder, model=args.model, force=args.force)
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             logger.error(f"Failed to compose CV for job ID {job_id}: {e}")
 
 

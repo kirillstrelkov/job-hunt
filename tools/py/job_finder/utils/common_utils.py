@@ -37,7 +37,7 @@ def get_numbers(text: object) -> list[int]:
     return [int(num) for num in re.findall(r"\d+", str(text))]
 
 
-def get_browser(name: str = "gc", *, headless: bool = False, show_images: bool = False) -> Browser:  # noqa: ARG001
+def get_browser(name: str = "gc", *, headless: bool = False, show_images: bool = False) -> Browser:
     """Create and return an easelenium Browser instance with a clean session profile.
 
     Args:
@@ -78,7 +78,7 @@ def browser_decorator(func: Callable[..., Any]) -> Callable[..., Any]:
     """
 
     @wraps(func)
-    def wrapper(*args: Any, **kwargs: Any) -> Any:  # noqa: ANN401
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
         """Wrap the decorated function and manage its browser instance."""
         browser = None
         return_value = None
@@ -100,7 +100,7 @@ def browser_decorator(func: Callable[..., Any]) -> Callable[..., Any]:
             try:
                 if browser:
                     browser.save_screenshot()
-            except Exception:  # noqa: BLE001, S110
+            except Exception:  # noqa: S110
                 pass
             raise
         finally:

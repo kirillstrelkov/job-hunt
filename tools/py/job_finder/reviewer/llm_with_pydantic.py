@@ -154,13 +154,13 @@ def analyze_cv(cv: str, job_description: str, model: str = MODEL) -> JobMatchRes
     """
     try:
         screening = _get_screening(job_description, model=model)
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         return JobMatchResult(error=str(e))
 
     if screening.gate_passed:
         try:
             analysis = _get_analysis(cv, job_description, model=model)
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             return JobMatchResult(error=str(e))
     else:
         analysis = None

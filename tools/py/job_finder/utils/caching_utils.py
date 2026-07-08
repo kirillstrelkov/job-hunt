@@ -12,7 +12,7 @@ ENV_VAR_DISABLE_CACHED = "DISABLE_CACHED_VALUE"
 _TMP_CACHE_FOLDER = "locpycache"
 
 
-def get_hashsum(*args: Any) -> str:  # noqa: ANN401
+def get_hashsum(*args: Any) -> str:
     """Compute a SHA-256 hex digest from the string representations of the given arguments.
 
     Args:
@@ -33,7 +33,7 @@ def get_cached_value(
     folder: Path | None = None,
     *,
     extra_folders: list[Path | str] | None = None,
-) -> Any:  # noqa: ANN401
+) -> Any:
     """Return a cached value from disk, computing and storing it if not yet cached.
 
     If the environment variable ``DISABLE_CACHED_VALUE`` is set to a truthy value,

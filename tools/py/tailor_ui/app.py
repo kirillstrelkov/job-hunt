@@ -295,7 +295,7 @@ def _save_master_section(key: str, path_key: str) -> None:
             logger.info(f"Saved {key} to {file_path}")
             # Update in-memory master_texts dict
             st.session_state["master_texts"][path_key] = content
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             logger.error(f"Failed to save {key} to {file_path}: {e}")
 
 
@@ -623,7 +623,7 @@ with tabs[0]:
                         st.session_state.pop("local_cv_checked", None)
                         st.session_state["local_tailor_note"] = "CV Composed successfully!"
                         st.rerun()
-                    except Exception as e:  # noqa: BLE001
+                    except Exception as e:
                         st.session_state["local_tailor_error"] = f"LLM Generation Failed: {e}"
                         st.rerun()
 
@@ -699,7 +699,7 @@ with tabs[0]:
                             st.session_state["pdf_bytes"] = f_pdf.read()
                         st.session_state["local_pdf_note"] = f"PDF Generated and stored at {pdf_name}!"
                         st.rerun()
-                    except Exception as e:  # noqa: BLE001
+                    except Exception as e:
                         st.session_state["local_pdf_error"] = f"PDF generation failed: {e}"
                         st.rerun()
 
@@ -746,7 +746,7 @@ with tabs[1]:
         try:
             hydrated = prompt_template.format(master_cv=master_cv, job_description=jd_manual)
             st.session_state["hydrated_prompt"] = hydrated
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             st.error(f"Error formatting prompt: {e}")
 
     if "hydrated_prompt" in st.session_state:
@@ -964,7 +964,7 @@ with tabs[1]:
                             st.session_state["pdf_bytes"] = f_pdf.read()
                         st.session_state["manual_pdf_note"] = f"PDF Generated and stored at {pdf_name}!"
                         st.rerun()
-                    except Exception as e:  # noqa: BLE001
+                    except Exception as e:
                         st.session_state["manual_pdf_error"] = f"PDF generation failed: {e}"
                         st.rerun()
 
@@ -1112,7 +1112,7 @@ with tabs[2]:
                         st.session_state["arbitrary_pdf_bytes"] = f_pdf.read()
                     st.success(f"PDF Generated and stored at {pdf_name}!")
                     st.rerun()
-                except Exception as e:  # noqa: BLE001
+                except Exception as e:
                     st.error(f"PDF generation failed: {e}")
 
         if "arbitrary_pdf_bytes" in st.session_state:
@@ -1217,7 +1217,7 @@ with tabs[3]:
                         st.rerun()
                     else:
                         st.error("Invalid YAML format.")
-                except Exception as e:  # noqa: BLE001
+                except Exception as e:
                     st.error(f"Error loading config file: {e}")
         else:
             st.session_state.pop("_last_loaded_config_file_id", None)

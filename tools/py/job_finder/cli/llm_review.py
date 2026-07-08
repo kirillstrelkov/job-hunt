@@ -33,7 +33,7 @@ def load_file(path: Path) -> tuple[pd.DataFrame, str]:
     if ext in (".ods", ".xlsx", ".xls", ".odf"):
         try:
             df = pd.read_excel(path, engine="odf")
-        except Exception:  # noqa: BLE001
+        except Exception:
             df = pd.read_excel(path)
         return df, "excel"
     # Fallback to standard CSV
@@ -52,7 +52,7 @@ def save_file(df: pd.DataFrame, path: Path, file_type: str) -> None:
     if file_type == "excel":
         try:
             df.to_excel(path, index=False, engine="odf")
-        except Exception:  # noqa: BLE001
+        except Exception:
             df.to_excel(path, index=False)
     else:
         df.to_csv(path, sep=file_type, index=False)

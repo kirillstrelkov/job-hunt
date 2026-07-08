@@ -4,6 +4,7 @@ import argparse
 import subprocess
 import sys
 from pathlib import Path
+from shutil import which
 
 from loguru import logger
 
@@ -14,7 +15,7 @@ def convert_md_to_pdf(input_path: Path, output_path: Path) -> None:
     try:
         subprocess.run(  # noqa: S603
             [
-                "pandoc",
+                which("pandoc"),
                 "-V",
                 "papersize=a4",
                 "-V",

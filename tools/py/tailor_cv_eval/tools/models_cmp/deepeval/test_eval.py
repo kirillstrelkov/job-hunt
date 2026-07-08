@@ -26,7 +26,7 @@ def run_assessment(prompt_content: str, actual_output: str, expected_output: str
     # Use the configured evaluation model
     try:
         evaluator_model = OllamaModel(model=get_eval_model())
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         evaluator_model = None
         logger.error(f"Could not load custom evaluator model: {e}")
 
@@ -61,7 +61,7 @@ def run_assessment(prompt_content: str, actual_output: str, expected_output: str
         # DeepEval assert_test raises AssertionError if score is below threshold
         score = metric.score if metric.score is not None else 0.0
         reason = metric.reason or str(e)
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         # Catch JSON decoding / formatting issues of local evaluator model
         reason = f"Metric execution error: {e}"
         score = 0.0
@@ -96,7 +96,7 @@ def test_evaluate_llm_tailoring(model_name: str, variant: str) -> None:
             Path(get_tmp_output_dir()) / subfolder / "model_output" / f"{model_name.replace(':', '_')}_{variant}_cv.md"
         )
         actual_output = get_model_output(model_name, prompt_content, model_output_file)
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         pytest.fail(f"Ollama failed to generate response for {model_name}: {e}")
 
     # Save the output to outputs/ directory

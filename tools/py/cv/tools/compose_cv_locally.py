@@ -47,7 +47,7 @@ def decide_keep_thesis(jd_text: str) -> bool:
     return decision.keep_thesis
 
 
-def compose_cv(folder: str | Path, model: str | None = None, force: bool = False) -> None:  # noqa: FBT001, FBT002
+def compose_cv(folder: str | Path, model: str | None = None, force: bool = False) -> None:
     """Compose CV locally for a given folder using the specified Ollama model."""
     folder = Path(folder).resolve()
     if not folder.exists():
@@ -95,7 +95,7 @@ def compose_cv(folder: str | Path, model: str | None = None, force: bool = False
     if jd_file.exists():
         try:
             keep_thesis = decide_keep_thesis(jd_file.read_text(encoding="utf-8"))
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             logger.warning(f"Failed to dynamically decide keep_thesis via LLM: {e}. Defaulting to True.")
 
     fix_file(str(assembled_cv), keep_thesis=keep_thesis)
@@ -103,7 +103,7 @@ def compose_cv(folder: str | Path, model: str | None = None, force: bool = False
     logger.info(f"Step 5: Checking CV: {assembled_cv}")
     try:
         check_file(str(assembled_cv))
-    except (SystemExit, Exception):  # noqa: BLE001
+    except (SystemExit, Exception):
         logger.warning("Step 5 check failed, but proceeding to Step 6 anyway.")
 
     logger.info(f"Step 6: Converting CV to PDF: {pdf_output}")

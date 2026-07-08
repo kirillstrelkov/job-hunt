@@ -52,7 +52,7 @@ def extract_json_from_text(text: str) -> str | None:
     return None
 
 
-def get_assert(output: str, context: Any) -> dict[str, Any]:  # noqa: ANN401, PLR0911
+def get_assert(output: str, context: Any) -> dict[str, Any]:  # noqa: PLR0911
     """Evaluate LLM output against expected screening gates and match percentage."""
     try:
         raw = output.strip()
@@ -77,7 +77,7 @@ def get_assert(output: str, context: Any) -> dict[str, Any]:  # noqa: ANN401, PL
                 "score": 0.0,
                 "reason": f"Failed to parse LLM output as JSON: {je}. Raw output was: {raw!r}",
             }
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             return {
                 "pass": False,
                 "score": 0.0,
@@ -92,7 +92,7 @@ def get_assert(output: str, context: Any) -> dict[str, Any]:  # noqa: ANN401, PL
             assert_llm_response(res, min_match, max_match=max_match)
         except AssertionError as ae:
             return {"pass": False, "score": 0.0, "reason": f"Assertion failed: {ae}"}
-    except Exception:  # noqa: BLE001
+    except Exception:
         return {
             "pass": False,
             "score": 0.0,

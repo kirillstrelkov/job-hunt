@@ -41,7 +41,7 @@ def run_eval() -> None:
     expected = gt_file.read_text(encoding="utf-8")
     prompt_content = prompt_file.read_text(encoding="utf-8")
 
-    def correctness_score(input_text: str, output_text: str) -> float:  # noqa: ARG001
+    def correctness_score(input_text: str, output_text: str) -> float:
         prompt = (
             f"Ground Truth:\n{expected}\n\n"
             f"Generated Output:\n{output_text}\n\n"
@@ -52,7 +52,7 @@ def run_eval() -> None:
             text = generate_response(eval_model, prompt).strip()
             m = re.search(r"[-+]?\d*\.\d+|\d+", text)
             return float(m.group()) if m else 0.0
-        except Exception:  # noqa: BLE001
+        except Exception:
             return 0.0
 
     # Define TruLens Feedback
@@ -71,7 +71,7 @@ def run_eval() -> None:
                 get_tmp_output_dir() / subfolder / "model_output" / f"{model.replace(':', '_')}_{variant}_cv.md"
             )
             actual = get_model_output(model, prompt_content, model_output_file)
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             logger.error(f"Ollama generation failed for {model}: {e}")
             continue
 
@@ -84,7 +84,7 @@ def run_eval() -> None:
         try:
             record = VirtualRecord(main_input=prompt_content, main_output=actual)
             tru_recorder.add_record(record)
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             logger.error(f"Could not log record to TruLens database: {e}")
 
         # Run custom feedback to show in console

@@ -1,17 +1,16 @@
 """Create tailored CV documents and PDFs from section headers/titles."""
 
 import argparse
-import subprocess
 import sys
 from pathlib import Path
 
 from loguru import logger
 
+from cv.tools.md2pdf import convert_md_to_pdf
+from cv.tools.prepare_cv import prepare_cv
+from cv.tools.process_cv import fix_file
+
 _TOOLS_DIR = Path(__file__).parent
-
-
-from prepare_cv import prepare_cv  # noqa: E402
-from process_cv import fix_file  # noqa: E402
 
 _MARKER_START = "## Work Experience"
 _MARKER_END = "### Tailoring Justification Report"
@@ -55,19 +54,7 @@ def process_one(folder: Path, cv_md: Path) -> None:
     fix_file(str(gen_cv), keep_thesis=keep_thesis)
 
     gen_pdf = job_folder / "gen/cvStrelkov.pdf"
-    subprocess.run(  # noqa: S603
-        [
-            "pandoc",
-            "-V",
-            "papersize=a4",
-            "-V",
-            "geometry:margin=1.5cm",
-            str(gen_cv),
-            "-o",
-            str(gen_pdf),
-        ],
-        check=True,
-    )
+    convert_md_to_pdf(gen_cv, gen_pdf)
     logger.info(f"PDF: {gen_pdf}")
 
 

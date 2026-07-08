@@ -68,14 +68,14 @@ class StepstoneBoard(JobBoard):
             def _click(_: object) -> bool | None:
                 try:
                     self._browser.click(by_css=css_next_page)
-                except Exception:  # noqa: BLE001
+                except Exception:
                     return not self._browser.is_visible(by_css=css_next_page)
                 else:
                     return True
 
             try:
                 self._browser.webdriver_wait(_click, timeout=10)
-            except Exception as e:  # noqa: BLE001
+            except Exception as e:
                 logger.warning("failed to get next page: {}", e)
 
     def _has_next_page(self) -> bool:

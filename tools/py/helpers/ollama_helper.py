@@ -141,7 +141,7 @@ def track_ollama_gpu(model_name: str, interval_seconds: float = 0.5) -> Generato
                 if target and target.size > 0:
                     history["model_size"] = target.size
                     history["gpu_used"].append(target.size_vram)
-            except Exception as e:  # noqa: BLE001
+            except Exception as e:
                 logger.debug(f"Failed to check Ollama status: {e}")
             stop_event.wait(timeout=interval_seconds)
 
@@ -260,7 +260,7 @@ def get_model_output(model: str, prompt_content: str, output_file: Path, options
     return actual
 
 
-def call_api(prompt: str, options: dict, _context: Any = None) -> dict:  # noqa: ANN401
+def call_api(prompt: str, options: dict, _context: Any = None) -> dict:
     """Promptfoo custom Python provider call API interface."""
     config = options.get("config", {})
     model = config.get("model", get_eval_model())
@@ -270,7 +270,7 @@ def call_api(prompt: str, options: dict, _context: Any = None) -> dict:  # noqa:
 
     try:
         response = generate_response(model, prompt, options=ollama_options)
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         return {"error": str(e)}
     else:
         return {"output": response}

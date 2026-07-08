@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Execute a prompt against a single Ollama model for performance testing."""
 
 import argparse
@@ -43,7 +44,7 @@ def main() -> None:
 
     try:
         prompt_content = prompt_path.read_text(encoding="utf-8")
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         logger.error(f"Error reading prompt file: {e}")
         sys.exit(1)
 
@@ -65,7 +66,7 @@ def main() -> None:
                 logger.info(resp)
             else:
                 logger.warning("Response is empty.")
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         logger.error(f"Error executing prompt: {e}")
         sys.exit(1)
 

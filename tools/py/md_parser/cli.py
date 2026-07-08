@@ -21,7 +21,7 @@ def main() -> None:
 
     try:
         content = filepath.read_text(encoding="utf-8")
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         print(f"Error reading file: {e}")  # noqa: T201
         sys.exit(1)
 
@@ -41,7 +41,7 @@ def main() -> None:
             msg = err["msg"]
             print(f"  - Field '{loc}': {msg}")  # noqa: T201
         sys.exit(1)
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         print(f"Parsing errors encountered in {filepath}: {e}")  # noqa: T201
         sys.exit(1)
 

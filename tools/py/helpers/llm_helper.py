@@ -46,7 +46,7 @@ def get_model_options(model: str, config_manager: ConfigManager = DEFAULT_CONFIG
     """
     try:
         default_options = config_manager.get_config_value(".model_default_options") or {}
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         logger.debug(f"Failed to get default model options: {e}")
         default_options = {}
 
@@ -58,7 +58,7 @@ def get_model_options(model: str, config_manager: ConfigManager = DEFAULT_CONFIG
                 if model_options := item.get("options"):
                     options.update(model_options)
                 return options
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         logger.debug(f"Failed to get options for model {model}: {e}")
 
     return default_options.copy()
@@ -187,7 +187,7 @@ def get_model_output(model: str, prompt_content: str, output_file: Path, options
     return actual
 
 
-def call_api(prompt: str, options: dict, _context: Any = None) -> dict:  # noqa: ANN401
+def call_api(prompt: str, options: dict, _context: Any = None) -> dict:
     """Promptfoo custom Python provider call API interface."""
     config = options.get("config", {})
     gemini_models = get_model_names()
@@ -199,7 +199,7 @@ def call_api(prompt: str, options: dict, _context: Any = None) -> dict:  # noqa:
 
     try:
         response = generate_response(model, prompt, options=model_options)
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         return {"error": str(e)}
     else:
         return {"output": response}

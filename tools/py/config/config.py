@@ -112,7 +112,7 @@ class ScraperConfig:
     excluded_title_keywords: list[str]
 
 
-def _resolve_val(val: Any, context: dict[str, str]) -> tuple[Any, bool]:  # noqa: ANN401
+def _resolve_val(val: Any, context: dict[str, str]) -> tuple[Any, bool]:
     """Recursively resolve values using context, returning (new_val, has_changed)."""
     if isinstance(val, str):
         try:
@@ -156,7 +156,7 @@ def _resolve_dict_substitutions(config: dict) -> dict:
     return config
 
 
-def _make_paths_absolute(val: Any) -> Any:  # noqa: ANN401
+def _make_paths_absolute(val: Any) -> Any:
     """Recursively convert strings starting with ./ or ../ to absolute paths resolved relative to CONFIG_DIR."""
     if isinstance(val, str):
         if val.startswith(("./", "../")) or val in {".", ".."}:
@@ -328,7 +328,7 @@ class ConfigManager:
             excluded_title_keywords=list(scr.get("excluded_title_keywords", [])),
         )
 
-    def get_config_value(self, query: str) -> Any:  # noqa: ANN401
+    def get_config_value(self, query: str) -> Any:
         """Get a value from config using a yq-like query path (e.g. '.models[0].name').
 
         Raises ValueError if the value is not found or query is invalid.
@@ -404,7 +404,7 @@ def load(config_path: str | Path) -> dict:
 
     config_dir = config_path.parent
 
-    def resolve_paths(node: Any) -> Any:  # noqa: ANN401
+    def resolve_paths(node: Any) -> Any:
         if isinstance(node, dict):
             return {k: resolve_paths(v) for k, v in node.items()}
         if isinstance(node, list):

@@ -148,7 +148,7 @@ def main() -> None:
     try:
         result = run_ollama(prompt_content, model)
         process_output_of_ollama(result, output_file)
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         logger.error(f"Failed to generate tailored CV: {e}")
         sys.exit(1)
 

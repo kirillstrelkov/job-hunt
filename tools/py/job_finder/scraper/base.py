@@ -175,12 +175,12 @@ class JobBoard:
                 try:
                     self._browser.click(by_css=self._CSS_NEXT_PAGE)
                     return cur_url != self._browser.get_current_url()
-                except Exception:  # noqa: BLE001
+                except Exception:
                     return not self._browser.is_visible(by_css=self._CSS_NEXT_PAGE)
 
             try:
                 self._browser.webdriver_wait(_click, timeout=10)
-            except Exception as e:  # noqa: BLE001
+            except Exception as e:
                 logger.warning("failed to get next page: {}", e)
 
     def _has_next_page(self) -> bool:
@@ -226,7 +226,7 @@ class JobBoard:
         def wrap_get_job() -> Job:
             try:
                 return get_job_with_retry()
-            except Exception:  # noqa: BLE001
+            except Exception:
                 e_stack = format_exc()
                 logger.error("creating default job due to exception: {}", e_stack)
                 return make_job(url=url, error=e_stack)

@@ -57,7 +57,7 @@ def _match_cv_and_job_desc(job_desc: Job) -> JobMatch:
     hs = get_hashsum(job_desc.url, "match")
     try:
         return get_cached_value(hs, _get)
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         logger.error(f"Error matching CV and job description from {job_desc.url}: {e}")
         return JobMatch(
             title=job_desc.title,

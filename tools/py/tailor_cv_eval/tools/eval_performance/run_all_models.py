@@ -71,7 +71,7 @@ def run_evaluation_for_config(config_path: Path, run_name: str | None = None) ->
     config_manager = ConfigManager(config_path)
     try:
         config = config_manager.get_config()
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         logger.error(f"Error parsing config YAML: {e}")
         return
 
@@ -89,7 +89,7 @@ def run_evaluation_for_config(config_path: Path, run_name: str | None = None) ->
     logger.debug(f"Loaded prompt file from: {prompt_path}")
     try:
         prompt_content = prompt_path.read_text(encoding="utf-8")
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         logger.error(f"Error reading prompt file: {e}")
         return
 
@@ -109,7 +109,7 @@ def run_evaluation_for_config(config_path: Path, run_name: str | None = None) ->
                 f"Tokens/sec: {model_stat['tokens_per_sec']:.2f}, "
                 f"Response Length: {model_stat['char_count']} chars"
             )
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             logger.error(f"Error executing model '{model_name}': {e}")
 
     if not stats:

@@ -133,7 +133,7 @@ def llm_send(*prompts: dict, model: str = MODEL) -> str:
             span.set_status(StatusCode.OK)
 
             return response_content
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             span.record_exception(e)
             span.set_status(StatusCode.ERROR, str(e))
             logger.error(f"LLM Error: {e}")
@@ -175,13 +175,13 @@ def analyze_cv(cv: str, job_description: str, model: str = MODEL) -> JobMatchRes
     """
     try:
         screening = _get_screening(job_description, model=model)
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         return JobMatchResult(error=str(e))
 
     if screening.gate_passed:
         try:
             analysis = _get_analysis(cv, job_description, model=model)
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             return JobMatchResult(error=str(e))
     else:
         analysis = None
