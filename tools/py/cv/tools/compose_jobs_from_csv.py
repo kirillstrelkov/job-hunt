@@ -11,7 +11,7 @@ from tqdm import tqdm
 
 from config import config as cfg
 from cv.tools import prepare_cv
-from cv.tools.compose_cv_locally import compose_cv
+from cv.tools.compose_cv import compose_cv
 
 WORD_PATTERN = re.compile(r"\w{2,}")
 

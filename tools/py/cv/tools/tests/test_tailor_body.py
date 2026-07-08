@@ -1,8 +1,8 @@
 from pathlib import Path
 
 import pytest
-from cv.tools.tailor_body import run_ollama
 
+from cv.tools.compose_cv import run_ollama
 from helpers.tmp_helper import get_tmp_folder
 
 

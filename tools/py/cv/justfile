@@ -88,22 +88,22 @@ md2pdf input output options="--check --fix":
 
 # Compose CV from folder
 auto-compose-cv folder:
-    uv run python tools/compose_cv_locally.py {{ folder }} --model "gemma-4-26b-a4b-it"
+    uv run python tools/compose_cv.py {{ folder }} --model "gemma-4-26b-a4b-it"
 
 auto-compose-cv-top-models folder:
-    uv run python tools/compose_cv_locally.py {{ folder }} --model "gemma4:e4b-it-qat" --force
-    # uv run python tools/compose_cv_locally.py {{ folder }} --model qwen3.5:9b-q4_K_M
-    # uv run python tools/compose_cv_locally.py {{ folder }} --model llama3.1:8b-text-q4_K_M
-    # uv run python tools/compose_cv_locally.py {{ folder }} --model gemma4:e2b
-    # uv run python tools/compose_cv_locally.py {{ folder }} --model qwen3.5:4b-q8_0
-    # uv run python tools/compose_cv_locally.py {{ folder }} --model llama3.3:7b-instruct-q4_K_M
-    # uv run python tools/compose_cv_locally.py {{ folder }} --model phi4-mini:3.8b-q8_0   
-    # uv run python tools/compose_cv_locally.py {{ folder }} --model falcon3:7b
+    uv run python tools/compose_cv.py {{ folder }} --model "gemma4:e4b-it-qat" --force
+    # uv run python tools/compose_cv.py {{ folder }} --model qwen3.5:9b-q4_K_M
+    # uv run python tools/compose_cv.py {{ folder }} --model llama3.1:8b-text-q4_K_M
+    # uv run python tools/compose_cv.py {{ folder }} --model gemma4:e2b
+    # uv run python tools/compose_cv.py {{ folder }} --model qwen3.5:4b-q8_0
+    # uv run python tools/compose_cv.py {{ folder }} --model llama3.3:7b-instruct-q4_K_M
+    # uv run python tools/compose_cv.py {{ folder }} --model phi4-mini:3.8b-q8_0   
+    # uv run python tools/compose_cv.py {{ folder }} --model falcon3:7b
 
-    # uv run python tools/compose_cv_locally.py {{ folder }} --model "gemini-3.1-flash-lite"
-    # uv run python tools/compose_cv_locally.py {{ folder }} --model "gemini-3.5-flash"
-    # uv run python tools/compose_cv_locally.py {{ folder }} --model "gemma-4-26b-a4b-it"
-    # uv run python tools/compose_cv_locally.py {{ folder }} --model "gemma-4-31b-it"
+    # uv run python tools/compose_cv.py {{ folder }} --model "gemini-3.1-flash-lite"
+    # uv run python tools/compose_cv.py {{ folder }} --model "gemini-3.5-flash"
+    # uv run python tools/compose_cv.py {{ folder }} --model "gemma-4-26b-a4b-it"
+    # uv run python tools/compose_cv.py {{ folder }} --model "gemma-4-31b-it"
 
 # Compose CV from CSV file
 auto-compose-csv path:

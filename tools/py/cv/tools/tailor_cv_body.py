@@ -6,10 +6,12 @@ import time
 from pathlib import Path
 
 from loguru import logger
+from opentelemetry.trace import StatusCode
+from phoenix.otel import SpanAttributes
 
 from helpers.llm import get_agent
 from helpers.ollama_helper import get_eval_model
-from helpers.telemetry import OpenInferenceSpanKindValues, SpanAttributes, StatusCode, get_tracer
+from helpers.telemetry import get_tracer
 
 tracer = get_tracer("tailor-cv-body")
 
@@ -55,7 +57,6 @@ def run_ollama(prompt_content: str, model: str) -> dict:
     with tracer.start_as_current_span("run_ollama") as span:
         span.set_attributes(
             {
-                SpanAttributes.OPENINFERENCE_SPAN_KIND: OpenInferenceSpanKindValues.LLM.value,
                 SpanAttributes.LLM_MODEL_NAME: model,
                 SpanAttributes.INPUT_VALUE: prompt_content,
             }

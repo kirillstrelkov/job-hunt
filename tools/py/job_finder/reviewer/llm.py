@@ -7,8 +7,10 @@ from pathlib import Path
 
 import ollama
 from loguru import logger
+from opentelemetry.trace import StatusCode
+from phoenix.otel import SpanAttributes
 
-from helpers.telemetry import OpenInferenceSpanKindValues, SpanAttributes, StatusCode, get_tracer
+from helpers.telemetry import get_tracer
 
 from .llm_with_pydantic import Analysis, JobMatchResult, Screening
 
@@ -113,11 +115,9 @@ def llm_send(*prompts: dict, model: str = MODEL) -> str:
 
         span.set_attributes(
             {
-                SpanAttributes.OPENINFERENCE_SPAN_KIND: OpenInferenceSpanKindValues.LLM.value,
                 SpanAttributes.LLM_MODEL_NAME: model,
                 SpanAttributes.INPUT_VALUE: str(prompts),
                 SpanAttributes.LLM_INVOCATION_PARAMETERS: str(options),
-                SpanAttributes.LLM_REQUEST_INPUT_TEXT: str(prompts),
             }
         )
 
