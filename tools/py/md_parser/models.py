@@ -1,6 +1,7 @@
 import re
 from typing import Optional
 from pydantic import BaseModel, Field
+from cv.tools.process_cv import split_markdown_into_sections
 
 
 class Duration(BaseModel):
@@ -34,9 +35,7 @@ class BulletPoint(BaseModel):
     @classmethod
     def from_string(cls, s: str) -> "BulletPoint":
         s = s.strip()
-        if s.startswith("- "):
-            s = s[2:].strip()
-        elif s.startswith("* "):
+        if s.startswith(("- ", "* ")):
             s = s[2:].strip()
         return cls(text=s)
 
@@ -136,7 +135,7 @@ class Thesis(BaseModel):
         s = s.strip()
         for prefix in ["- Thesis:", "Thesis:", "- Thesis: "]:
             if s.startswith(prefix):
-                s = s[len(prefix):].strip()
+                s = s[len(prefix) :].strip()
                 break
         match = re.search(r"\[(.*?)\]\((.*?)\)", s)
         if match:
@@ -278,12 +277,12 @@ class WorkExperience(BaseModel):
                     content = content[1:-1].strip()
                 prefix = "Reason for resignation:"
                 if content.startswith(prefix):
-                    reason = content[len(prefix):].strip()
+                    reason = content[len(prefix) :].strip()
             elif "Skills:" in line_str or line_str.startswith("- Skills:") or line_str.startswith("Skills:"):
                 skills_part = line_str
                 for prefix in ["- Skills:", "* Skills:", "Skills:"]:
                     if skills_part.startswith(prefix):
-                        skills_part = skills_part[len(prefix):].strip()
+                        skills_part = skills_part[len(prefix) :].strip()
                         break
                 skills_part = skills_part.rstrip(".")
                 skill_names = [sk.strip() for sk in skills_part.split(",") if sk.strip()]
@@ -367,7 +366,7 @@ class PersonalProjects(BaseModel):
                 skills_part = line_str
                 for prefix in ["- Skills:", "* Skills:", "Skills:"]:
                     if skills_part.startswith(prefix):
-                        skills_part = skills_part[len(prefix):].strip()
+                        skills_part = skills_part[len(prefix) :].strip()
                         break
                 skills_part = skills_part.rstrip(".")
                 skill_names = [sk.strip() for sk in skills_part.split(",") if sk.strip()]
@@ -391,11 +390,11 @@ class PersonalProjects(BaseModel):
         for bp in self.bullet_points:
             lines.append(bp.to_string())
         skills_str = ", ".join(s.to_string() for s in self.skills)
-        lines.append(f"- Skills: {skills_str}.")
+        lines.append(f"- Skills: {skills_str}")
         return "\n".join(lines)
 
 
-class CoursesAndCertificates(BaseModel):
+class CourseOrCertificate(BaseModel):
     """Pydantic model representing a course or certificate entry."""
 
     name: str
@@ -403,11 +402,9 @@ class CoursesAndCertificates(BaseModel):
     duration: Duration
 
     @classmethod
-    def from_string(cls, s: str) -> "CoursesAndCertificates":
+    def from_string(cls, s: str) -> "CourseOrCertificate":
         s = s.strip()
-        if s.startswith("- "):
-            s = s[2:].strip()
-        elif s.startswith("* "):
+        if s.startswith(("- ", "* ")):
             s = s[2:].strip()
 
         parts = [p.strip() for p in s.split("|")]
@@ -527,55 +524,31 @@ class Footer(BaseModel):
 
     @classmethod
     def from_string(cls, s: str) -> "Footer":
-        lines = [line.strip() for line in s.strip().split("\n")]
-
+        sections = split_markdown_into_sections(s)
         educations = []
         languages = []
 
-        current_section = None
-        section_lines = []
+        for sec in sections:
+            if not sec.name:
+                continue
+            content_lines = [line.raw_line for line in sec.lines[1:] if line.raw_line]
+            if sec.name == "education":
+                edu_blocks = []
+                current_block_lines = []
+                for line in content_lines:
+                    if line.strip().startswith("**") and len(current_block_lines) > 0:
+                        edu_blocks.append("\n".join(current_block_lines))
+                        current_block_lines = []
+                    current_block_lines.append(line)
+                if current_block_lines:
+                    edu_blocks.append("\n".join(current_block_lines))
 
-        for line in lines:
-            line_str = line.strip()
-            if line_str.startswith("## "):
-                if current_section == "education" and section_lines:
-                    edu_block = []
-                    for edu_line in section_lines:
-                        if edu_line.strip().startswith("**") and " | " in edu_line:
-                            if edu_block:
-                                educations.append(Degree.from_string("\n".join(edu_block)))
-                                edu_block = []
-                        edu_block.append(edu_line)
-                    if edu_block:
-                        educations.append(Degree.from_string("\n".join(edu_block)))
-                elif current_section == "languages" and section_lines:
-                    lang_line = " ".join(section_lines).strip()
-                    lang_parts = [lp.strip() for lp in lang_line.split(",") if lp.strip()]
-                    for lp in lang_parts:
-                        languages.append(Language.from_string(lp))
-
-                current_section = line_str[3:].strip().lower()
-                section_lines = []
-            else:
-                if current_section:
-                    section_lines.append(line)
-
-        # Parse last section
-        if current_section == "education" and section_lines:
-            edu_block = []
-            for edu_line in section_lines:
-                if edu_line.strip().startswith("**") and " | " in edu_line:
-                    if edu_block:
-                        educations.append(Degree.from_string("\n".join(edu_block)))
-                        edu_block = []
-                edu_block.append(edu_line)
-            if edu_block:
-                educations.append(Degree.from_string("\n".join(edu_block)))
-        elif current_section == "languages" and section_lines:
-            lang_line = " ".join(section_lines).strip()
-            lang_parts = [lp.strip() for lp in lang_line.split(",") if lp.strip()]
-            for lp in lang_parts:
-                languages.append(Language.from_string(lp))
+                educations.extend(Degree.from_string(block) for block in edu_blocks)
+            elif sec.name == "languages":
+                lang_line = " ".join(content_lines).strip()
+                lang_parts = [lp.strip() for lp in lang_line.split(",") if lp.strip()]
+                for lp in lang_parts:
+                    languages.append(Language.from_string(lp))
 
         return cls(educations=educations, languages=languages)
 
@@ -601,36 +574,24 @@ class Body(BaseModel):
 
     work_experience: list[WorkExperience] = Field(default_factory=list)
     personal_projects: list[PersonalProjects] = Field(default_factory=list)
-    courses_and_certificates: list[CoursesAndCertificates] = Field(default_factory=list)
+    courses_and_certificates: list[CourseOrCertificate] = Field(default_factory=list)
 
     @classmethod
     def from_string(cls, s: str) -> "Body":
-        lines = s.replace("\r\n", "\n").split("\n")
-
+        sections_list = split_markdown_into_sections(s)
         sections = {}
-        current_section = None
-        section_lines = []
-
-        for line in lines:
-            stripped = line.strip()
-            if stripped.startswith("## "):
-                if current_section:
-                    sections[current_section] = "\n".join(section_lines)
-                    section_lines = []
-                current_section = stripped[3:].strip().lower()
-            else:
-                if current_section:
-                    section_lines.append(line)
-        if current_section:
-            sections[current_section] = "\n".join(section_lines)
+        for sec in sections_list:
+            if sec.name:
+                content_lines = [line.raw_line for line in sec.lines[1:]]
+                sections[sec.name] = "\n".join(content_lines)
 
         work_experience = []
         personal_projects = []
         courses_and_certificates = []
 
         # Parse work experience
-        work_text = next((content for name, content in sections.items() if "work" in name), "")
-        if work_text.strip():
+        work_text = next((content for name, content in sections.items() if "work" in name), "").strip()
+        if work_text:
             we_block = []
             for w_line in work_text.split("\n"):
                 stripped = w_line.strip()
@@ -643,8 +604,8 @@ class Body(BaseModel):
                 work_experience.append(WorkExperience.from_string("\n".join(we_block)))
 
         # Parse personal projects
-        project_text = next((content for name, content in sections.items() if "project" in name), "")
-        if project_text.strip():
+        project_text = next((content for name, content in sections.items() if "project" in name), "").strip()
+        if project_text:
             pp_block = []
             for p_line in project_text.split("\n"):
                 stripped = p_line.strip()
@@ -662,7 +623,7 @@ class Body(BaseModel):
             for c_line in course_text.split("\n"):
                 stripped = c_line.strip()
                 if stripped.startswith("- ") or stripped.startswith("* "):
-                    courses_and_certificates.append(CoursesAndCertificates.from_string(c_line))
+                    courses_and_certificates.append(CourseOrCertificate.from_string(c_line))
 
         return cls(
             work_experience=work_experience,
@@ -673,17 +634,17 @@ class Body(BaseModel):
     def to_string(self) -> str:
         sections = []
         if self.work_experience:
-            we_lines = ["## Work experience", ""]
+            we_lines = ["## Work experience"]
             we_lines.extend(we.to_string() for we in self.work_experience)
             sections.append("\n\n".join(we_lines))
         if self.personal_projects:
-            pp_lines = ["## Personal projects", ""]
+            pp_lines = ["## Personal projects"]
             pp_lines.extend(pp.to_string() for pp in self.personal_projects)
             sections.append("\n\n".join(pp_lines))
         if self.courses_and_certificates:
-            cc_section = ["## Courses and certificates", ""]
+            cc_section = ["## Courses and certificates"]
             cc_section.append("\n".join(cc.to_string() for cc in self.courses_and_certificates))
-            sections.append("\n".join(cc_section))
+            sections.append("\n\n".join(cc_section))
         return "\n\n".join(sections)
 
 

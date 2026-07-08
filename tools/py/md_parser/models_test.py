@@ -1,8 +1,11 @@
+import pytest
 from md_parser.models import (
     BulletPoint,
-    CoursesAndCertificates,
+    Body,
+    CourseOrCertificate,
     Degree,
     Duration,
+    Footer,
     Language,
     PersonalProjects,
     Skill,
@@ -79,6 +82,29 @@ def test_degree_roundtrip() -> None:
     assert deg.to_string().strip() == s.strip()
 
 
+def test_degree_from_string_variants() -> None:
+    # Test degree without thesis
+    s1 = "**Master of Science** | _Stanford University_ \\hfill 2015 \\- 2017"
+    deg1 = Degree.from_string(s1)
+    assert deg1.degree == "Master of Science"
+    assert deg1.institution == "Stanford University"
+    assert deg1.duration.start_date == "2015"
+    assert deg1.duration.end_date == "2017"
+    assert deg1.thesis is None
+
+    # Test spacing and hfill variants
+    s2 = "**Ph.D. in Physics**| _MIT_\\hfill2018\\-2022"
+    deg2 = Degree.from_string(s2)
+    assert deg2.degree == "Ph.D. in Physics"
+    assert deg2.institution == "MIT"
+    assert deg2.duration.start_date == "2018"
+    assert deg2.duration.end_date == "2022"
+
+    # Test empty string raises ValueError
+    with pytest.raises(ValueError, match="Empty string for Degree"):
+        Degree.from_string("   \n   ")
+
+
 def test_work_experience_roundtrip() -> None:
     s1 = (
         "**Assembler** | _Fabek Elektroonika OÜ, Tallinn, Estonia_ | Jun 2007 \\- Aug 2007\n\n"
@@ -122,12 +148,12 @@ def test_personal_projects_roundtrip() -> None:
     s = (
         "**[Employee Polls Web App](https://github.com/kirillstrelkov/employee-pools)** | Sep 2022\n\n"
         "- Developed an interactive dashboard application allowing users to create, answer and visualize results "
-        "for internal polls.\n"
+        "for internal polls\n"
         "- Implemented a responsive UI with Material-UI (MUI) and managed complex application state using Redux "
-        "and React Redux.\n"
-        "- Configured client-side routing and ensured application reliability through comprehensive unit testing.\n"
+        "and React Redux\n"
+        "- Configured client-side routing and ensured application reliability through comprehensive unit testing\n"
         "- Skills: JavaScript (ES6+), React, React Redux, Redux Middleware/Thunk, React Router, Material-UI (MUI), "
-        "Jest, HTML5/CSS3, Git."
+        "Jest, HTML5/CSS3, Git"
     )
     pp = PersonalProjects.from_string(s)
     assert pp.name == "Employee Polls Web App"
@@ -143,7 +169,7 @@ def test_personal_projects_roundtrip() -> None:
 
 def test_courses_and_certificates_roundtrip() -> None:
     s = "- Agentic AI Nanodegree | _Udacity_ | Jul 2026"
-    cc = CoursesAndCertificates.from_string(s)
+    cc = CourseOrCertificate.from_string(s)
     assert cc.name == "Agentic AI Nanodegree"
     assert cc.institution == "Udacity"
     assert cc.duration.start_date is None
@@ -152,10 +178,7 @@ def test_courses_and_certificates_roundtrip() -> None:
 
 
 def test_summary_roundtrip() -> None:
-    s = (
-        "## Summary\n\n"
-        "Experienced software engineer with a track record of developing scalable applications."
-    )
+    s = "## Summary\n\nExperienced software engineer with a track record of developing scalable applications."
     sum_obj = Summary.from_string(s)
     assert sum_obj.text == "Experienced software engineer with a track record of developing scalable applications."
     assert sum_obj.to_string() == s
@@ -173,3 +196,55 @@ def test_skills_roundtrip() -> None:
     assert skills_obj.groups[1].skills[1].text == "Docker"
     assert skills_obj.to_string() == s
 
+
+def test_footer_multiple_degrees() -> None:
+    s = (
+        "## Education\n\n"
+        "**Master of Science in Computer Science** | _Stanford University_ \\hfill 2015 \\- 2017\n"
+        "- Thesis: [Deep Learning](https://example.com/thesis1.pdf)\n\n"
+        "**Bachelor of Science** | _MIT_ \\hfill 2011 \\- 2015\n"
+        "- Thesis: [Robotics](https://example.com/thesis2.pdf)\n\n"
+        "## Languages\n\n"
+        "**English**: Native, **Spanish**: Conversational"
+    )
+    footer = Footer.from_string(s)
+    assert len(footer.educations) == 2
+    assert footer.educations[0].degree == "Master of Science in Computer Science"
+    assert footer.educations[0].institution == "Stanford University"
+    assert footer.educations[0].thesis is not None
+    assert footer.educations[0].thesis.name == "Deep Learning"
+
+    assert footer.educations[1].degree == "Bachelor of Science"
+    assert footer.educations[1].institution == "MIT"
+    assert footer.educations[1].thesis is not None
+    assert footer.educations[1].thesis.name == "Robotics"
+
+    assert len(footer.languages) == 2
+    assert footer.languages[0].name == "English"
+    assert footer.languages[0].level == "Native"
+    assert footer.languages[1].name == "Spanish"
+    assert footer.languages[1].level == "Conversational"
+
+
+def test_body_multiple_certificates() -> None:
+    s = (
+        "## Courses and certificates\n\n"
+        "- Certified Kubernetes Application Developer | _Cloud Native Computing Foundation_ | Feb 2026\n"
+        "- AWS Certified Solutions Architect | _Amazon Web Services_ | Jan 2025"
+    )
+    body = Body.from_string(s)
+    assert len(body.courses_and_certificates) == 2
+
+    c1 = body.courses_and_certificates[0]
+    assert c1.name == "Certified Kubernetes Application Developer"
+    assert c1.institution == "Cloud Native Computing Foundation"
+    assert c1.duration.start_date is None
+    assert c1.duration.end_date == "Feb 2026"
+
+    c2 = body.courses_and_certificates[1]
+    assert c2.name == "AWS Certified Solutions Architect"
+    assert c2.institution == "Amazon Web Services"
+    assert c2.duration.start_date is None
+    assert c2.duration.end_date == "Jan 2025"
+
+    assert s == body.to_string().strip()

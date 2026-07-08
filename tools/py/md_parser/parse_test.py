@@ -1,13 +1,11 @@
-import os
+from pathlib import Path
 from md_parser.models import Body, Footer, Header
 from md_parser.parse import parse
 
 
 def test_parse_header_example() -> None:
-    filepath = "cv/example/header.md"
-    assert os.path.exists(filepath)
-    with open(filepath, encoding="utf-8") as f:
-        content = f.read()
+    filepath = Path("cv/example/header.md")
+    content = filepath.read_text(encoding="utf-8")
 
     header = Header.from_string(content)
     assert header.name == "John Doe"
@@ -22,10 +20,8 @@ def test_parse_header_example() -> None:
 
 
 def test_parse_body_example() -> None:
-    filepath = "cv/example/body.md"
-    assert os.path.exists(filepath)
-    with open(filepath, encoding="utf-8") as f:
-        content = f.read()
+    filepath = Path("cv/example/body.md")
+    content = filepath.read_text(encoding="utf-8")
 
     body = Body.from_string(content)
     assert len(body.work_experience) == 7
@@ -61,10 +57,8 @@ def test_parse_body_example() -> None:
 
 
 def test_parse_footer_example() -> None:
-    filepath = "cv/example/footer.md"
-    assert os.path.exists(filepath)
-    with open(filepath, encoding="utf-8") as f:
-        content = f.read()
+    filepath = Path("cv/example/footer.md")
+    content = filepath.read_text(encoding="utf-8")
 
     footer = Footer.from_string(content)
     assert len(footer.educations) == 1
@@ -94,12 +88,9 @@ def test_parse_footer_example() -> None:
 
 
 def test_parse_full_cv() -> None:
-    with open("cv/example/header.md", encoding="utf-8") as f:
-        header_text = f.read()
-    with open("cv/example/body.md", encoding="utf-8") as f:
-        body_text = f.read()
-    with open("cv/example/footer.md", encoding="utf-8") as f:
-        footer_text = f.read()
+    header_text = Path("cv/example/header.md").read_text(encoding="utf-8")
+    body_text = Path("cv/example/body.md").read_text(encoding="utf-8")
+    footer_text = Path("cv/example/footer.md").read_text(encoding="utf-8")
 
     full_cv_text = f"{header_text}\n\n{body_text}\n\n{footer_text}"
     cv_obj = parse(full_cv_text)
