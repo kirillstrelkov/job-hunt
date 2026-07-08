@@ -132,7 +132,7 @@ Check [result_analysis.ipynb](./tailor_cv_eval/tools/eval_performance/result_ana
 | 16  | nemotron-mini:4b-instruct-q8_0 (ctx=32768,pred=-1, temp=0.1) | llm_prompt.md | FAIL    | 0.110786 | 2      | 21     | 17.859      | 90                | ROUGE-N score 0.06 is less than threshold 0.3                                                                             |
 | 17  | gemini-3.5-flash (ctx=1048576,pred=default, temp=0.1)        | llm_prompt.md | FAIL    | 0.000000 | 0      | 0      | 2.017       | 0                 | 2                                                                                                                         |
 
-> `gemini-3.5-flash` failed due higher limit on API requests
+> `gemini-3.5-flash` failed due limit on API requests
 
 ## Evaluation of models in job_finder
 
@@ -184,6 +184,8 @@ Check [result_analysis.ipynb](./tailor_cv_eval/tools/eval_performance/result_ana
 
 > `gemini-3.5-flash` is bad at ground truth due to limit on tokens
 > `qwen2.5-coder:7b` and `qwen2.5:7b` probably need update in logic/prompt to perform better
+
+## Summary
 
 For cloud free models, use `gemma-4-26b-a4b-it`, `gemini-3.5-flash` fails on high demand error,
 `gemini-3.1-flash-lite` is good if enough tokens are left.
