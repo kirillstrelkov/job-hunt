@@ -86,6 +86,7 @@ md2pdf input output options="--check --fix":
     uv run python tools/process_cv.py {{ options }} "{{ input }}"
     uv run python tools/md2pdf.py "{{ input }}" --output "{{ output }}"
 
+# Compose CV from folder
 auto-compose-cv folder:
     uv run python tools/compose_cv_locally.py {{ folder }} --model "gemma-4-26b-a4b-it"
 
