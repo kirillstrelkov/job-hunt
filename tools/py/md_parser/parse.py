@@ -1,3 +1,5 @@
+"""Parser logic to convert markdown text into structured Pydantic models."""
+
 from md_parser.models import CV
 
 

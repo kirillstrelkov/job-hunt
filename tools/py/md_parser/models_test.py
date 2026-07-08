@@ -61,10 +61,10 @@ def test_thesis_roundtrip() -> None:
 
 
 def test_language_roundtrip() -> None:
-    l = Language.from_string("**German**: B2 (Upper Intermediate)")
-    assert l.name == "German"
-    assert l.level == "B2 (Upper Intermediate)"
-    assert l.to_string() == "**German**: B2 (Upper Intermediate)"
+    lang = Language.from_string("**German**: B2 (Upper Intermediate)")
+    assert lang.name == "German"
+    assert lang.level == "B2 (Upper Intermediate)"
+    assert lang.to_string() == "**German**: B2 (Upper Intermediate)"
 
 
 def test_degree_roundtrip() -> None:

@@ -1,1 +1,1 @@
-# md_parser package
+"""Markdown parser package for CV files."""

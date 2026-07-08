@@ -1,3 +1,5 @@
+"""Pydantic models representing structured sections and elements of a CV."""
+
 import re
 
 from pydantic import BaseModel, Field
@@ -116,8 +118,7 @@ class Skills(BaseModel):
         groups_list = []
         if content_line:
             parts = [p.strip() for p in content_line.split("|") if p.strip()]
-            for part in parts:
-                groups_list.append(SkillGroup.from_string(part))
+            groups_list.extend(SkillGroup.from_string(part) for part in parts)
         return cls(groups=groups_list)
 
     def to_string(self) -> str:
@@ -279,7 +280,7 @@ class WorkExperience(BaseModel):
                 prefix = "Reason for resignation:"
                 if content.startswith(prefix):
                     reason = content[len(prefix) :].strip()
-            elif "Skills:" in line_str or line_str.startswith("- Skills:") or line_str.startswith("Skills:"):
+            elif "Skills:" in line_str or line_str.startswith(("- Skills:", "Skills:")):
                 skills_part = line_str
                 for prefix in ["- Skills:", "* Skills:", "Skills:"]:
                     if skills_part.startswith(prefix):
@@ -288,7 +289,7 @@ class WorkExperience(BaseModel):
                 skills_part = skills_part.rstrip(".")
                 skill_names = [sk.strip() for sk in skills_part.split(",") if sk.strip()]
                 skills = [Skill(text=name) for name in skill_names]
-            elif line_str.startswith("- ") or line_str.startswith("* "):
+            elif line_str.startswith(("- ", "* ")):
                 bullet_points.append(BulletPoint.from_string(line_str))
 
         return cls(
@@ -304,14 +305,10 @@ class WorkExperience(BaseModel):
     def to_string(self) -> str:
         lines = []
         duration_str = self.duration.to_string()
-        if self.location:
-            comp_loc_str = f"{self.company}, {self.location}"
-        else:
-            comp_loc_str = self.company
+        comp_loc_str = f"{self.company}, {self.location}" if self.location else self.company
         lines.append(f"**{self.title}** | _{comp_loc_str}_ | {duration_str}")
         lines.append("")
-        for bp in self.bullet_points:
-            lines.append(bp.to_string())
+        lines.extend(bp.to_string() for bp in self.bullet_points)
         if self.skills:
             skills_str = ", ".join(s.to_string() for s in self.skills)
             lines.append(f"- Skills: {skills_str}")
@@ -363,7 +360,7 @@ class PersonalProjects(BaseModel):
             line_str = line.strip()
             if not line_str:
                 continue
-            if "Skills:" in line_str or line_str.startswith("- Skills:") or line_str.startswith("Skills:"):
+            if "Skills:" in line_str or line_str.startswith(("- Skills:", "Skills:")):
                 skills_part = line_str
                 for prefix in ["- Skills:", "* Skills:", "Skills:"]:
                     if skills_part.startswith(prefix):
@@ -372,7 +369,7 @@ class PersonalProjects(BaseModel):
                 skills_part = skills_part.rstrip(".")
                 skill_names = [sk.strip() for sk in skills_part.split(",") if sk.strip()]
                 skills = [Skill(text=name) for name in skill_names]
-            elif line_str.startswith("- ") or line_str.startswith("* "):
+            elif line_str.startswith(("- ", "* ")):
                 bullet_points.append(BulletPoint.from_string(line_str))
 
         return cls(
@@ -388,8 +385,7 @@ class PersonalProjects(BaseModel):
         duration_str = self.duration.to_string()
         lines.append(f"**[{self.name}]({self.url})** | {duration_str}")
         lines.append("")
-        for bp in self.bullet_points:
-            lines.append(bp.to_string())
+        lines.extend(bp.to_string() for bp in self.bullet_points)
         skills_str = ", ".join(s.to_string() for s in self.skills)
         lines.append(f"- Skills: {skills_str}")
         return "\n".join(lines)
@@ -548,8 +544,7 @@ class Footer(BaseModel):
             elif sec.name == "languages":
                 lang_line = " ".join(content_lines).strip()
                 lang_parts = [lp.strip() for lp in lang_line.split(",") if lp.strip()]
-                for lp in lang_parts:
-                    languages.append(Language.from_string(lp))
+                languages.extend(Language.from_string(lp) for lp in lang_parts)
 
         return cls(educations=educations, languages=languages)
 
@@ -596,10 +591,9 @@ class Body(BaseModel):
             we_block = []
             for w_line in work_text.split("\n"):
                 stripped = w_line.strip()
-                if stripped.startswith("**") and " | " in stripped:
-                    if we_block:
-                        work_experience.append(WorkExperience.from_string("\n".join(we_block)))
-                        we_block = []
+                if stripped.startswith("**") and " | " in stripped and we_block:
+                    work_experience.append(WorkExperience.from_string("\n".join(we_block)))
+                    we_block = []
                 we_block.append(w_line)
             if we_block:
                 work_experience.append(WorkExperience.from_string("\n".join(we_block)))
@@ -610,10 +604,9 @@ class Body(BaseModel):
             pp_block = []
             for p_line in project_text.split("\n"):
                 stripped = p_line.strip()
-                if stripped.startswith("**") and (" | " in stripped or "[" in stripped):
-                    if pp_block:
-                        personal_projects.append(PersonalProjects.from_string("\n".join(pp_block)))
-                        pp_block = []
+                if stripped.startswith("**") and (" | " in stripped or "[" in stripped) and pp_block:
+                    personal_projects.append(PersonalProjects.from_string("\n".join(pp_block)))
+                    pp_block = []
                 pp_block.append(p_line)
             if pp_block:
                 personal_projects.append(PersonalProjects.from_string("\n".join(pp_block)))
@@ -623,7 +616,7 @@ class Body(BaseModel):
         if course_text.strip():
             for c_line in course_text.split("\n"):
                 stripped = c_line.strip()
-                if stripped.startswith("- ") or stripped.startswith("* "):
+                if stripped.startswith(("- ", "* ")):
                     courses_and_certificates.append(CourseOrCertificate.from_string(c_line))
 
         return cls(
@@ -672,9 +665,8 @@ class CV(BaseModel):
         footer_start = -1
         for marker in ["## Education", "## Languages"]:
             idx = body_text.find(marker)
-            if idx != -1:
-                if footer_start == -1 or idx < footer_start:
-                    footer_start = idx
+            if idx != -1 and (footer_start == -1 or idx < footer_start):
+                footer_start = idx
 
         if footer_start != -1:
             footer_text = body_text[footer_start:]
