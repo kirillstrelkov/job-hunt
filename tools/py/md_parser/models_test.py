@@ -1,0 +1,175 @@
+from md_parser.models import (
+    BulletPoint,
+    CoursesAndCertificates,
+    Degree,
+    Duration,
+    Language,
+    PersonalProjects,
+    Skill,
+    SkillGroup,
+    Skills,
+    Summary,
+    Thesis,
+    WorkExperience,
+)
+
+
+def test_duration_roundtrip() -> None:
+    # Test single date
+    d1 = Duration.from_string("Sep 2022")
+    assert d1.start_date is None
+    assert d1.end_date == "Sep 2022"
+    assert d1.to_string() == "Sep 2022"
+
+    # Test range with backslash-escaped hyphen
+    d2 = Duration.from_string("Jun 2007 \\- Aug 2007")
+    assert d2.start_date == "Jun 2007"
+    assert d2.end_date == "Aug 2007"
+    assert d2.to_string() == "Jun 2007 \\- Aug 2007"
+
+    # Test range with standard hyphen
+    d3 = Duration.from_string("Jan 2024 - Present")
+    assert d3.start_date == "Jan 2024"
+    assert d3.end_date == "Present"
+    assert d3.to_string() == "Jan 2024 \\- Present"
+
+
+def test_bullet_point_roundtrip() -> None:
+    bp = BulletPoint.from_string("- Developed an interactive dashboard application")
+    assert bp.text == "Developed an interactive dashboard application"
+    assert bp.to_string() == "- Developed an interactive dashboard application"
+
+    bp2 = BulletPoint.from_string("No prefix text")
+    assert bp2.text == "No prefix text"
+    assert bp2.to_string() == "- No prefix text"
+
+
+def test_skill_roundtrip() -> None:
+    s = Skill.from_string("Python")
+    assert s.text == "Python"
+    assert s.to_string() == "Python"
+
+
+def test_thesis_roundtrip() -> None:
+    t = Thesis.from_string("- Thesis: [Automated web test framework development](https://example.com/thesis.pdf)")
+    assert t.name == "Automated web test framework development"
+    assert t.url == "https://example.com/thesis.pdf"
+    assert t.to_string() == "- Thesis: [Automated web test framework development](https://example.com/thesis.pdf)"
+
+
+def test_language_roundtrip() -> None:
+    l = Language.from_string("**German**: B2 (Upper Intermediate)")
+    assert l.name == "German"
+    assert l.level == "B2 (Upper Intermediate)"
+    assert l.to_string() == "**German**: B2 (Upper Intermediate)"
+
+
+def test_degree_roundtrip() -> None:
+    s = (
+        "**Bachelor of Science in Computer Science** | _Technical University of Munich, Germany_ \\hfill 2010 \\- 2014"
+        "\n\n- Thesis: [Automated web test framework development](https://example.com/thesis.pdf)"
+    )
+    deg = Degree.from_string(s)
+    assert deg.degree == "Bachelor of Science in Computer Science"
+    assert deg.institution == "Technical University of Munich, Germany"
+    assert deg.duration.start_date == "2010"
+    assert deg.duration.end_date == "2014"
+    assert deg.thesis is not None
+    assert deg.thesis.name == "Automated web test framework development"
+    assert deg.to_string().strip() == s.strip()
+
+
+def test_work_experience_roundtrip() -> None:
+    s1 = (
+        "**Assembler** | _Fabek Elektroonika OÜ, Tallinn, Estonia_ | Jun 2007 \\- Aug 2007\n\n"
+        "- Assembled and packaged electronic devices\n"
+        "- Performed wire soldering for hardware devices\n\n"
+        "> _Reason for resignation: studies_"
+    )
+    we1 = WorkExperience.from_string(s1)
+    assert we1.title == "Assembler"
+    assert we1.company == "Fabek Elektroonika OÜ"
+    assert we1.location == "Tallinn, Estonia"
+    assert we1.duration.start_date == "Jun 2007"
+    assert we1.duration.end_date == "Aug 2007"
+    assert len(we1.bullet_points) == 2
+    assert we1.reason_for_resignation == "studies"
+    assert we1.skills is None
+    assert we1.to_string().strip() == s1.strip()
+
+    s2 = (
+        "**Junior Developer** | _AS Tallink Group, Tallinn, Estonia_ | Jun 2013 \\- Jun 2013\n\n"
+        "- 12-days practical work to finalize Java course\n"
+        "- Investigated and fixed bugs for Java XML/XSLT conversion engine and implemented additional unit tests\n"
+        "- Skills: XML, XSLT, TDD, Java, JUnit, Mockito, oXygen XML Editor"
+    )
+    we2 = WorkExperience.from_string(s2)
+    assert we2.title == "Junior Developer"
+    assert we2.company == "AS Tallink Group"
+    assert we2.location == "Tallinn, Estonia"
+    assert we2.duration.start_date == "Jun 2013"
+    assert we2.duration.end_date == "Jun 2013"
+    assert len(we2.bullet_points) == 2
+    assert we2.reason_for_resignation is None
+    assert we2.skills is not None
+    assert len(we2.skills) == 7
+    assert we2.skills[0].text == "XML"
+    assert we2.skills[6].text == "oXygen XML Editor"
+    assert we2.to_string().strip() == s2.strip()
+
+
+def test_personal_projects_roundtrip() -> None:
+    s = (
+        "**[Employee Polls Web App](https://github.com/kirillstrelkov/employee-pools)** | Sep 2022\n\n"
+        "- Developed an interactive dashboard application allowing users to create, answer and visualize results "
+        "for internal polls.\n"
+        "- Implemented a responsive UI with Material-UI (MUI) and managed complex application state using Redux "
+        "and React Redux.\n"
+        "- Configured client-side routing and ensured application reliability through comprehensive unit testing.\n"
+        "- Skills: JavaScript (ES6+), React, React Redux, Redux Middleware/Thunk, React Router, Material-UI (MUI), "
+        "Jest, HTML5/CSS3, Git."
+    )
+    pp = PersonalProjects.from_string(s)
+    assert pp.name == "Employee Polls Web App"
+    assert pp.url == "https://github.com/kirillstrelkov/employee-pools"
+    assert pp.duration.start_date is None
+    assert pp.duration.end_date == "Sep 2022"
+    assert len(pp.bullet_points) == 3
+    assert len(pp.skills) == 9
+    assert pp.skills[0].text == "JavaScript (ES6+)"
+    assert pp.skills[8].text == "Git"
+    assert pp.to_string().strip() == s.strip()
+
+
+def test_courses_and_certificates_roundtrip() -> None:
+    s = "- Agentic AI Nanodegree | _Udacity_ | Jul 2026"
+    cc = CoursesAndCertificates.from_string(s)
+    assert cc.name == "Agentic AI Nanodegree"
+    assert cc.institution == "Udacity"
+    assert cc.duration.start_date is None
+    assert cc.duration.end_date == "Jul 2026"
+    assert cc.to_string() == s
+
+
+def test_summary_roundtrip() -> None:
+    s = (
+        "## Summary\n\n"
+        "Experienced software engineer with a track record of developing scalable applications."
+    )
+    sum_obj = Summary.from_string(s)
+    assert sum_obj.text == "Experienced software engineer with a track record of developing scalable applications."
+    assert sum_obj.to_string() == s
+
+
+def test_skills_roundtrip() -> None:
+    s = "## Skills\n\n**Languages**: Python, Go | **Cloud & DevOps**: AWS, Docker"
+    skills_obj = Skills.from_string(s)
+    assert len(skills_obj.groups) == 2
+    assert skills_obj.groups[0].name == "Languages"
+    assert len(skills_obj.groups[0].skills) == 2
+    assert skills_obj.groups[0].skills[0].text == "Python"
+    assert skills_obj.groups[1].name == "Cloud & DevOps"
+    assert len(skills_obj.groups[1].skills) == 2
+    assert skills_obj.groups[1].skills[1].text == "Docker"
+    assert skills_obj.to_string() == s
+

@@ -330,7 +330,7 @@ with tabs[0]:
             if not os.environ.get("GEMINI_API_KEY"):
                 st.warning("⚠️ GEMINI_API_KEY is not set. Please set it in the 'Configuration / Master Data' tab.")
 
-            init_max_tokens = 10240
+            init_max_tokens = 128000
             init_temp = 0.1
             init_seed = 42
 
@@ -339,7 +339,7 @@ with tabs[0]:
                 max_tokens = st.number_input(
                     "Max Tokens (max_tokens)",
                     min_value=1,
-                    max_value=128000,
+                    max_value=256000,
                     value=int(init_max_tokens),
                     step=1024,
                     key=f"max_tokens_{model_key_suffix}",
@@ -795,7 +795,7 @@ with tabs[1]:
             "Show PDF Preview", value=st.session_state.get("show_pdf_manual_val", True), key="show_pdf_manual_val"
         )
 
-        col_btn1, col_btn2, col_btn3 = st.columns([1, 1, 1])
+        col_btn1, col_btn2, col_btn3, col_btn4 = st.columns([1.2, 0.8, 0.8, 1.2])
         with col_btn1:
             btn_use_manual = st.button(
                 "Compose CV manually", key="btn_use_manual_body", type="primary", use_container_width=True
@@ -805,6 +805,10 @@ with tabs[1]:
                 "Check CV", use_container_width=True, key="btn_check_manual", type="secondary"
             )
         with col_btn3:
+            btn_fix_manual_clicked = st.button(
+                "Fix", use_container_width=True, key="btn_fix_manual", type="secondary"
+            )
+        with col_btn4:
             st.download_button(
                 "Save Composed CV as Markdown",
                 edited_full_cv,
@@ -812,6 +816,23 @@ with tabs[1]:
                 key="dl_md_manual",
                 use_container_width=True,
             )
+
+        if btn_fix_manual_clicked:
+            st.session_state.pop("manual_tailor_error", None)
+            st.session_state.pop("manual_tailor_warning", None)
+            st.session_state.pop("manual_tailor_note", None)
+            if not edited_full_cv.strip():
+                st.session_state["manual_tailor_warning"] = "No CV text to fix."
+                st.rerun()
+            else:
+                fixed_content = process_cv.fix_markdown(edited_full_cv)
+                st.session_state["edited_cv_manual"] = fixed_content
+                st.session_state["_persistent_edited_cv_manual"] = fixed_content
+                st.session_state["manual_tailor_note"] = "CV Markdown formatting fixed!"
+                st.session_state.pop("pdf_bytes", None)
+                st.session_state.pop("manual_cv_errors", None)
+                st.session_state.pop("manual_cv_checked", None)
+                st.rerun()
 
         if btn_check_manual_clicked:
             st.session_state.pop("manual_tailor_error", None)

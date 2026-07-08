@@ -58,31 +58,31 @@
 
 ## Personal projects
 
-**[Cloud-Native API Gateway](https://github.com/johndoe/cloud-gateway)** | 2025
+**[Cloud-Native API Gateway](https://github.com/johndoe/cloud-gateway)** | Jun 2025
 
 - Built a high-performance API gateway in Go supporting rate limiting, request forwarding, and JWT authentication.
 - Configured automated deployment manifests for Kubernetes clusters using Helm.
 - Skills: Go, Kubernetes, Helm, Docker, JWT
 
-**[AI-Powered Text Summarizer](https://github.com/johndoe/ai-summarizer)** | 2024
+**[AI-Powered Text Summarizer](https://github.com/johndoe/ai-summarizer)** | Jun 2024
 
 - Developed a browser extension that uses OpenAI and Gemini APIs to summarize webpage articles.
 - Implemented a clean, responsive user interface using HTML, CSS, and vanilla JavaScript.
 - Skills: JavaScript, OpenAI API, Gemini API, HTML5, CSS3
 
-**[E-Commerce Microservices](https://github.com/johndoe/ecommerce-microservices)** | 2024
+**[E-Commerce Microservices](https://github.com/johndoe/ecommerce-microservices)** | Jun 2024
 
 - Developed a distributed e-commerce platform using Go, gRPC, and RabbitMQ message broker.
 - Configured centralized logging and request tracing using Prometheus and Jaeger.
 - Skills: Go, gRPC, RabbitMQ, Prometheus, Jaeger, Docker, Git
 
-**[Financial Data Parser](https://github.com/johndoe/financial-parser)** | 2023
+**[Financial Data Parser](https://github.com/johndoe/financial-parser)** | Jun 2023
 
 - Built a high-performance multithreaded CLI tool in Rust to extract and convert billing statements.
 - Implemented custom transaction categorization logic with parallel processing using Rayon.
 - Skills: Rust, Rayon, Serde, Data Extraction, CLI
 
-**[Interactive Polls Dashboard](https://github.com/johndoe/polls-dashboard)** | 2022
+**[Interactive Polls Dashboard](https://github.com/johndoe/polls-dashboard)** | Jun 2022
 
 - Developed a React web application for creating, voting on, and visualizing user polls.
 - Managed application state using Redux Toolkit and designed components with Material-UI (MUI).
@@ -90,26 +90,26 @@
 
 ## Courses and certificates
 
-- Certified Kubernetes Application Developer (CKAD) | 2025
-- Advanced System Design & Architecture, _Coursera_ | 2024
-- Go Developer Bootcamp, _Udemy_ | 2023
-- Generative AI Nanodegree, _Udacity_ | 2026
-- Apache Flink Fundamentals, _Confluent_ | 2026
-- Apache Kafka Fundamentals, _Confluent_ | 2026
-- Building with the Claude API, _Coursera_ | 2026
-- meta React Native, _Coursera_ | 2025
-- DevOps with Kubernetes, _University of Helsinki_ | 2025
-- Go Essentials: Concurrency, gRPC & More, _Stepik_ | 2024
-- Rust Programming Language, _Coursera_ | 2024
-- AWS Machine Learning Foundations, _Udacity_ | 2023
-- Oracle Certified Professional: Java SE 11 Developer, _Oracle_ | 2022
-- Deep Learning Specialization, _DeepLearning.AI_ | 2022
-- Python for Data Science, _IBM/Coursera_ | 2022
-- Docker and Kubernetes: The Complete Guide, _Udemy_ | 2023
-- Kafka Streams for Data Processing, _Confluent_ | 2024
-- Advanced C++ Programming, _Coursera_ | 2023
-- AWS Certified Solutions Architect, _Amazon Web Services_ | 2024
-- Associate Cloud Engineer, _Google Cloud_ | 2025
-- Agile and Scrum Essentials, _Scrum Alliance_ | 2021
-- Functional Programming in Scala, _EPFL/Coursera_ | 2023
-- Clean Code and Refactoring Principles, _Udemy_ | 2022
+- Certified Kubernetes Application Developer | _Cloud Native Computing Foundation_ | Feb 2026
+- Advanced System Design & Architecture | _Coursera_ | 2024
+- Go Developer Bootcamp | _Udemy_ | 2023
+- Generative AI Nanodegree | _Udacity_ | 2026
+- Apache Flink Fundamentals | _Confluent_ | 2026
+- Apache Kafka Fundamentals | _Confluent_ | 2026
+- Building with the Claude API | _Coursera_ | 2026
+- meta React Native | _Coursera_ | 2025
+- DevOps with Kubernetes | _University of Helsinki_ | 2025
+- Go Essentials: Concurrency, gRPC & More | _Stepik_ | 2024
+- Rust Programming Language | _Coursera_ | 2024
+- AWS Machine Learning Foundations | _Udacity_ | 2023
+- Oracle Certified Professional: Java SE 11 Developer | _Oracle_ | 2022
+- Deep Learning Specialization | _DeepLearning.AI_ | 2022
+- Python for Data Science | _IBM/Coursera_ | 2022
+- Docker and Kubernetes: The Complete Guide | _Udemy_ | 2023
+- Kafka Streams for Data Processing | _Confluent_ | 2024
+- Advanced C++ Programming | _Coursera_ | 2023
+- AWS Certified Solutions Architect | _Amazon Web Services_ | 2024
+- Associate Cloud Engineer | _Google Cloud_ | 2025
+- Agile and Scrum Essentials | _Scrum Alliance_ | 2021
+- Functional Programming in Scala | _EPFL/Coursera_ | 2023
+- Clean Code and Refactoring Principles | _Udemy_ | 2022
