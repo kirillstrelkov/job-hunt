@@ -132,3 +132,26 @@ scraper:
     - forward
     - architect
     - lead
+  urls:
+    # indeed:
+    # Python
+    - "https://de.indeed.com/jobs?q=python&l=Potsdam%2C+Brandenburg&fromage=14&lang=en&radius=50&from=searchOnDesktopSerp&vjk=c9b60105ee977490"
+    # Test
+    - "https://de.indeed.com/jobs?q=test&l=Potsdam%2C+Brandenburg&fromage=14&lang=en&radius=50&from=searchOnDesktopSerp&vjk=f673956b8cf1219b"
+    # QA
+    - "https://de.indeed.com/jobs?q=QA&l=Potsdam%2C+Brandenburg&fromage=14&lang=en&radius=50&from=searchOnDesktopSerp&vjk=f673956b8cf1219b"
+
+    # linkedin:
+    # Berlin
+    - "https://www.linkedin.com/jobs/search/?currentJobId=4309541359&f_TPR=r604800&geoId=103035651&keywords=%22python%22&origin=JOB_SEARCH_PAGE_SEARCH_BUTTON&refresh=true&spellCorrectionEnabled=true"
+    # Germany remote
+    - "https://www.linkedin.com/jobs/search/?currentJobId=4302455416&f_TPR=r604800&f_WT=2&geoId=101282230&keywords=%22python%22&origin=JOB_SEARCH_PAGE_SEARCH_BUTTON&refresh=true&spellCorrectionEnabled=true"
+    # test remote
+    - "https://www.linkedin.com/jobs/search/?currentJobId=4393283358&f_TPR=r604800&f_WT=2&keywords=%22test%22&origin=JOB_SEARCH_PAGE_JOB_FILTER"
+    # test berlin
+    - "https://www.linkedin.com/jobs/search/?currentJobId=4390489373&f_TPR=r604800&geoId=103035651&keywords=%22test%22&origin=JOB_SEARCH_PAGE_JOB_FILTER&refresh=true"
+    # # stepstone:
+    # # Python
+    - "https://www.stepstone.de/jobs/python/in-14473-potsdam?radius=40&action=facet_selected%3bdetectedLanguages%3ben&ag=age_7&fdl=en&searchOrigin=Resultlist_top-search"
+    # # test
+    - "https://www.stepstone.de/jobs/test-engineer/in-14473-potsdam?radius=40&action=facet_selected%3bdetectedLanguages%3ben&ag=age_7&fdl=en&searchOrigin=Resultlist_top-search"

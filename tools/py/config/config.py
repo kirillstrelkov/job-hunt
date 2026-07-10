@@ -110,6 +110,7 @@ class ScraperConfig:
     job_matches_path: Path
     excluded_companies: list[str]
     excluded_title_keywords: list[str]
+    urls: list[str]
 
 
 def _resolve_val(val: Any, context: dict[str, str]) -> tuple[Any, bool]:
@@ -326,6 +327,7 @@ class ConfigManager:
             job_matches_path=Path(scr.get("job_matches_path", "")),
             excluded_companies=list(scr.get("excluded_companies", [])),
             excluded_title_keywords=list(scr.get("excluded_title_keywords", [])),
+            urls=list(scr.get("urls", [])),
         )
 
     def get_config_value(self, query: str) -> Any:

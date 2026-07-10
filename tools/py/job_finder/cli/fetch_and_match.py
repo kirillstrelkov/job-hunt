@@ -113,7 +113,13 @@ def _main(urls: list[str], output_dir: Path, *, use_cache: bool = True) -> None:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process some job URLs from a YAML file.")
-    parser.add_argument("yaml_path", type=str, help="Path to the YAML file containing job URLs")
+    parser.add_argument(
+        "yaml_path",
+        type=str,
+        nargs="?",
+        default=None,
+        help="Path to the YAML file containing job URLs. If not provided, configuration is loaded from config.yaml",
+    )
     parser.add_argument("--output", "-o", type=str, default=None, help="Output directory path for CSV files")
     parser.add_argument("--no-cache", action="store_true", help="Do not cache results")
     parser.add_argument(
@@ -125,7 +131,26 @@ if __name__ == "__main__":
     logger.remove()
     logger.add(sys.stderr, level=args.log_level)
 
-    urls = yaml.safe_load(Path(args.yaml_path).read_text(encoding="utf-8"))
+    if args.yaml_path:
+        data = yaml.safe_load(Path(args.yaml_path).read_text(encoding="utf-8"))
+        if isinstance(data, list):
+            urls = data
+        elif isinstance(data, dict):
+            if "scraper" in data and isinstance(data["scraper"], dict) and "urls" in data["scraper"]:
+                urls = data["scraper"]["urls"]
+            elif "urls" in data:
+                urls = data["urls"]
+            else:
+                raise ValueError("Could not find list of URLs in the provided YAML file.")
+        else:
+            raise ValueError("YAML file must contain a list of URLs or a config dictionary.")
+    else:
+        from config.config import DEFAULT_CONFIG
+        urls = DEFAULT_CONFIG.scraper.urls
+
+    if not urls:
+        logger.error("No URLs found to process. Please specify them in config.yaml or provide a YAML file.")
+        sys.exit(1)
 
     # Resolve output directory: command-line argument or get_tmp_folder fallback
     output_dir = Path(args.output) if args.output else get_tmp_folder(__file__)
