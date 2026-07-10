@@ -10,6 +10,7 @@ from loguru import logger
 from opentelemetry.trace import StatusCode
 from phoenix.otel import SpanAttributes
 
+from helpers.ollama_helper import get_model_options
 from helpers.telemetry import get_tracer
 
 from .llm_with_pydantic import Analysis, JobMatchResult, Screening
@@ -106,12 +107,7 @@ def llm_send(*prompts: dict, model: str = MODEL) -> str:
     path.write_text(content)
 
     with tracer.start_as_current_span("llm_send") as span:
-        options = {
-            "temperature": 0,
-            "num_ctx": 16384,
-            "num_predict": 3072,
-            "seed": 42,
-        }
+        options = get_model_options(model)
 
         span.set_attributes(
             {

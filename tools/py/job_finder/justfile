@@ -4,8 +4,8 @@ set dotenv-required := true
 default:
     @just -l
 
-# Run the full CV-to-job matching pipeline on URLs list
-cli:
+# Get jobs from URL list and match based on CV
+fetch-match:
     uv run python cli/fetch_and_match.py --log-level DEBUG data/private/urls.yml
 
 # Analyze a single job description from standard input

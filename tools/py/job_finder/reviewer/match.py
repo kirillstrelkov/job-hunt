@@ -6,9 +6,9 @@ from pathlib import Path
 from pprint import pformat
 
 from loguru import logger
-from reviewer.llm import analyze_cv, get_checked_passed, get_match_percentage
 from tqdm import tqdm
 
+from job_finder.reviewer.llm import analyze_cv, get_checked_passed, get_match_percentage
 from job_finder.scraper.base import Job
 from job_finder.utils.caching_utils import get_cached_value, get_hashsum
 
@@ -23,6 +23,12 @@ class JobMatch(Job):
     llm_text: str = ""
     check_passed: bool = False
     processed_at: datetime = field(default_factory=lambda: datetime.now(UTC), compare=False)
+
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        if isinstance(self.processed_at, str):
+            dt = datetime.fromisoformat(self.processed_at)
+            object.__setattr__(self, "processed_at", dt)
 
 
 def _match_cv_and_job_desc(job_desc: Job) -> JobMatch:
@@ -50,7 +56,7 @@ def _match_cv_and_job_desc(job_desc: Job) -> JobMatch:
             error=job_desc.error,
             created_at=job_desc.created_at,
             match_percentage=match,
-            llm_text=pformat(res),
+            llm_text=res.model_dump_json(indent=2),
             check_passed=check_passed,
         )
 

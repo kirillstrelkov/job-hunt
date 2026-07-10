@@ -67,6 +67,11 @@ class Job:
     error: str
     created_at: datetime = field(default_factory=lambda: datetime.now(UTC), compare=False)
 
+    def __post_init__(self) -> None:
+        if isinstance(self.created_at, str):
+            dt = datetime.fromisoformat(self.created_at)
+            object.__setattr__(self, "created_at", dt)
+
 
 def make_job(
     *,

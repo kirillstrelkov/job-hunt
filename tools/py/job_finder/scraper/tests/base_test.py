@@ -1,5 +1,8 @@
 """Unit tests for the scraper base classes and utilities."""
 
+from datetime import UTC, datetime, timedelta, timezone
+
+from job_finder.reviewer.match import JobMatch
 from job_finder.scraper.base import Job, make_job
 
 
@@ -66,3 +69,63 @@ def test_job_equality() -> None:
     # Set deduplication should keep only one
     jobs_set = {job_url1, job_url2}
     assert len(jobs_set) == 1
+
+
+def test_job_created_at_string_conversion() -> None:
+    # Arrange
+    job = Job(
+        title="Software Engineer",
+        company="Google",
+        url="https://google.com/job-first",
+        description="Write Python code",
+        error="",
+        created_at="2026-07-10T08:54:21Z",
+    )
+
+    # Assert
+
+    assert isinstance(job.created_at, datetime)
+    assert job.created_at == datetime(2026, 7, 10, 8, 54, 21, tzinfo=UTC)
+
+    # Arrange with timezone offset
+    job2 = Job(
+        title="Software Engineer",
+        company="Google",
+        url="https://google.com/job-first",
+        description="Write Python code",
+        error="",
+        created_at="2026-07-10T08:54:21+02:00",
+    )
+
+    assert isinstance(job2.created_at, datetime)
+    assert job2.created_at == datetime(2026, 7, 10, 8, 54, 21, tzinfo=timezone(timedelta(hours=2)))
+
+    # Arrange with space, microseconds, and timezone offset
+    job3 = Job(
+        title="Software Engineer",
+        company="Google",
+        url="https://google.com/job-first",
+        description="Write Python code",
+        error="",
+        created_at="2026-07-07 13:03:48.020672+00:00",
+    )
+    assert isinstance(job3.created_at, datetime)
+    assert job3.created_at == datetime(2026, 7, 7, 13, 3, 48, 20672, tzinfo=UTC)
+
+
+def test_job_match_processed_at_string_conversion() -> None:
+    # Arrange
+    match = JobMatch(
+        title="Software Engineer",
+        company="Google",
+        url="https://google.com/job-first",
+        description="Write Python code",
+        error="",
+        created_at="2026-07-07 13:03:48.020672+00:00",
+        processed_at="2026-07-08 14:05:50.123456+00:00",
+    )
+
+    assert isinstance(match.created_at, datetime)
+    assert match.created_at == datetime(2026, 7, 7, 13, 3, 48, 20672, tzinfo=UTC)
+    assert isinstance(match.processed_at, datetime)
+    assert match.processed_at == datetime(2026, 7, 8, 14, 5, 50, 123456, tzinfo=UTC)

@@ -35,32 +35,64 @@ def create_save_df(objects: list[Job | JobMatch], sort_by: str, output: Path, *,
     logger.info(f"Saved to {output}")
 
 
+def _get_from_csv(path: Path, klass: type[Job] | type[JobMatch]) -> list[Job]:
+    """Load jobs from a CSV file."""
+    if not path.exists():
+        return []
+    logger.info(f"Loading {klass}s from {path}")
+    df = pd.read_csv(path).fillna("")
+    return [klass(**row) for row in df.to_dict(orient="records")]
+
+
 def create_jobs_csv(urls: list[str], jobs_file: Path, *, use_cache: bool = True) -> list[Job]:
     """Fetch jobs from URLs, save them to a CSV file, and return the list of Jobs."""
-    if jobs_file.exists():
-        logger.info(f"Loading jobs from {jobs_file}")
-        df = pd.read_csv(jobs_file).fillna("")
-        return [Job(**row) for row in df.to_dict(orient="records")]
+    existing_jobs = _get_from_csv(jobs_file, Job)
 
     logger.info("Fetching jobs...")
-    jobs = get_jobs(*urls, use_cache=use_cache)
-    create_save_df(jobs, sort_by="url", output=jobs_file, ascending=True)
-    return jobs
+    new_jobs = get_jobs(*urls, use_cache=use_cache)
+
+    all_jobs = existing_jobs + new_jobs
+    jobs_no_dup = list(set(all_jobs))
+    diff = len(all_jobs) - len(jobs_no_dup)
+
+    if diff > 0:
+        logger.warning(f"Found {diff} duplicate job urls")
+
+    create_save_df(jobs_no_dup, sort_by="created_at", output=jobs_file)
+    return jobs_no_dup
 
 
 def create_job_matches_csv(jobs: list[Job], matches_file: Path) -> list[JobMatch]:
     """Evaluate jobs against the CV, save matches to a CSV file, and return the list of JobMatches."""
-    if matches_file.exists():
-        logger.info(f"Output file {matches_file} already exists, skipping match analysis.")
-        df = pd.read_csv(matches_file).fillna("")
-        return [JobMatch(**row) for row in df.to_dict(orient="records")]
+    existing_matches = _get_from_csv(matches_file, JobMatch)
 
     logger.info("Analyzing matches...")
     # filter failed ones and sort by url - to have proper hash
     filtered_jobs = sorted([j for j in jobs if j.description.strip()], key=lambda j: j.url)
-    matches = get_job_matches(filtered_jobs)
-    create_save_df(matches, sort_by="match_percentage", output=matches_file, ascending=False)
-    return matches
+
+    existing_jobs = [
+        Job(
+            title=m.title,
+            company=m.company,
+            url=m.url,
+            description=m.description,
+            error=m.error,
+            created_at=m.created_at,
+        )
+        for m in existing_matches
+    ]
+    existing_jobs_set = set(existing_jobs)
+    already_processed = [j for j in filtered_jobs if j in existing_jobs_set]
+    new_jobs = [j for j in filtered_jobs if j not in existing_jobs_set]
+
+    logger.info(f"Already processed matches: {len(already_processed)}, new matches to process: {len(new_jobs)}")
+
+    new_matches = get_job_matches(new_jobs)
+
+    all_matches = existing_matches + new_matches
+
+    create_save_df(all_matches, sort_by="match_percentage", output=matches_file, ascending=False)
+    return all_matches
 
 
 def _main(urls: list[str], output_dir: Path, *, use_cache: bool = True) -> None:
