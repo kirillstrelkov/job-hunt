@@ -132,6 +132,9 @@ scraper:
     - forward
     - architect
     - lead
+    - associate
+    - principal
+    - scientist
   urls:
     # indeed:
     # Python
