@@ -133,8 +133,11 @@ scraper:
     - architect
     - lead
     - associate
+    - research
     - principal
     - scientist
+    - director
+    - postdoctoral
   urls:
     # indeed:
     # Python
