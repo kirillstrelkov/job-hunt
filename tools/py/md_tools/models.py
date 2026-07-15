@@ -3,6 +3,7 @@
 import re
 import tempfile
 from pathlib import Path
+
 from pydantic import BaseModel, Field
 
 
@@ -31,7 +32,7 @@ class Section(BaseModel):
 
     name: str
     md_prefix: str
-    filepath: Path = Field(default_factory=lambda: Path(""))
+    filepath: Path = Field(default_factory=lambda: Path())
     raw_lines: list[Line] = Field(default_factory=list)
 
     def __init__(self, **data):

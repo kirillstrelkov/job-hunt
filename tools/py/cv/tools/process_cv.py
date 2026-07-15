@@ -5,11 +5,13 @@ import argparse
 import re
 import sys
 from pathlib import Path
+
 from loguru import logger
 
-from md_tools.models import Line, Section, SectionConstant
+from cv.tools.checker import Error
+from cv.tools.checker import check as do_check
+from md_tools.models import Section, SectionConstant
 from md_tools.parse import split_markdown_into_sections
-from cv.tools.checker import check as do_check, Error
 
 MONTHS_TO_SHORT = {
     "January": "Jan",
@@ -96,7 +98,11 @@ def do_fix(sections: list[Section], *, keep_thesis: bool = True) -> list[Section
             for full_m_re, short_m in MONTHS_TO_SHORT_RE.items():
                 line_str = full_m_re.sub(short_m, line_str)
 
-            if SectionConstant.WORK_EXPERIENCE.lower() in heading_title or "projects" in heading_title or SectionConstant.PERSONAL_PROJECTS.lower() in heading_title:
+            if (
+                SectionConstant.WORK_EXPERIENCE.lower() in heading_title
+                or "projects" in heading_title
+                or SectionConstant.PERSONAL_PROJECTS.lower() in heading_title
+            ):
                 line_str = RE_TRAILING_DOT.sub(r"\1", line_str)
 
             if SectionConstant.COURSES_AND_CERTIFICATES.lower() in heading_title:

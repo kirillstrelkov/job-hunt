@@ -146,6 +146,7 @@ if __name__ == "__main__":
             raise ValueError("YAML file must contain a list of URLs or a config dictionary.")
     else:
         from config.config import DEFAULT_CONFIG
+
         urls = DEFAULT_CONFIG.scraper.urls
 
     if not urls:

@@ -160,10 +160,9 @@ class TwoSpaceCheck(Check):
                             line,
                         )
                     )
-            else:
-                # Other sections must not end with two spaces
-                if line.raw_line.endswith("  "):
-                    errors.append(make_error("Line ends with two spaces", section, line))
+            # Other sections must not end with two spaces
+            elif line.raw_line.endswith("  "):
+                errors.append(make_error("Line ends with two spaces", section, line))
         return errors
 
 

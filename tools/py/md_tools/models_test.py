@@ -3,20 +3,16 @@ import pytest
 from md_tools.models import (
     Body,
     BulletPoint,
-    CourseOrCertificate,
     CourseOrCertificateEntry,
     Degree,
     Duration,
     Footer,
-    Language,
     LanguageEntry,
-    PersonalProjects,
     PersonalProjectsEntry,
     Skill,
     Skills,
     Summary,
     Thesis,
-    WorkExperience,
     WorkExperienceEntry,
 )
 
