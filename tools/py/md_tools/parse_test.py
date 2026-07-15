@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from md_parser.models import Body, Footer, Header
-from md_parser.parse import parse
+from md_tools.models import Body, Footer, Header
+from md_tools.parse import parse
 
 
 def test_parse_header_example() -> None:

@@ -16,7 +16,7 @@ tools/py/
 │   └── tools/               # Local generators (PDF conversion, prompt builders, process tools)
 ├── tailor_ui/               # Streamlit web dashboard for interactive tailoring and previews
 ├── job_finder/              # Automated job scraper (Indeed, LinkedIn, StepStone) & LLM matcher
-├── md_parser/               # Pydantic schemas representing CV components & CLI syntax checker
+├── md_tools/                # Pydantic schemas representing CV components & CLI syntax checker
 ├── tailor_cv_eval/          # Benchmarking suites (DeepEval, Promptfoo, LlamaIndex, Ragas, etc.)
 └── helpers/                 # Shared LLM clients (Ollama, Gemini) and global Pydantic definitions
 ```
@@ -49,7 +49,7 @@ A fully automated crawler and role suitability reviewer:
 - **Reviewer**: Passes JDs to local LLMs (configured via Pydantic matching criteria) to evaluate compatibility, filtering out non-matching listings automatically.
 - **CLI Commands**: Supports checking single files (`check_jd.py`) or full crawl-and-evaluate cycles (`fetch_and_match.py`).
 
-### 4. 🗂️ Markdown Parser & Validator (`md_parser/`)
+### 4. 🗂️ Markdown Parser & Validator (`md_tools/`)
 
 Defines strict Pydantic model representations for resume sections (Header, Body, WorkExperience, PersonalProjects, Courses, Degree, Languages, Summary, and Skills) to ensure structural integrity:
 
@@ -122,7 +122,7 @@ uv run python job_finder/cli/fetch_and_match.py
 Run the strict parser over a local markdown resume to check for ATS parsing errors:
 
 ```bash
-uv run python md_parser/cli.py cv/example/body.md
+uv run python md_tools/cli.py cv/example/body.md
 ```
 
 ### Running Tests and Linters
@@ -131,7 +131,7 @@ Validate code formatting and model roundtrip assertions:
 
 ```bash
 # Run tests
-uv run pytest md_parser/models_test.py md_parser/parse_test.py
+uv run pytest md_tools/models_test.py md_tools/parse_test.py
 
 # Lint codebase
 uv run ruff check .

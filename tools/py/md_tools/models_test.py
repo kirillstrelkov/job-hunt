@@ -1,19 +1,23 @@
 import pytest
 
-from md_parser.models import (
+from md_tools.models import (
     Body,
     BulletPoint,
     CourseOrCertificate,
+    CourseOrCertificateEntry,
     Degree,
     Duration,
     Footer,
     Language,
+    LanguageEntry,
     PersonalProjects,
+    PersonalProjectsEntry,
     Skill,
     Skills,
     Summary,
     Thesis,
     WorkExperience,
+    WorkExperienceEntry,
 )
 
 
@@ -61,7 +65,7 @@ def test_thesis_roundtrip() -> None:
 
 
 def test_language_roundtrip() -> None:
-    lang = Language.from_string("**German**: B2 (Upper Intermediate)")
+    lang = LanguageEntry.from_string("**German**: B2 (Upper Intermediate)")
     assert lang.name == "German"
     assert lang.level == "B2 (Upper Intermediate)"
     assert lang.to_string() == "**German**: B2 (Upper Intermediate)"
@@ -112,7 +116,7 @@ def test_work_experience_roundtrip() -> None:
         "- Performed wire soldering for hardware devices\n\n"
         "> _Reason for resignation: studies_"
     )
-    we1 = WorkExperience.from_string(s1)
+    we1 = WorkExperienceEntry.from_string(s1)
     assert we1.title == "Assembler"
     assert we1.company == "Fabek Elektroonika OÜ"
     assert we1.location == "Tallinn, Estonia"
@@ -129,7 +133,7 @@ def test_work_experience_roundtrip() -> None:
         "- Investigated and fixed bugs for Java XML/XSLT conversion engine and implemented additional unit tests\n"
         "- Skills: XML, XSLT, TDD, Java, JUnit, Mockito, oXygen XML Editor"
     )
-    we2 = WorkExperience.from_string(s2)
+    we2 = WorkExperienceEntry.from_string(s2)
     assert we2.title == "Junior Developer"
     assert we2.company == "AS Tallink Group"
     assert we2.location == "Tallinn, Estonia"
@@ -155,7 +159,7 @@ def test_personal_projects_roundtrip() -> None:
         "- Skills: JavaScript (ES6+), React, React Redux, Redux Middleware/Thunk, React Router, Material-UI (MUI), "
         "Jest, HTML5/CSS3, Git"
     )
-    pp = PersonalProjects.from_string(s)
+    pp = PersonalProjectsEntry.from_string(s)
     assert pp.name == "Employee Polls Web App"
     assert pp.url == "https://github.com/kirillstrelkov/employee-pools"
     assert pp.duration.start_date is None
@@ -169,7 +173,7 @@ def test_personal_projects_roundtrip() -> None:
 
 def test_courses_and_certificates_roundtrip() -> None:
     s = "- Agentic AI Nanodegree | _Udacity_ | Jul 2026"
-    cc = CourseOrCertificate.from_string(s)
+    cc = CourseOrCertificateEntry.from_string(s)
     assert cc.name == "Agentic AI Nanodegree"
     assert cc.institution == "Udacity"
     assert cc.duration.start_date is None

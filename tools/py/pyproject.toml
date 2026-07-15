@@ -43,6 +43,7 @@ dependencies = [
     "opentelemetry-exporter-otlp",
     "openinference-semantic-conventions",
     "arize-phoenix",
+    "mdformat",
 ]
 
 [project.optional-dependencies]
