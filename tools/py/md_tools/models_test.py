@@ -1,3 +1,6 @@
+from md_tools.models import Title
+from pathlib import Path
+from md_tools.models import get_md_title
 import pytest
 
 from md_tools.models import (
@@ -15,6 +18,13 @@ from md_tools.models import (
     Thesis,
     WorkExperienceEntry,
 )
+
+
+def test_get_md_title() -> None:
+    assert get_md_title("# Title 2\nContent") == Title(prefix="#", text="Title 2")
+    assert get_md_title("## Title 2\nContent") == Title(prefix="##", text="Title 2")
+    assert get_md_title("### Title 2\nContent") == Title(prefix="###", text="Title 2")
+    assert get_md_title("previous lines\n# Title 2\nContent") == Title(prefix="#", text="Title 2")
 
 
 def test_duration_roundtrip() -> None:
@@ -107,13 +117,13 @@ def test_degree_from_string_variants() -> None:
 
 def test_work_experience_roundtrip() -> None:
     s1 = (
-        "**Assembler** | _Fabek Elektroonika OÜ, Tallinn, Estonia_ | Jun 2007 \\- Aug 2007\n\n"
+        "**Tester** | _Fabek Elektroonika OÜ, Tallinn, Estonia_ | Jun 2007 \\- Aug 2007\n\n"
         "- Assembled and packaged electronic devices\n"
         "- Performed wire soldering for hardware devices\n\n"
         "> _Reason for resignation: studies_"
     )
     we1 = WorkExperienceEntry.from_string(s1)
-    assert we1.title == "Assembler"
+    assert we1.title == "Tester"
     assert we1.company == "Fabek Elektroonika OÜ"
     assert we1.location == "Tallinn, Estonia"
     assert we1.duration.start_date == "Jun 2007"
@@ -179,14 +189,14 @@ def test_courses_and_certificates_roundtrip() -> None:
 
 def test_summary_roundtrip() -> None:
     s = "## Summary\n\nExperienced software engineer with a track record of developing scalable applications."
-    sum_obj = Summary.from_string(s)
+    sum_obj = Summary.from_string(s, Path("fake"), [])
     assert sum_obj.text == "Experienced software engineer with a track record of developing scalable applications."
     assert sum_obj.to_string() == s
 
 
 def test_skills_roundtrip() -> None:
     s = "## Skills\n\n**Languages**: Python, Go | **Cloud & DevOps**: AWS, Docker"
-    skills_obj = Skills.from_string(s)
+    skills_obj = Skills.from_string(s, Path("fake"), [])
     assert len(skills_obj.groups) == 2
     assert skills_obj.groups[0].name == "Languages"
     assert len(skills_obj.groups[0].skills) == 2
@@ -198,16 +208,19 @@ def test_skills_roundtrip() -> None:
 
 
 def test_footer_multiple_degrees() -> None:
-    s = (
-        "## Education\n\n"
-        "**Master of Science in Computer Science** | _Stanford University_ \\hfill 2015 \\- 2017\n"
-        "- Thesis: [Deep Learning](https://example.com/thesis1.pdf)\n\n"
-        "**Bachelor of Science** | _MIT_ \\hfill 2011 \\- 2015\n"
-        "- Thesis: [Robotics](https://example.com/thesis2.pdf)\n\n"
-        "## Languages\n\n"
-        "**English**: Native, **Spanish**: Conversational"
-    )
-    footer = Footer.from_string(s)
+    s = """
+## Education
+
+**Master of Science in Computer Science** | _Stanford University_ \\hfill 2015 \\- 2017
+- Thesis: [Deep Learning](https://example.com/thesis1.pdf)
+
+**Bachelor of Science** | _MIT_ \\hfill 2011 \\- 2015
+- Thesis: [Robotics](https://example.com/thesis2.pdf)
+
+## Languages
+**English**: Native, **Spanish**: A2
+"""
+    footer = Footer.from_string(s, Path("fake"), [])
     assert len(footer.educations) == 2
     assert footer.educations[0].degree == "Master of Science in Computer Science"
     assert footer.educations[0].institution == "Stanford University"
@@ -223,16 +236,18 @@ def test_footer_multiple_degrees() -> None:
     assert footer.languages[0].name == "English"
     assert footer.languages[0].level == "Native"
     assert footer.languages[1].name == "Spanish"
-    assert footer.languages[1].level == "Conversational"
+    assert footer.languages[1].level == "A2"
 
 
 def test_body_multiple_certificates() -> None:
-    s = (
-        "## Courses and certificates\n\n"
-        "- Certified Kubernetes Application Developer | _Cloud Native Computing Foundation_ | Feb 2026\n"
-        "- AWS Certified Solutions Architect | _Amazon Web Services_ | Jan 2025"
-    )
-    body = Body.from_string(s)
+    s = """
+## Courses and certificates
+
+- Certified Kubernetes Application Developer | _Cloud Native Computing Foundation_ | Feb 2026
+- AWS Certified Solutions Architect | _Amazon Web Services_ | Jan 2025
+
+""".strip()
+    body = Body.from_string(s, Path("fake"), [])
     assert len(body.courses_and_certificates) == 2
 
     c1 = body.courses_and_certificates[0]

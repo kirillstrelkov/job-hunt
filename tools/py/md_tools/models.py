@@ -3,8 +3,47 @@
 import re
 import tempfile
 from pathlib import Path
+from typing import ClassVar
 
 from pydantic import BaseModel, Field
+
+
+RE_MD_TITLE = re.compile(r"(?P<prefix>#+)\s*(?P<text>.+)$", re.MULTILINE)
+
+
+class Title(BaseModel):
+    """Represents a single line from the CV with its content and line number."""
+
+    prefix: str
+    text: str
+
+
+class Line(BaseModel):
+    """Represents a single line from the CV with its content and line number."""
+
+    raw_line: str
+    number: int
+
+
+def get_raw_lines(s: str) -> list[Line]:
+    """Split a string into lines, optionally stripping whitespace and filtering empty lines."""
+    lines = []
+    for i, line in enumerate(s.splitlines()):
+        lines.append(Line(raw_line=line, number=i + 1))
+    return lines
+
+
+def get_clean_lines(s: str) -> list[str]:
+    """Split a string into lines, optionally stripping whitespace and filtering empty lines."""
+    return [line.strip() for line in s.strip().splitlines() if line.strip()]
+
+
+def get_md_title(text: str) -> Title:
+    match = RE_MD_TITLE.search(text)
+    if not match:
+        msg = f"Invalid CV title format: {text}"
+        raise ValueError(msg)
+    return Title(**match.groupdict())
 
 
 class SectionConstant:
@@ -20,32 +59,17 @@ class SectionConstant:
     INFO = "Info"
 
 
-class Line(BaseModel):
-    """Represents a single line from the CV with its content and line number."""
-
-    raw_line: str
-    number: int
-
-
 class Section(BaseModel):
     """Base Pydantic model representing a structured section of a CV."""
 
     name: str
-    md_prefix: str
-    filepath: Path = Field(default_factory=lambda: Path())
+    md_prefix: str = Field(default="##")
+    filepath: Path = Field(default_factory=lambda: Path("/tmp/dummy"))
     raw_lines: list[Line] = Field(default_factory=list)
 
-    def __init__(self, **data):
-        if "filepath" not in data or data["filepath"] is None:
-            # Create a temp file path if None/not provided
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".md") as tmp:
-                data["filepath"] = Path(tmp.name)
-        elif isinstance(data["filepath"], str):
-            data["filepath"] = Path(data["filepath"])
-        super().__init__(**data)
 
-    def is_root(self) -> bool:
-        return self.md_prefix == "#"
+def is_root_section(sec: Section) -> bool:
+    return sec.md_prefix == "#"
 
 
 class Duration(BaseModel):
@@ -56,7 +80,8 @@ class Duration(BaseModel):
 
     @classmethod
     def from_string(cls, s: str) -> "Duration":
-        s = s.strip()
+        lines = get_clean_lines(s)
+        s = lines[0] if lines else ""
         # Find separators. Order matters (longer first)
         separators = [" \\- ", " - ", " \\hfill ", " hfill ", " to ", "\\-", "-"]
         for sep in separators:
@@ -78,7 +103,8 @@ class BulletPoint(BaseModel):
 
     @classmethod
     def from_string(cls, s: str) -> "BulletPoint":
-        s = s.strip()
+        lines = get_clean_lines(s)
+        s = lines[0] if lines else ""
         if s.startswith(("- ", "* ")):
             s = s[2:].strip()
         return cls(text=s)
@@ -94,7 +120,8 @@ class Skill(BaseModel):
 
     @classmethod
     def from_string(cls, s: str) -> "Skill":
-        return cls(text=s.strip())
+        lines = get_clean_lines(s)
+        return cls(text=lines[0] if lines else "")
 
     def to_string(self) -> str:
         return self.text
@@ -103,26 +130,29 @@ class Skill(BaseModel):
 class Summary(Section):
     """Pydantic model representing a summary section."""
 
-    name: str = SectionConstant.SUMMARY
-    md_prefix: str = "##"
     text: str = ""
 
     @classmethod
-    def from_string(cls, s: str, filepath: Path | None = None, raw_lines: list[Line] = None) -> "Summary":
+    def from_string(cls, s: str, filepath: Path, raw_lines: list[Line]) -> "Summary":
         # Strip header if present
-        lines = [line.strip() for line in s.split("\n")]
+        title = get_md_title(s)
+        lines = get_clean_lines(s)
         text_lines = []
         for line in lines:
-            if line.startswith("## ") and "summary" in line.lower():
+            if line.startswith(f"{title.prefix} ") and title.text == SectionConstant.SUMMARY:
                 continue
             text_lines.append(line)
         text = "\n".join(text_lines).strip()
         return cls(
-            name=SectionConstant.SUMMARY, md_prefix="##", filepath=filepath, raw_lines=raw_lines or [], text=text
+            name=title.text,
+            md_prefix=title.prefix,
+            filepath=filepath,
+            raw_lines=raw_lines,
+            text=text,
         )
 
     def to_string(self) -> str:
-        return f"## {SectionConstant.SUMMARY}\n\n{self.text}"
+        return f"{self.md_prefix} {self.name}\n\n{self.text}"
 
 
 class SkillGroupEntry(BaseModel):
@@ -133,7 +163,8 @@ class SkillGroupEntry(BaseModel):
 
     @classmethod
     def from_string(cls, s: str) -> "SkillGroupEntry":
-        s = s.strip()
+        lines = get_clean_lines(s)
+        s = lines[0] if lines else ""
         if ":" in s:
             name_part, skills_part = s.split(":", 1)
             name = name_part.strip().strip("*").strip()
@@ -149,16 +180,15 @@ class SkillGroupEntry(BaseModel):
 class SkillGroup(Section):
     """Pydantic model representing a skills section containing a list of skill groups."""
 
-    name: str = SectionConstant.SKILLS
-    md_prefix: str = "##"
     groups: list[SkillGroupEntry] = Field(default_factory=list)
 
     @classmethod
-    def from_string(cls, s: str, filepath: Path | None = None, raw_lines: list[Line] = None) -> "SkillGroup":
-        lines = [line.strip() for line in s.split("\n") if line.strip()]
+    def from_string(cls, s: str, filepath: Path, raw_lines: list[Line]) -> "SkillGroup":
+        title = get_md_title(s)
+        lines = get_clean_lines(s)
         content_line = ""
         for line in lines:
-            if line.startswith("## ") and "skills" in line.lower():
+            if line.startswith(f"{title.prefix} ") and title.text.lower() == SectionConstant.SKILLS.lower():
                 continue
             content_line = line
             break
@@ -169,15 +199,15 @@ class SkillGroup(Section):
             groups_list.extend(SkillGroupEntry.from_string(part) for part in parts)
         return cls(
             name=SectionConstant.SKILLS,
-            md_prefix="##",
+            md_prefix=title.prefix,
             filepath=filepath,
-            raw_lines=raw_lines or [],
+            raw_lines=raw_lines or get_raw_lines(s),
             groups=groups_list,
         )
 
     def to_string(self) -> str:
         groups_str = " | ".join(g.to_string() for g in self.groups)
-        return f"## {SectionConstant.SKILLS}\n\n{groups_str}"
+        return f"{self.md_prefix} {self.name}\n\n{groups_str}"
 
 
 # Alias for backward compatibility
@@ -192,7 +222,8 @@ class Thesis(BaseModel):
 
     @classmethod
     def from_string(cls, s: str) -> "Thesis":
-        s = s.strip()
+        lines = get_clean_lines(s)
+        s = lines[0] if lines else ""
         for prefix in ["- Thesis:", "Thesis:", "- Thesis: "]:
             if s.startswith(prefix):
                 s = s[len(prefix) :].strip()
@@ -214,7 +245,8 @@ class LanguageEntry(BaseModel):
 
     @classmethod
     def from_string(cls, s: str) -> "LanguageEntry":
-        s = s.strip()
+        lines = get_clean_lines(s)
+        s = lines[0] if lines else ""
         if ":" in s:
             name_part, level_part = s.split(":", 1)
             name = name_part.strip().strip("*").strip()
@@ -234,11 +266,12 @@ class Language(Section):
     languages: list[LanguageEntry] = Field(default_factory=list)
 
     @classmethod
-    def from_string(cls, s: str, filepath: Path | None = None, raw_lines: list[Line] = None) -> "Language":
-        lines = [line.strip() for line in s.split("\n") if line.strip()]
+    def from_string(cls, s: str, filepath: Path, raw_lines: list[Line]) -> "Language":
+        title = get_md_title(s)
+        lines = get_clean_lines(s)
         content_lines = []
         for line in lines:
-            if line.startswith("## ") and "languages" in line.lower():
+            if line.startswith(f"{title.prefix} ") and title.text.lower() == SectionConstant.LANGUAGES.lower():
                 continue
             content_lines.append(line)
         lang_line = " ".join(content_lines).strip()
@@ -246,15 +279,15 @@ class Language(Section):
         languages = [LanguageEntry.from_string(lp) for lp in lang_parts if lp.strip()]
         return cls(
             name=SectionConstant.LANGUAGES,
-            md_prefix="##",
+            md_prefix=title.prefix,
             filepath=filepath,
-            raw_lines=raw_lines or [],
+            raw_lines=raw_lines,
             languages=languages,
         )
 
     def to_string(self) -> str:
         lang_strs = [lang.to_string() for lang in self.languages]
-        return f"## {SectionConstant.LANGUAGES}\n\n" + ", ".join(lang_strs)
+        return f"{self.md_prefix} {self.name}\n\n" + ", ".join(lang_strs)
 
 
 class Degree(BaseModel):
@@ -267,7 +300,7 @@ class Degree(BaseModel):
 
     @classmethod
     def from_string(cls, s: str) -> "Degree":
-        lines = [line.strip() for line in s.strip().split("\n") if line.strip()]
+        lines = get_clean_lines(s)
         if not lines:
             raise ValueError("Empty string for Degree")
 
@@ -316,16 +349,15 @@ class Degree(BaseModel):
 class Education(Section):
     """Pydantic model representing the education section."""
 
-    name: str = SectionConstant.EDUCATION
-    md_prefix: str = "##"
     degrees: list[Degree] = Field(default_factory=list)
 
     @classmethod
-    def from_string(cls, s: str, filepath: Path | None = None, raw_lines: list[Line] = None) -> "Education":
-        lines = [line.strip() for line in s.split("\n") if line.strip()]
+    def from_string(cls, s: str, filepath: Path, raw_lines: list[Line]) -> "Education":
+        title = get_md_title(s)
+        lines = get_clean_lines(s)
         content_lines = []
         for line in lines:
-            if line.startswith("## ") and "education" in line.lower():
+            if line.startswith(f"{title.prefix} ") and title.text.lower() == SectionConstant.EDUCATION.lower():
                 continue
             content_lines.append(line)
 
@@ -342,14 +374,14 @@ class Education(Section):
         degrees = [Degree.from_string(block) for block in edu_blocks]
         return cls(
             name=SectionConstant.EDUCATION,
-            md_prefix="##",
+            md_prefix=title.prefix,
             filepath=filepath,
-            raw_lines=raw_lines or [],
+            raw_lines=raw_lines,
             degrees=degrees,
         )
 
     def to_string(self) -> str:
-        lines = [f"## {SectionConstant.EDUCATION}", ""]
+        lines = [f"{self.md_prefix} {self.name}", ""]
         for edu in self.degrees:
             lines.append(edu.to_string())
             lines.append("")
@@ -369,7 +401,7 @@ class WorkExperienceEntry(BaseModel):
 
     @classmethod
     def from_string(cls, s: str) -> "WorkExperienceEntry":
-        lines = [line.strip() for line in s.strip().split("\n") if line.strip()]
+        lines = get_clean_lines(s)
         if not lines:
             raise ValueError("Empty string for WorkExperienceEntry")
 
@@ -453,16 +485,18 @@ class WorkExperienceEntry(BaseModel):
 class WorkExperience(Section):
     """Pydantic model representing the work experience section."""
 
-    name: str = SectionConstant.WORK_EXPERIENCE
-    md_prefix: str = "##"
     entries: list[WorkExperienceEntry] = Field(default_factory=list)
 
     @classmethod
-    def from_string(cls, s: str, filepath: Path | None = None, raw_lines: list[Line] = None) -> "WorkExperience":
-        lines = s.split("\n")
+    def from_string(cls, s: str, filepath: Path, raw_lines: list[Line]) -> "WorkExperience":
+        title = get_md_title(s)
+        lines = get_clean_lines(s)
         content_lines = []
         for line in lines:
-            if line.strip().startswith("## ") and "work" in line.lower():
+            if (
+                line.strip().startswith(f"{title.prefix} ")
+                and title.text.lower() == SectionConstant.WORK_EXPERIENCE.lower()
+            ):
                 continue
             content_lines.append(line)
 
@@ -470,7 +504,7 @@ class WorkExperience(Section):
         entries = []
         if work_text:
             we_block = []
-            for w_line in work_text.split("\n"):
+            for w_line in get_clean_lines(work_text):
                 stripped = w_line.strip()
                 if stripped.startswith("**") and " | " in stripped and we_block:
                     entries.append(WorkExperienceEntry.from_string("\n".join(we_block)))
@@ -479,15 +513,15 @@ class WorkExperience(Section):
             if we_block:
                 entries.append(WorkExperienceEntry.from_string("\n".join(we_block)))
         return cls(
-            name=SectionConstant.WORK_EXPERIENCE,
-            md_prefix="##",
+            name=title.text,
+            md_prefix=title.prefix,
             filepath=filepath,
-            raw_lines=raw_lines or [],
+            raw_lines=raw_lines or get_raw_lines(s),
             entries=entries,
         )
 
     def to_string(self) -> str:
-        lines = [f"## {SectionConstant.WORK_EXPERIENCE}", ""]
+        lines = [f"{self.md_prefix} {self.name}", ""]
         lines.append("\n\n".join(we.to_string() for we in self.entries))
         return "\n".join(lines)
 
@@ -503,7 +537,7 @@ class PersonalProjectsEntry(BaseModel):
 
     @classmethod
     def from_string(cls, s: str) -> "PersonalProjectsEntry":
-        lines = [line.strip() for line in s.strip().split("\n") if line.strip()]
+        lines = get_clean_lines(s)
         if not lines:
             raise ValueError("Empty string for PersonalProjectsEntry")
 
@@ -568,16 +602,19 @@ class PersonalProjectsEntry(BaseModel):
 class PersonalProjects(Section):
     """Pydantic model representing the personal projects section."""
 
-    name: str = SectionConstant.PERSONAL_PROJECTS
-    md_prefix: str = "##"
     entries: list[PersonalProjectsEntry] = Field(default_factory=list)
 
     @classmethod
-    def from_string(cls, s: str, filepath: Path | None = None, raw_lines: list[Line] = None) -> "PersonalProjects":
-        lines = s.split("\n")
+    def from_string(cls, s: str, filepath: Path, raw_lines: list[Line]) -> "PersonalProjects":
+        title = get_md_title(s)
+
+        lines = get_clean_lines(s.strip())
         content_lines = []
         for line in lines:
-            if line.strip().startswith("## ") and "project" in line.lower():
+            if (
+                line.strip().startswith(f"{title.prefix} ")
+                and title.text.lower() == SectionConstant.PERSONAL_PROJECTS.lower()
+            ):
                 continue
             content_lines.append(line)
 
@@ -585,7 +622,7 @@ class PersonalProjects(Section):
         entries = []
         if project_text:
             pp_block = []
-            for p_line in project_text.split("\n"):
+            for p_line in get_clean_lines(project_text):
                 stripped = p_line.strip()
                 if stripped.startswith("**") and (" | " in stripped or "[" in stripped) and pp_block:
                     entries.append(PersonalProjectsEntry.from_string("\n".join(pp_block)))
@@ -594,15 +631,15 @@ class PersonalProjects(Section):
             if pp_block:
                 entries.append(PersonalProjectsEntry.from_string("\n".join(pp_block)))
         return cls(
-            name=SectionConstant.PERSONAL_PROJECTS,
-            md_prefix="##",
+            name=title.text,
+            md_prefix=title.prefix,
             filepath=filepath,
-            raw_lines=raw_lines or [],
+            raw_lines=raw_lines or get_raw_lines(s),
             entries=entries,
         )
 
     def to_string(self) -> str:
-        lines = [f"## {SectionConstant.PERSONAL_PROJECTS}", ""]
+        lines = [f"{self.md_prefix} {self.name}", ""]
         lines.append("\n\n".join(pp.to_string() for pp in self.entries))
         return "\n".join(lines)
 
@@ -616,7 +653,8 @@ class CourseOrCertificateEntry(BaseModel):
 
     @classmethod
     def from_string(cls, s: str) -> "CourseOrCertificateEntry":
-        s = s.strip()
+        lines = get_clean_lines(s)
+        s = lines[0] if lines else ""
         if s.startswith(("- ", "* ")):
             s = s[2:].strip()
 
@@ -643,36 +681,35 @@ class CourseOrCertificateEntry(BaseModel):
 class CourseOrCertificate(Section):
     """Pydantic model representing the courses and certificates section."""
 
-    name: str = SectionConstant.COURSES_AND_CERTIFICATES
-    md_prefix: str = "##"
     entries: list[CourseOrCertificateEntry] = Field(default_factory=list)
 
     @classmethod
-    def from_string(cls, s: str, filepath: Path | None = None, raw_lines: list[Line] = None) -> "CourseOrCertificate":
-        lines = s.split("\n")
+    def from_string(cls, s: str, filepath: Path, raw_lines: list[Line]) -> "CourseOrCertificate":
+        title = get_md_title(s)
+        lines = get_clean_lines(s)
         content_lines = []
         for line in lines:
-            if line.strip().startswith("## ") and ("course" in line.lower() or "cert" in line.lower()):
+            if line.strip().startswith(f"{title.prefix} "):
                 continue
             content_lines.append(line)
 
         course_text = "\n".join(content_lines).strip()
         entries = []
         if course_text:
-            for c_line in course_text.split("\n"):
+            for c_line in get_clean_lines(course_text):
                 stripped = c_line.strip()
                 if stripped.startswith(("- ", "* ")):
                     entries.append(CourseOrCertificateEntry.from_string(c_line))
         return cls(
-            name=SectionConstant.COURSES_AND_CERTIFICATES,
-            md_prefix="##",
+            name=title.text,
+            md_prefix=title.prefix,
             filepath=filepath,
-            raw_lines=raw_lines or [],
+            raw_lines=raw_lines,
             entries=entries,
         )
 
     def to_string(self) -> str:
-        lines = [f"## {SectionConstant.COURSES_AND_CERTIFICATES}", ""]
+        lines = [f"{self.md_prefix} {self.name}", ""]
         lines.append("\n".join(cc.to_string() for cc in self.entries))
         return "\n".join(lines)
 
@@ -680,8 +717,6 @@ class CourseOrCertificate(Section):
 class Info(Section):
     """Pydantic model representing the personal contact info section."""
 
-    name: str = SectionConstant.INFO
-    md_prefix: str = "#"
     address: str = ""
     email: str = ""
     telephone: str = ""
@@ -689,10 +724,11 @@ class Info(Section):
     github: str = ""
 
     @classmethod
-    def from_string(cls, s: str, filepath: Path | None = None, raw_lines: list[Line] = None) -> "Info":
-        lines = [line.strip() for line in s.strip().split("\n") if line.strip()]
+    def from_string(cls, s: str, filepath: Path, raw_lines: list[Line]) -> "Info":
+        title = get_md_title(s)
+        lines = get_clean_lines(s)
 
-        name = SectionConstant.INFO
+        name = title.text
         address = ""
         email = ""
         telephone = ""
@@ -706,8 +742,8 @@ class Info(Section):
             return text.strip()
 
         for line in lines:
-            if line.startswith("# "):
-                name = line[2:].strip()
+            if line.strip().startswith(f"{title.prefix} "):
+                name = line[len(title.prefix) + 1 :].strip()
             elif "---" in line:
                 continue
             elif "|" in line:
@@ -732,9 +768,9 @@ class Info(Section):
 
         return cls(
             name=name,
-            md_prefix="#",
+            md_prefix=title.prefix,
             filepath=filepath,
-            raw_lines=raw_lines or [],
+            raw_lines=raw_lines,
             address=address,
             email=email,
             telephone=telephone,
@@ -744,7 +780,7 @@ class Info(Section):
 
     def to_string(self) -> str:
         lines = []
-        lines.append(f"# {self.name}")
+        lines.append(f"{self.md_prefix} {self.name}")
         lines.append("")
 
         contact_parts = []
@@ -781,7 +817,8 @@ class Header(BaseModel):
 
     @classmethod
     def from_string(cls, s: str) -> "Header":
-        info = Info.from_string(s)
+        lines = get_clean_lines(s)
+        info = Info.from_string("\n".join(lines))
         return cls(info=info)
 
     def to_string(self) -> str:
@@ -816,10 +853,10 @@ class Footer(BaseModel):
     """Pydantic model representing the CV footer containing education and languages."""
 
     education_sec: Education = Field(
-        default_factory=lambda: Education(name=SectionConstant.EDUCATION, md_prefix="##"), alias="education"
+        default_factory=lambda: Education(name=Education.NAME, md_prefix=Education.MD_PREFIX), alias="education"
     )
     language_sec: Language = Field(
-        default_factory=lambda: Language(name=SectionConstant.LANGUAGES, md_prefix="##"), alias="language"
+        default_factory=lambda: Language(name=Language.NAME, md_prefix=Language.MD_PREFIX), alias="language"
     )
 
     model_config = {
@@ -827,12 +864,13 @@ class Footer(BaseModel):
     }
 
     @classmethod
-    def from_string(cls, s: str) -> "Footer":
+    def from_string(cls, s: str, filepath: Path, raw_lines: list[Line]) -> "Footer":
         from md_tools.parse import split_markdown_into_sections
 
-        sections = split_markdown_into_sections(s)
-        edu = Education(name=SectionConstant.EDUCATION, md_prefix="##")
-        lang = Language(name=SectionConstant.LANGUAGES, md_prefix="##")
+        lines = get_clean_lines(s)
+        sections = split_markdown_into_sections("\n".join(lines))
+        edu = Education(name=SectionConstant.EDUCATION, filepath=filepath, raw_lines=raw_lines)
+        lang = Language(name=SectionConstant.LANGUAGES, filepath=filepath, raw_lines=raw_lines)
 
         for sec in sections:
             sec_name = sec.name.lower()
@@ -865,15 +903,17 @@ class Body(BaseModel):
     """Pydantic model representing the CV body containing work history, projects, and courses."""
 
     work_experience_sec: WorkExperience = Field(
-        default_factory=lambda: WorkExperience(name=SectionConstant.WORK_EXPERIENCE, md_prefix="##"),
+        default_factory=lambda: WorkExperience(name=WorkExperience.NAME, md_prefix=WorkExperience.MD_PREFIX),
         alias="work_experience",
     )
     personal_projects_sec: PersonalProjects = Field(
-        default_factory=lambda: PersonalProjects(name=SectionConstant.PERSONAL_PROJECTS, md_prefix="##"),
+        default_factory=lambda: PersonalProjects(name=PersonalProjects.NAME, md_prefix=PersonalProjects.MD_PREFIX),
         alias="personal_projects",
     )
     courses_and_certificates_sec: CourseOrCertificate = Field(
-        default_factory=lambda: CourseOrCertificate(name=SectionConstant.COURSES_AND_CERTIFICATES, md_prefix="##"),
+        default_factory=lambda: CourseOrCertificate(
+            name=CourseOrCertificate.NAME, md_prefix=CourseOrCertificate.MD_PREFIX
+        ),
         alias="courses_and_certificates",
     )
 
@@ -882,13 +922,14 @@ class Body(BaseModel):
     }
 
     @classmethod
-    def from_string(cls, s: str) -> "Body":
+    def from_string(cls, s: str, filepath: Path, raw_lines: list[Line]) -> "Body":
         from md_tools.parse import split_markdown_into_sections
 
-        sections = split_markdown_into_sections(s)
-        we = WorkExperience(name=SectionConstant.WORK_EXPERIENCE, md_prefix="##")
-        pp = PersonalProjects(name=SectionConstant.PERSONAL_PROJECTS, md_prefix="##")
-        cc = CourseOrCertificate(name=SectionConstant.COURSES_AND_CERTIFICATES, md_prefix="##")
+        lines = get_clean_lines(s)
+        sections = split_markdown_into_sections("\n".join(lines))
+        we = WorkExperience(name=SectionConstant.WORK_EXPERIENCE, filepath=filepath, raw_lines=raw_lines)
+        pp = PersonalProjects(name=SectionConstant.PERSONAL_PROJECTS, filepath=filepath, raw_lines=raw_lines)
+        cc = CourseOrCertificate(name=SectionConstant.COURSES_AND_CERTIFICATES, filepath=filepath, raw_lines=raw_lines)
 
         for sec in sections:
             sec_name = sec.name.lower()
@@ -938,18 +979,19 @@ class CV(BaseModel):
     def from_string(cls, s: str) -> "CV":
         from md_tools.parse import split_markdown_into_sections
 
-        sections = split_markdown_into_sections(s)
+        lines = get_clean_lines(s)
+        sections = split_markdown_into_sections("\n".join(lines))
 
         info = None
         summary = None
         skills = None
 
-        we = WorkExperience(name=SectionConstant.WORK_EXPERIENCE, md_prefix="##")
-        pp = PersonalProjects(name=SectionConstant.PERSONAL_PROJECTS, md_prefix="##")
-        cc = CourseOrCertificate(name=SectionConstant.COURSES_AND_CERTIFICATES, md_prefix="##")
+        we = WorkExperience(name=SectionConstant.WORK_EXPERIENCE)
+        pp = PersonalProjects(name=SectionConstant.PERSONAL_PROJECTS)
+        cc = CourseOrCertificate(name=SectionConstant.COURSES_AND_CERTIFICATES)
 
-        edu = Education(name=SectionConstant.EDUCATION, md_prefix="##")
-        lang = Language(name=SectionConstant.LANGUAGES, md_prefix="##")
+        edu = Education(name=SectionConstant.EDUCATION)
+        lang = Language(name=SectionConstant.LANGUAGES)
 
         for sec in sections:
             sec_name = sec.name.lower()

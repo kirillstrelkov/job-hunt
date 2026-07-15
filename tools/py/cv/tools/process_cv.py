@@ -8,41 +8,15 @@ from pathlib import Path
 
 from loguru import logger
 
-from cv.tools.checker import Error
+from cv.tools.checker import Error, get_section_class
 from cv.tools.checker import check as do_check
+from cv.tools.fixer import _FIX_CONFIG
 from md_tools.format import format as format_md
-from md_tools.models import Section, SectionConstant
+from md_tools.models import (
+    CV,
+    Section,
+)
 from md_tools.parse import split_markdown_into_sections
-
-MONTHS_TO_SHORT = {
-    "January": "Jan",
-    "February": "Feb",
-    "March": "Mar",
-    "April": "Apr",
-    "May": "May",
-    "June": "Jun",
-    "July": "Jul",
-    "August": "Aug",
-    "September": "Sep",
-    "October": "Oct",
-    "November": "Nov",
-    "December": "Dec",
-}
-
-RE_HEADING = re.compile(r"^#+\s")
-RE_DATE_EXTRACT = re.compile(r"([A-Z][a-z]+)?\s*(\d{4})")
-RE_WORK_EXP = re.compile(r"^\*\*(.*?)\*\*\s*\|\s*_(.*?)_\s*(?:\||\\hfill)\s*(.*)$")
-RE_PIPE_SPLIT = re.compile(r"\||\\hfill")
-RE_ENDS_WITH_YEAR = re.compile(r"\d{4}$")
-RE_COURSE_FORMAT = re.compile(r"^\- .+?\| \_.+?\_ \s*(?:\||\\hfill)\s*\w{3}\s\d{4}$")
-RE_COURSE_DATE = re.compile(r"([A-Za-z]+\s+\d{4})$")
-RE_LEADING_SPACES = re.compile(r"^\s*")
-RE_COURSE_ADD_HFILL = re.compile(r"\s+([A-Za-z]+\s+\d{4})$")
-RE_LAST_PIPE_YEAR = re.compile(r"\|\s*([A-Za-z]*\s*\d{4}.*)$")
-RE_LAST_PIPE_REPLACE = re.compile(r"\|([^|]*)$")
-RE_TRAILING_DOT = re.compile(r"\.(\s*)$")
-
-MONTHS_TO_SHORT_RE = {re.compile(rf"\b{full_m}\b"): short_m for full_m, short_m in MONTHS_TO_SHORT.items()}
 
 
 def parse_args() -> argparse.Namespace:
@@ -63,72 +37,41 @@ def split_into_sections(filepath: str) -> list[Section]:
     return split_markdown_into_sections(content, filepath=path)
 
 
-def _fix_skills_section(section: Section) -> None:
-    if section.name.lower() != SectionConstant.SKILLS.lower():
-        return
-
-    new_lines = []
-    for line_obj in section.raw_lines:
-        line_str = line_obj.raw_line
-        # fix markdown new flie with 2 spaces at the end
-        if (line_str.startswith("**") or ":" in line_str) and not line_str.endswith("  "):
-            line_obj.raw_line = line_str.rstrip() + "  "
-
-        new_lines.append(line_obj)
-
-    section.raw_lines = new_lines
-
-
-def do_fix(sections: list[Section], *, keep_thesis: bool = True) -> list[Section]:  # noqa: C901
-    """Apply sorting, formatting and structure fixes to CV sections."""
+def do_fix(cv: CV, *, keep_thesis: bool = True) -> CV:
+    """Apply sorting, formatting and structure fixes to a CV object."""
     if not keep_thesis:
         logger.warning("Thesis will be removed")
 
-    for section in sections:
-        heading_title = section.name.lower()
-        if heading_title == SectionConstant.SKILLS.lower():
-            _fix_skills_section(section)
-            continue
+    def run_fixes(section: Section) -> Section:
+        import inspect
+        sec_class = get_section_class(section)
+        fix_classes = _FIX_CONFIG.get(sec_class, _FIX_CONFIG.get(Section, []))
+        for fix_class in fix_classes:
+            fixer = fix_class()
+            sig = inspect.signature(fixer.fix)
+            if "keep_thesis" in sig.parameters:
+                section = fixer.fix(section, keep_thesis=keep_thesis)
+            else:
+                section = fixer.fix(section)
+        return section
 
-        filtered_lines = []
-        for line_obj in section.raw_lines:
-            if not keep_thesis and line_obj.raw_line.strip().startswith("- Thesis"):
-                continue
+    if cv.header:
+        cv.header.info_sec = run_fixes(cv.header.info_sec)
+    if cv.summary:
+        cv.summary = run_fixes(cv.summary)
+    if cv.skills:
+        cv.skills = run_fixes(cv.skills)
+    if cv.body:
+        cv.body.work_experience_sec = run_fixes(cv.body.work_experience_sec)
+        cv.body.personal_projects_sec = run_fixes(cv.body.personal_projects_sec)
+        cv.body.courses_and_certificates_sec = run_fixes(cv.body.courses_and_certificates_sec)
+    if cv.footer:
+        if cv.footer.education_sec:
+            cv.footer.education_sec = run_fixes(cv.footer.education_sec)
+        if cv.footer.language_sec:
+            cv.footer.language_sec = run_fixes(cv.footer.language_sec)
 
-            line_str = line_obj.raw_line
-            for full_m_re, short_m in MONTHS_TO_SHORT_RE.items():
-                line_str = full_m_re.sub(short_m, line_str)
-
-            if (
-                SectionConstant.WORK_EXPERIENCE.lower() in heading_title
-                or "projects" in heading_title
-                or SectionConstant.PERSONAL_PROJECTS.lower() in heading_title
-            ):
-                line_str = RE_TRAILING_DOT.sub(r"\1", line_str)
-
-            if SectionConstant.COURSES_AND_CERTIFICATES.lower() in heading_title:
-                line_stripped = line_str.strip()
-                if line_stripped and not line_stripped.startswith("-") and RE_ENDS_WITH_YEAR.search(line_stripped):
-                    line_str = RE_LEADING_SPACES.sub("- ", line_str)
-
-                line_str = line_str.rstrip()
-                if (
-                    RE_ENDS_WITH_YEAR.search(line_str)
-                    and "|" not in line_str
-                    and r"\hfill" not in line_str
-                    and r"/hfill" not in line_str
-                ):
-                    line_str = RE_COURSE_ADD_HFILL.sub(r" \\hfill \1", line_str)
-
-            if RE_LAST_PIPE_YEAR.search(line_str):
-                line_str = RE_LAST_PIPE_REPLACE.sub(r"\\hfill\1", line_str)
-
-            line_obj.raw_line = line_str
-            filtered_lines.append(line_obj)
-
-        section.raw_lines = filtered_lines
-
-    return sections
+    return cv
 
 
 def check_file(filepath: str) -> None:
@@ -163,13 +106,9 @@ def check_markdown(md: str, *, filepath: str = "CV.md") -> list[Error]:
 
 def fix_markdown(md: str, *, keep_thesis: bool = True) -> str:
     """Apply auto-formatting and structure fixes to a CV markdown string, returning the fixed string."""
-    sections = split_markdown_into_sections(md)
-    do_fix(sections, keep_thesis=keep_thesis)
-    output_lines = []
-    for section in sections:
-        output_lines.extend(line_obj.raw_line for line_obj in section.raw_lines)
-    fixed = "\n".join(output_lines) + ("\n" if output_lines else "")
-    return format_md(fixed)
+    cv_obj = CV.from_string(md)
+    cv_obj = do_fix(cv_obj, keep_thesis=keep_thesis)
+    return format_md(cv_obj.to_string())
 
 
 def main() -> None:

@@ -56,7 +56,7 @@ def test_tailored_cv_parsing() -> None:
         ],
         "justification_report": {
             "reductions_and_omissions": [
-                "Roles Removed: Completely removed the 'Junior Developer' and 'Assembler' roles as strictly requested."
+                "Roles Removed: Completely removed the 'Junior Developer' and 'Tester' roles as strictly requested."
             ],
             "selections": [
                 "Projects: Selected the 'Helsinki Cloud-Native Microservices' and 'Golang Web Services Playground'."

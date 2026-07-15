@@ -129,8 +129,8 @@ def test_chronological_check():
         md_prefix="##",
         filepath=Path("dummy.md"),
         raw_lines=[
-            Line(raw_line="**Assembler** | _Fabek_ | Jun 2007 - Aug 2007", number=1),
-            Line(raw_line="**Developer** | _AS Tallink_ | Jan 2024 - Present", number=2),
+            Line(raw_line="**Tester** | _ASM_ | Jun 2007 - Aug 2007", number=1),
+            Line(raw_line="**Developer** | _AS Tall_ | Jan 2024 - Present", number=2),
         ],
     )
     errors = checker.check(sec_we)
@@ -146,7 +146,7 @@ def test_format_check():
         name=SectionConstant.WORK_EXPERIENCE,
         md_prefix="##",
         filepath=Path("dummy.md"),
-        raw_lines=[Line(raw_line="**Assembler** _Fabek_ | Jun 2007", number=1)],
+        raw_lines=[Line(raw_line="**Tester** _ASM_ | Jun 2007", number=1)],
     )
     errors = checker.check(sec_we)
     assert len(errors) == 1

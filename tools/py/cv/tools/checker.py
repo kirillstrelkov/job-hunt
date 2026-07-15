@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Validation and formatting checker for CV markdown files."""
 
+from md_tools.models import is_root_section
 import argparse
 import re
 import sys
@@ -379,7 +380,7 @@ class RequiredSectionsCheck:
 
 def get_section_class(section: Section) -> type[Section]:
     """Determine the Section subclass corresponding to a generic Section name/prefix."""
-    if section.is_root():
+    if is_root_section(section):
         return Info
 
     name_lower = section.name.lower()

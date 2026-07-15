@@ -26,9 +26,11 @@ def split_markdown_into_sections(md: str, filepath: Path | None = None) -> list[
                 prefix = "#"
                 name = raw_line.lstrip("#").strip()
 
-            cur_section = Section(name=name, md_prefix=prefix, filepath=filepath, raw_lines=[])
-
-        if cur_section:
+            line = Line(raw_line=raw_line, number=i + 1)
+            cur_section = Section(
+                name=name, md_prefix=prefix, filepath=filepath or Path("/tmp/dummy"), raw_lines=[line]
+            )
+        elif cur_section:
             line = Line(raw_line=raw_line, number=i + 1)
             cur_section.raw_lines.append(line)
 
