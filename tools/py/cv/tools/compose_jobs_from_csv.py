@@ -3,6 +3,7 @@
 import argparse
 import re
 import sys
+from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
@@ -72,7 +73,10 @@ def main() -> None:  # noqa: PLR0915
         sys.exit(1)
 
     try:
-        df = pd.read_csv(csv_path, sep=None, engine="python")
+        if csv_path.suffix == ".ods":
+            df = pd.read_excel(csv_path, engine="odf")
+        else:
+            df = pd.read_csv(csv_path, sep=None, engine="python")
     except Exception as e:
         logger.error(f"Failed to read CSV file {csv_path}: {e}")
         sys.exit(1)
@@ -85,7 +89,9 @@ def main() -> None:  # noqa: PLR0915
         logger.error(f"CSV file must contain 'title', 'company', and 'description' columns. Found: {list(df.columns)}")
         sys.exit(1)
 
-    output_dir = Path(args.folder).resolve()
+    mtime = csv_path.stat().st_mtime
+    timestamp = datetime.fromtimestamp(mtime).strftime(r"%Y-%m-%d_%H-%M-%S")
+    output_dir = (Path(args.folder) / f"from_csv_{csv_path.stem}" / timestamp).resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
 
     logger.info(f"Processing {len(df)} job postings from CSV...")

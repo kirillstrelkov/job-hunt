@@ -71,7 +71,7 @@ Here are the strict rules for tailoring the CV:
     - Avoid Clichés: Steer clear of overused phrases like "hardworking professional" or "team player."
   - Skills (List ONLY the technologies, tools, and skills explicitly mentioned in this tailored CV. Group them logically. Example: **Languages:** Python, Go | **Cloud & DevOps:** AWS, Docker).
   - Work Experience
-  - Projects
+  - Personal Projects
   - Courses and Certificates
 
 ### Output example
@@ -115,8 +115,8 @@ Briefly explain the strategic decisions you made:
 Provide highly relevant overflow content that was cut due to strict length limits:
 
 - **Work Experience:** Provide 2 additional strong bullet points for the most recent/relevant roles that didn't make the top 5 cut but contain strong ATS keyword matches.
-- **Courses & Certificates:** List 3 to 5 additional relevant courses/certificates that were omitted.
-- **Projects:** Mention 1-2 additional relevant project with a single-line summary.
+- **Courses and Certificates:** List 3 to 5 additional relevant courses/certificates that were omitted.
+- **Personal Projects:** Mention 1-2 additional relevant project with a single-line summary.
 
 ## MERGING EXAMPLE (HOW YOU MUST WRITE)
 

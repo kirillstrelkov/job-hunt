@@ -10,9 +10,9 @@ from loguru import logger
 
 from cv.tools.checker import Error
 from cv.tools.checker import check as do_check
+from md_tools.format import format as format_md
 from md_tools.models import Section, SectionConstant
 from md_tools.parse import split_markdown_into_sections
-from md_tools.format import format as format_md
 
 MONTHS_TO_SHORT = {
     "January": "Jan",

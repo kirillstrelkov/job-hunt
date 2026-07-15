@@ -5,7 +5,6 @@ Since no specific job description is provided, you must leverage your expert kno
 Here are the strict rules for tailoring the CV:
 
 1. WORK EXPERIENCE:
-
    - Keep ALL roles from the Master CV EXCEPT "Junior Developer | AS Tallink Group" and "Assembler | Fabek Elektroonika OÜ" (completely remove these two).
    - Highlight the most recent and relevant roles by rewriting and compacting the bullet points so they directly align with the standard keywords, expected skills, and typical responsibilities associated with the Target Job Title.
    - Focus on quantifiable achievements.
@@ -20,12 +19,10 @@ Here are the strict rules for tailoring the CV:
      ```
 
 2. COURSES AND CERTIFICATES:
-
    - Do NOT list all items. Handpick ONLY the top 5 to 8 most highly relevant courses and certificates that prove I have the skills expected for this Target Job Title. Discard the rest.
    - Sort the selected items in chronological order from most recent to oldest.
 
 3. PERSONAL PROJECTS:
-
    - Select ONLY the top 2 to 4 most relevant projects that demonstrate practical application of the core skills needed for the Target Job Title.
    - Use bullet points for the project descriptions.
    - Project Format: Use the exact format below for each project entry:
@@ -51,7 +48,7 @@ Here are the strict rules for tailoring the CV:
   - Summary (a customized 3-sentence summary demonstrating my exact fit for the Target Job Title)
   - Skills (List ONLY the technologies, tools, and skills that are explicitly mentioned inside the text of this newly tailored CV. Do not pull extra skills from the Master CV if they did not make the cut).
   - Work Experience
-  - Projects
+  - Personal Projects
   - Courses and Certificates
 
 ---

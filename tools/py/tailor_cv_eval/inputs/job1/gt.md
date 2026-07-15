@@ -104,7 +104,7 @@ Highly motivated Software Engineer with robust experience architecting scalable,
 
 **Selections:**
 
-- **Projects:** Selected the "Helsinki Cloud-Native Microservices" and "Golang Web Services Playground" because they serve as direct, recent proof of hands-on Golang execution, distributed message brokers (NATS/Kafka), centralized monitoring (Prometheus), and relational databases (PostgreSQL/MySQL). "Todo App GitOps" and "Car Search" were chosen to reinforce Kubernetes orchestration and polyglot architecture (C++, Rust, Java, Kotlin) exactly matching the JD's alternative language parameters.
+- **Personal Projects:** Selected the "Helsinki Cloud-Native Microservices" and "Golang Web Services Playground" because they serve as direct, recent proof of hands-on Golang execution, distributed message brokers (NATS/Kafka), centralized monitoring (Prometheus), and relational databases (PostgreSQL/MySQL). "Todo App GitOps" and "Car Search" were chosen to reinforce Kubernetes orchestration and polyglot architecture (C++, Rust, Java, Kotlin) exactly matching the JD's alternative language parameters.
 - **Certifications:** Excluded AI, UX, and basic Python certs to feature only the top 7 highly relevant credentials. Validated knowledge in Apache Kafka, Kubernetes (CKAD, GKE), Golang, Microservices, and Rust makes the candidate appear laser-focused on Tesla's required tech stack.
 
 ### Additional Options
@@ -114,13 +114,13 @@ Highly motivated Software Engineer with robust experience architecting scalable,
 - **Software Engineer | CARIAD SE:** Created automated packaging and distribution tools for internal Python libraries, significantly improving development environment support across the engineering department.
 - **Software Engineer | Argo AI GmbH:** Led cross-team technical troubleshooting sessions, utilizing extensive knowledge of hardware networking to resolve complex vehicle integration issues.
 
-**Courses & Certificates (Overflow):**
+**Courses and Certificates (Overflow):**
 
 - Apache Flink Fundamentals, _Confluent_ | May 2026 (Highly relevant for stream processing requirements).
 - Algorithms on Strings, _Coursera_ | Sep 2025 (Reinforces computer science fundamentals).
 - Data Structures & Algorithms in Python, _Udacity_ | Aug 2020 (Proves algorithmic foundation requested in JD).
 
-**Projects (Overflow):**  
+**Personal Projects (Overflow):**  
 **[Csv2qif](https://github.com/kirillstrelkov/csv2qif)** | 2020
 
 - Engineered a high-performance, multithreaded CLI tool using Rust and Rayon to parse and process large datasets, demonstrating strong systems programming fundamentals.

@@ -55,7 +55,7 @@ Here are the strict rules for tailoring the CV:
   - Summary (a customized 3-sentence summary based on the job description)
   - Skills (List ONLY the technologies, tools, and skills that are explicitly mentioned inside the text of this newly tailored CV. Do not pull extra skills from the Master CV if they did not make the cut).
   - Work Experience
-  - Projects
+  - Personal Projects
   - Courses and Certificates
 
 ---

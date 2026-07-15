@@ -32,7 +32,7 @@ def main() -> None:
         print(f"  Header present: {cv_obj.header is not None}")  # noqa: T201
         print(f"  Work experiences: {len(body.work_experience)}")  # noqa: T201
         print(f"  Personal projects: {len(body.personal_projects)}")  # noqa: T201
-        print(f"  Courses & Certificates: {len(body.courses_and_certificates)}")  # noqa: T201
+        print(f"  Courses and Certificates: {len(body.courses_and_certificates)}")  # noqa: T201
         print(f"  Footer present: {cv_obj.footer is not None}")  # noqa: T201
     except ValidationError as ve:
         print(f"Validation errors encountered in {filepath}:")  # noqa: T201

@@ -6,7 +6,6 @@ You must condense the Master CV into a concise, high-impact resume that would fi
 Here are the strict rules for tailoring the CV:
 
 1. WORK EXPERIENCE:
-
    - Keep ALL roles from the Master CV EXCEPT "Junior Developer | AS Tallink Group" and "Assembler | Fabek Elektroonika OÜ" (completely remove these two).
    - Highlight the most recent and relevant roles by rewriting and compacting the bullet points so they directly align with the keywords, requirements, and responsibilities mentioned in the Target Job Description.
    - Focus on quantifiable achievements.
@@ -23,12 +22,10 @@ Here are the strict rules for tailoring the CV:
      ```
 
 2. COURSES AND CERTIFICATES:
-
    - Do NOT list all items. Handpick ONLY the top 5 to 8 most highly relevant courses and certificates that prove I have the skills required for this specific job. Discard the rest.
    - Sort the selected items in chronological order from most recent to oldest.
 
 3. PERSONAL PROJECTS:
-
    - Select ONLY the top 2 or 4 most relevant projects that demonstrate practical application of the core skills needed for the job.
    - Use bullet points for the project descriptions.
    - Project Format: Use the exact format below for each project entry:
@@ -42,7 +39,6 @@ Here are the strict rules for tailoring the CV:
      ```
 
 4. TONE AND STYLE:
-
    - Retain the text style, vocabulary, and phrasing from the original Master CV as much as possible.
    - Only rewrite when necessary to improve impact, insert crucial keywords from the job description, or combine points for conciseness. Do not invent an entirely new "voice."
 
@@ -61,7 +57,7 @@ Here are the strict rules for tailoring the CV:
   - Summary (a customized 3-sentence summary based on the job description)
   - Skills (List ONLY the technologies, tools, and skills that are explicitly mentioned inside the text of this newly tailored CV. Do not pull extra skills from the Master CV if they did not make the cut).
   - Work Experience
-  - Projects
+  - Personal Projects
   - Courses and Certificates
 
 ---
@@ -80,12 +76,13 @@ Below the resume, add a section called "### Tailoring Justification Report". In 
 Below the justification report, add a section called "### Additional Options". Provide highly relevant overflow content that was cut due to strict length limits, which can be manually added back if there is extra space on the page.
 
 - **Work Experience:** Provide 2 additional strong bullet points for the most recent/relevant roles that didn't make the top 5 cut but are highly relevant to the job.
-- **Courses & Certificates:** List 2 to 3 additional relevant courses/certificates that were omitted.
-- **Projects:** Mention 1 additional relevant project with a single-line summary.
+- **Courses and Certificates:** List 2 to 3 additional relevant courses/certificates that were omitted.
+- **Personal Projects:** Mention 1 additional relevant project with a single-line summary.
 
 ### DATA:
 
 <master_cv>
+
 ## Work experience
 
 **Software Engineer** | _CARIAD SE, Berlin, Germany_ | Oct 2023 \- Aug 2025
@@ -438,29 +435,27 @@ _Reason for resignation: studies_
 
 <job_description>
 Software Engineer – Golang (m/w/d) - Gigafactory Berlin-Brandenburg
-Job-Kategorie	Engineering & Information Technology
-Standort	Grünheide (Mark), Brandenburg
-Anforderungs-ID	265604
-Arbeitsverhältnis	Full-time
+Job-Kategorie Engineering & Information Technology
+Standort Grünheide (Mark), Brandenburg
+Anforderungs-ID 265604
+Arbeitsverhältnis Full-time
 Was Sie erwartet
 Tesla is accelerating the world's transition to sustainable energy. We continuously develop revolutionary strategies and products within shortest time, and successfully launch them on a large scale. This is only possible through extraordinary speed, innovation, and efficiency.
-Gigafactory Berlin forms the perfect basis for rolling out Tesla's incredible success story in Europe. The most important pillar for this is our employees. Their passion, motivation and engagement ensure that we consistently achieve our goals. 
-
-
+Gigafactory Berlin forms the perfect basis for rolling out Tesla's incredible success story in Europe. The most important pillar for this is our employees. Their passion, motivation and engagement ensure that we consistently achieve our goals.
 
 The Role
 
-We are currently looking for highly motivated Golang developers (all seniorities) to join the Factory Software Engineering team. 
+We are currently looking for highly motivated Golang developers (all seniorities) to join the Factory Software Engineering team.
 
 Our engineers are hands-on and encouraged to own their own projects, contribute to innovative ideas, and make an impact on the way our company operates. The mission of our team is to streamline factory operations by building world-class scalable software systems, decrease business costs, and solve engineering challenges from both development and support perspective.
 
 Was zu tun ist
 Participate in requirements gathering, technical specification, and design of complex software systems
-Define an architecture for fault-tolerant, distributed, and adaptive automation applications 
-Implement, deploy, and maintain enterprise-scale manufacturing execution software 
+Define an architecture for fault-tolerant, distributed, and adaptive automation applications
+Implement, deploy, and maintain enterprise-scale manufacturing execution software
 Work closely with Operations, Manufacturing Engineering, Quality, and Supply Chain teams. Collaborate with teams of engineers from multiple disciplines.
-Build tools, test-automation, and documentation 
-Be flexible, responsive, and adaptive to ever changing business requirements 
+Build tools, test-automation, and documentation
+Be flexible, responsive, and adaptive to ever changing business requirements
 Was mitzubringen ist
 Good understanding of software development fundamentals including software design, algorithms, data structures, modularity, and code maintainability
 Degree in Computer Science or related field, or equivalent experience
@@ -479,6 +474,5 @@ Candidates are expected to uphold and actively promote sustainability principles
 What we offer
 
 You will be working in our state-of-the-art Gigafactory, where you’ll solve the world's most interesting problems with the best and brightest people who share a passion to change the world. Tesla’s compensation package includes competitive salary and Tesla shares or bonuses. Typical benefits that are offered are a pension program, 30 vacation days, flexible work arrangements, corporate benefits, employee insurances, relocation, and commuting support.
-
 
 </job_description>
