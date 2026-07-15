@@ -12,6 +12,7 @@ from cv.tools.checker import Error
 from cv.tools.checker import check as do_check
 from md_tools.models import Section, SectionConstant
 from md_tools.parse import split_markdown_into_sections
+from md_tools.format import format as format_md
 
 MONTHS_TO_SHORT = {
     "January": "Jan",
@@ -147,12 +148,10 @@ def check_file(filepath: str) -> None:
 def fix_file(filepath: str, *, keep_thesis: bool = True) -> None:
     """Apply auto-formatting and structure fixes to a CV file path."""
     logger.debug("Fixing file {}", filepath)
-
-    sections = split_into_sections(filepath)
-    do_fix(sections, keep_thesis=keep_thesis)
-    with Path(filepath).open("w", encoding="utf-8") as f:
-        for section in sections:
-            f.writelines(line_obj.raw_line + "\n" for line_obj in section.raw_lines)
+    path = Path(filepath)
+    content = path.read_text(encoding="utf-8")
+    fixed_content = fix_markdown(content, keep_thesis=keep_thesis)
+    path.write_text(fixed_content, encoding="utf-8")
     logger.info("Fixes applied and file written")
 
 
@@ -169,7 +168,8 @@ def fix_markdown(md: str, *, keep_thesis: bool = True) -> str:
     output_lines = []
     for section in sections:
         output_lines.extend(line_obj.raw_line for line_obj in section.raw_lines)
-    return "\n".join(output_lines) + ("\n" if output_lines else "")
+    fixed = "\n".join(output_lines) + ("\n" if output_lines else "")
+    return format_md(fixed)
 
 
 def main() -> None:
