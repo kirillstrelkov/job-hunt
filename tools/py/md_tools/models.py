@@ -1,12 +1,9 @@
 """Pydantic models representing structured sections and elements of a CV."""
 
 import re
-import tempfile
 from pathlib import Path
-from typing import ClassVar
 
 from pydantic import BaseModel, Field
-
 
 RE_MD_TITLE = re.compile(r"(?P<prefix>#+)\s*(?P<text>.+)$", re.MULTILINE)
 

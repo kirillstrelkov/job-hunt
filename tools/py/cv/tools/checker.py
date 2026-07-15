@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Validation and formatting checker for CV markdown files."""
 
-from md_tools.models import is_root_section
 import argparse
 import re
 import sys
@@ -23,6 +22,7 @@ from md_tools.models import (
     SkillGroup,
     Summary,
     WorkExperience,
+    is_root_section,
 )
 from md_tools.parse import split_markdown_into_sections
 

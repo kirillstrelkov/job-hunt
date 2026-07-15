@@ -1,6 +1,5 @@
-from md_tools.models import Title
 from pathlib import Path
-from md_tools.models import get_md_title
+
 import pytest
 
 from md_tools.models import (
@@ -16,7 +15,9 @@ from md_tools.models import (
     Skills,
     Summary,
     Thesis,
+    Title,
     WorkExperienceEntry,
+    get_md_title,
 )
 
 

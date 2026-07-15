@@ -11,7 +11,7 @@ from cv.tools.fixer import (
     TrailingDotFix,
 )
 from cv.tools.process_cv import do_fix
-from md_tools.models import CV, CourseOrCertificate, PersonalProjects, Section, SectionConstant
+from md_tools.models import CV, PersonalProjects, Section
 from md_tools.parse import split_markdown_into_sections
 
 

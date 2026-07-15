@@ -2,7 +2,6 @@
 """Check and fix CV markdown formatting and chronological consistency."""
 
 import argparse
-import re
 import sys
 from pathlib import Path
 
@@ -44,6 +43,7 @@ def do_fix(cv: CV, *, keep_thesis: bool = True) -> CV:
 
     def run_fixes(section: Section) -> Section:
         import inspect
+
         sec_class = get_section_class(section)
         fix_classes = _FIX_CONFIG.get(sec_class, _FIX_CONFIG.get(Section, []))
         for fix_class in fix_classes:

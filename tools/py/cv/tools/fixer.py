@@ -1,17 +1,17 @@
 import re
-from loguru import logger
+
 from cv.tools.checker import get_sort_key
 from md_tools.models import (
     CourseOrCertificate,
+    Education,
+    Info,
+    Language,
     Line,
     PersonalProjects,
     Section,
-    Summary,
     SkillGroup,
-    Language,
-    Education,
+    Summary,
     WorkExperience,
-    Info,
 )
 
 MONTHS_TO_SHORT = {
@@ -94,7 +94,7 @@ class TrailingDotFix(Fix):
 
 
 class CourseCertificateFormatterFix(Fix):
-    """Normalizes courses/certificates line formatting and ensures dates are preceded by \hfill."""
+    r"""Normalizes courses/certificates line formatting and ensures dates are preceded by \hfill."""
 
     def fix(self, section: Section) -> Section:
         for line_obj in section.raw_lines:
@@ -116,7 +116,7 @@ class CourseCertificateFormatterFix(Fix):
 
 
 class LastPipeFix(Fix):
-    """Replaces trailing '| Year' date delimiters with \hfill."""
+    r"""Replaces trailing '| Year' date delimiters with \hfill."""
 
     def fix(self, section: Section) -> Section:
         for line_obj in section.raw_lines:
