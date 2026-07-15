@@ -14,7 +14,7 @@ tools/py/
 │   ├── example/             # Markdown examples (header.md, body.md, footer.md)
 │   ├── prompts/             # ATS-optimized system and user templates
 │   └── tools/               # Local generators (PDF conversion, prompt builders, process tools)
-├── tailor_ui/               # Streamlit web dashboard for interactive tailoring and previews
+├── ui_composer/               # Streamlit web dashboard for interactive tailoring and previews
 ├── job_finder/              # Automated job scraper (Indeed, LinkedIn, StepStone) & LLM matcher
 ├── md_tools/                # Pydantic schemas representing CV components & CLI syntax checker
 ├── tailor_cv_eval/          # Benchmarking suites (DeepEval, Promptfoo, LlamaIndex, Ragas, etc.)
@@ -33,7 +33,7 @@ Contains templates, prompts, and local compilation tools that handle the data fl
 - **`tools/md2pdf.py`**: Compiles markdown files into highly professional PDF resumes using `pandoc` and `pdflatex` (with LaTeX alignment).
 - **`prompts/`**: Employs system instructions focused on ATS keywords, keyword density, and zero-hallucination rules.
 
-### 2. 💻 Tailor UI Dashboard (`tailor_ui/`)
+### 2. 💻 Tailor UI Dashboard (`ui_composer/`)
 
 An interactive, browser-based Streamlit application to visualize and coordinate CV tailoring:
 
@@ -106,7 +106,7 @@ uv sync
 Start the Streamlit interface locally:
 
 ```bash
-uv run streamlit run tailor_ui/app.py
+uv run streamlit run ui_composer/app.py
 ```
 
 ### Job Search & Matching CLI
