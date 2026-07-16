@@ -13,17 +13,16 @@ from cv.tools.checker import (
     make_error,
 )
 from md.models import SectionConstant
-from md.parse import Line, Section
+from md.parse import Heading, IndexedLine, Section
 
 
 def test_dot_check():
     sec1 = Section(
-        name=SectionConstant.WORK_EXPERIENCE,
-        md_prefix="##",
+        heading=Heading(text=SectionConstant.WORK_EXPERIENCE, heading_prefix="##"),
         filepath=Path("dummy.md"),
-        raw_lines=[
-            Line(raw_line="Senior developer.", number=1),
-            Line(raw_line="Developing software", number=2),
+        indexed_lines=[
+            IndexedLine(line="Senior developer.", index=1),
+            IndexedLine(line="Developing software", index=2),
         ],
     )
     checker = DotCheck()
@@ -33,10 +32,9 @@ def test_dot_check():
     assert "ends with a dot" in errors[0].msg
 
     sec2 = Section(
-        name=SectionConstant.SUMMARY,
-        md_prefix="##",
+        heading=Heading(text=SectionConstant.SUMMARY, heading_prefix="##"),
         filepath=Path("dummy.md"),
-        raw_lines=[Line(raw_line="Experienced developer.", number=1)],
+        indexed_lines=[IndexedLine(line="Experienced developer.", index=1)],
     )
     assert len(checker.check(sec2)) == 0
 
@@ -45,12 +43,11 @@ def test_two_space_check():
     checker = TwoSpaceCheck()
 
     sec_skills_err = Section(
-        name=SectionConstant.SKILLS,
-        md_prefix="##",
+        heading=Heading(text=SectionConstant.SKILLS, heading_prefix="##"),
         filepath=Path("dummy.md"),
-        raw_lines=[
-            Line(raw_line="**Python**: advanced", number=1),
-            Line(raw_line="**Go**: basic  ", number=2),
+        indexed_lines=[
+            IndexedLine(line="**Python**: advanced", index=1),
+            IndexedLine(line="**Go**: basic  ", index=2),
         ],
     )
     errors = checker.check(sec_skills_err)
@@ -59,12 +56,11 @@ def test_two_space_check():
     assert "must end with exactly two spaces" in errors[0].msg
 
     sec_other_err = Section(
-        name=SectionConstant.WORK_EXPERIENCE,
-        md_prefix="##",
+        heading=Heading(text=SectionConstant.WORK_EXPERIENCE, heading_prefix="##"),
         filepath=Path("dummy.md"),
-        raw_lines=[
-            Line(raw_line="Senior Developer  ", number=1),
-            Line(raw_line="Developing products", number=2),
+        indexed_lines=[
+            IndexedLine(line="Senior Developer  ", index=1),
+            IndexedLine(line="Developing products", index=2),
         ],
     )
     errors = checker.check(sec_other_err)
@@ -76,12 +72,11 @@ def test_two_space_check():
 def test_a_space_check():
     checker = ASpaceCheck()
     sec = Section(
-        name=SectionConstant.SUMMARY,
-        md_prefix="##",
+        heading=Heading(text=SectionConstant.SUMMARY, heading_prefix="##"),
         filepath=Path("dummy.md"),
-        raw_lines=[
-            Line(raw_line="This is a test.", number=1),
-            Line(raw_line="This is another test.", number=2),
+        indexed_lines=[
+            IndexedLine(line="This is a test.", index=1),
+            IndexedLine(line="This is another test.", index=2),
         ],
     )
     errors = checker.check(sec)
@@ -89,11 +84,10 @@ def test_a_space_check():
     assert "contains ' a '" in errors[0].msg
 
     sec_courses = Section(
-        name=SectionConstant.COURSES_AND_CERTIFICATES,
-        md_prefix="##",
+        heading=Heading(text=SectionConstant.COURSES_AND_CERTIFICATES, heading_prefix="##"),
         filepath=Path("dummy.md"),
-        raw_lines=[
-            Line(raw_line="Designing a Web Application", number=1),
+        indexed_lines=[
+            IndexedLine(line="Designing a Web Application", index=1),
         ],
     )
     assert len(checker.check(sec_courses)) == 0
@@ -103,14 +97,13 @@ def test_bracket_check():
     checker = BraketCheck()
 
     sec = Section(
-        name=SectionConstant.SUMMARY,
-        md_prefix="##",
+        heading=Heading(text=SectionConstant.SUMMARY, heading_prefix="##"),
         filepath=Path("dummy.md"),
-        raw_lines=[
-            Line(raw_line="Title (detail)", number=1),
-            Line(raw_line="Title(detail)", number=2),
-            Line(raw_line="Title  (detail)", number=3),
-            Line(raw_line="Title ( detail)", number=4),
+        indexed_lines=[
+            IndexedLine(line="Title (detail)", index=1),
+            IndexedLine(line="Title(detail)", index=2),
+            IndexedLine(line="Title  (detail)", index=3),
+            IndexedLine(line="Title ( detail)", index=4),
         ],
     )
     errors = checker.check(sec)
@@ -126,12 +119,11 @@ def test_chronological_check():
 
     # Work experience chron broken: older listed before newer
     sec_we = Section(
-        name=SectionConstant.WORK_EXPERIENCE,
-        md_prefix="##",
+        heading=Heading(text=SectionConstant.WORK_EXPERIENCE, heading_prefix="##"),
         filepath=Path("dummy.md"),
-        raw_lines=[
-            Line(raw_line="**Tester** | _ASM_ | Jun 2007 - Aug 2007", number=1),
-            Line(raw_line="**Developer** | _AS Tall_ | Jan 2024 - Present", number=2),
+        indexed_lines=[
+            IndexedLine(line="**Tester** | _ASM_ | Jun 2007 - Aug 2007", index=1),
+            IndexedLine(line="**Developer** | _AS Tall_ | Jan 2024 - Present", index=2),
         ],
     )
     errors = checker.check(sec_we)
@@ -144,10 +136,9 @@ def test_format_check():
 
     # Work experience format mismatch (missing pipe separator)
     sec_we = Section(
-        name=SectionConstant.WORK_EXPERIENCE,
-        md_prefix="##",
+        heading=Heading(text=SectionConstant.WORK_EXPERIENCE, heading_prefix="##"),
         filepath=Path("dummy.md"),
-        raw_lines=[Line(raw_line="**Tester** _ASM_ | Jun 2007", number=1)],
+        indexed_lines=[IndexedLine(line="**Tester** _ASM_ | Jun 2007", index=1)],
     )
     errors = checker.check(sec_we)
     assert len(errors) == 1
@@ -155,10 +146,9 @@ def test_format_check():
 
     # Courses format mismatch (2024 lacks short month name)
     sec_courses = Section(
-        name=SectionConstant.COURSES_AND_CERTIFICATES,
-        md_prefix="##",
+        heading=Heading(text=SectionConstant.COURSES_AND_CERTIFICATES, heading_prefix="##"),
         filepath=Path("dummy.md"),
-        raw_lines=[Line(raw_line="- Course | _Institution_ | 2024", number=1)],
+        indexed_lines=[IndexedLine(line="- Course | _Institution_ | 2024", index=1)],
     )
     errors = checker.check(sec_courses)
     assert len(errors) == 1
@@ -169,8 +159,8 @@ def test_required_sections_check():
     checker = RequiredSectionsCheck()
 
     sections = [
-        Section(name=SectionConstant.WORK_EXPERIENCE, md_prefix="##", filepath=Path("dummy.md")),
-        Section(name="Projects", md_prefix="##", filepath=Path("dummy.md")),
+        Section(heading=Heading(text=SectionConstant.WORK_EXPERIENCE, heading_prefix="##"), filepath=Path("dummy.md")),
+        Section(heading=Heading(text="Projects", heading_prefix="##"), filepath=Path("dummy.md")),
     ]
     errors = checker.check_all(sections)
     assert len(errors) == 1
@@ -179,12 +169,11 @@ def test_required_sections_check():
 
 def test_make_error():
     sec = Section(
-        name=SectionConstant.SUMMARY,
-        md_prefix="##",
+        heading=Heading(text=SectionConstant.SUMMARY, heading_prefix="##"),
         filepath=Path("test_path.md"),
-        raw_lines=[],
+        indexed_lines=[],
     )
-    line = Line(raw_line="Sample line", number=42)
+    line = IndexedLine(line="Sample line", index=42)
     err = make_error("An error occurred", sec, line)
     assert err.msg == "An error occurred"
     assert err.filepath == "test_path.md"
@@ -197,33 +186,31 @@ def test_duration_check():
 
     # Valid scenarios
     valid_sec = Section(
-        name=SectionConstant.SUMMARY,
-        md_prefix="##",
+        heading=Heading(text=SectionConstant.SUMMARY, heading_prefix="##"),
         filepath=Path("dummy.md"),
-        raw_lines=[
-            Line(raw_line="Jan 2024", number=1),
-            Line(raw_line="Jan 2024 - Dec 2024", number=2),
-            Line(raw_line="Jan 2024 - Present", number=3),
-            Line(raw_line="No year mentioned here", number=4),
-            Line(raw_line="[Project 2024](https://github.com/user/project-2024) | Jan 2024", number=5),
-            Line(raw_line="[Project](https://github.com/user/project-2024)", number=6),
+        indexed_lines=[
+            IndexedLine(line="Jan 2024", index=1),
+            IndexedLine(line="Jan 2024 - Dec 2024", index=2),
+            IndexedLine(line="Jan 2024 - Present", index=3),
+            IndexedLine(line="No year mentioned here", index=4),
+            IndexedLine(line="[Project 2024](https://github.com/user/project-2024) | Jan 2024", index=5),
+            IndexedLine(line="[Project](https://github.com/user/project-2024)", index=6),
             # Testing that years in non-checked segments are ignored
-            Line(raw_line="**Project 2024** | Jun 2025", number=7),
+            IndexedLine(line="**Project 2024** | Jun 2025", index=7),
         ],
     )
     assert len(checker.check(valid_sec)) == 0
 
     # Invalid scenarios
     invalid_sec = Section(
-        name=SectionConstant.SUMMARY,
-        md_prefix="##",
+        heading=Heading(text=SectionConstant.SUMMARY, heading_prefix="##"),
         filepath=Path("dummy.md"),
-        raw_lines=[
-            Line(raw_line="2024", number=1),
-            Line(raw_line="2024 - Present", number=2),
-            Line(raw_line="Dec 2024 - 2025", number=3),
-            Line(raw_line="December 2024", number=4),
-            Line(raw_line="Jan 2024 - present", number=5),
+        indexed_lines=[
+            IndexedLine(line="2024", index=1),
+            IndexedLine(line="2024 - Present", index=2),
+            IndexedLine(line="Dec 2024 - 2025", index=3),
+            IndexedLine(line="December 2024", index=4),
+            IndexedLine(line="Jan 2024 - present", index=5),
         ],
     )
     errors = checker.check(invalid_sec)
@@ -238,7 +225,7 @@ def test_duration_check():
 def test_check_cv_flag():
     # A list of sections missing required ones (e.g. 'work experience')
     sections = [
-        Section(name=SectionConstant.SUMMARY, md_prefix="##", filepath=Path("dummy.md")),
+        Section(heading=Heading(text=SectionConstant.SUMMARY, heading_prefix="##"), filepath=Path("dummy.md")),
     ]
 
     # By default, is_cv is False, so RequiredSectionsCheck is not run

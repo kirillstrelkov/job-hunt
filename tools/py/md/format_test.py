@@ -3,7 +3,12 @@ from md.format import format
 
 
 def test_format_courses_equivalence() -> None:
-    md = r"""## Courses and certificates
+    md = r"""# John Doe
+
+Berlin, Germany | <john.doe@example.com> | +49 123 4567890\
+[linkedin.com/in/johndoe](https://www.linkedin.com/in/johndoe/) | [github.com/johndoe](https://github.com/johndoe)
+
+## Courses and certificates
 
 - Agentic AI Nanodegree | _Udacity_ \hfill Jul 2026
 """

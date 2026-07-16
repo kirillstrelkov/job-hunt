@@ -9,7 +9,7 @@ from loguru import logger
 
 from cv.tools.checker import Error, get_section_class
 from cv.tools.checker import check as do_check
-from cv.tools.fixer import _FIX_CONFIG
+from cv.tools.fixer import _FIX_CONFIG, fix_last_pipe
 from md.format import format as format_md
 from md.models import CV
 from md.parse import Section, split_markdown_into_sections
@@ -105,7 +105,8 @@ def fix_markdown(md: str, *, keep_thesis: bool = True) -> str:
     """Apply auto-formatting and structure fixes to a CV markdown string, returning the fixed string."""
     cv_obj = CV.from_string(md)
     cv_obj = do_fix(cv_obj, keep_thesis=keep_thesis)
-    return format_md(cv_obj.to_string())
+    fmt_md = format_md(cv_obj.to_string())
+    return fix_last_pipe(fmt_md)
 
 
 def main() -> None:

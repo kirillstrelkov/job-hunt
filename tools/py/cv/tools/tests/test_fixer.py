@@ -3,12 +3,11 @@ from pathlib import Path
 from cv.tools.checker import get_section_class
 from cv.tools.fixer import (
     ChronologicalSortingFix,
-    CourseCertificateFormatterFix,
-    LastPipeFix,
     MonthShortenerFix,
     SkillsFix,
     ThesisFix,
     TrailingDotFix,
+    fix_last_pipe,
 )
 from cv.tools.process_cv import do_fix
 from md.models import CV, PersonalProjects
@@ -21,7 +20,7 @@ def parse_section(text: str) -> Section:
     sections = split_markdown_into_sections(text, filepath=Path("dummy.md"))
     sec = sections[0]
     sec_class = get_section_class(sec)
-    return sec_class.from_string(text, filepath=sec.filepath, raw_lines=sec.raw_lines)
+    return sec_class.from_string(text, filepath=sec.filepath, indexed_lines=sec.indexed_lines)
 
 
 def test_skills_fix():
@@ -38,23 +37,23 @@ def test_skills_fix():
     """)
     sec = SkillsFix().fix(sec)
     # The header line is at index 0, the first content line is at index 1
-    assert len(sec.raw_lines) > 5
+    assert len(sec.indexed_lines) > 5
 
 
 def test_thesis_fix():
     sec = parse_section("""
 ## Work experience
-**Developer** | Jan 2024
+**Developer** | _Company_ | Jan 2024
 - Thesis: something
     """)
     # keep_thesis is True by default
     sec = ThesisFix().fix(sec, keep_thesis=True)
-    assert len(sec.raw_lines) == 3
+    assert len(sec.indexed_lines) == 3
 
     # keep_thesis is False
     sec = ThesisFix().fix(sec, keep_thesis=False)
-    assert len(sec.raw_lines) == 2
-    assert sec.raw_lines[1].raw_line == "**Developer** | Jan 2024"
+    assert len(sec.indexed_lines) == 2
+    assert sec.indexed_lines[1].line == "**Developer** | _Company_ | Jan 2024"
 
 
 def test_month_shortener_fix():
@@ -63,38 +62,34 @@ def test_month_shortener_fix():
 Working from January 2024 to December 2024
     """)
     sec = MonthShortenerFix().fix(sec)
-    assert sec.raw_lines[1].raw_line == "Working from Jan 2024 to Dec 2024"
+    assert sec.indexed_lines[1].line == "Working from Jan 2024 to Dec 2024"
 
 
 def test_trailing_dot_fix():
     sec = parse_section("""
 ## Work experience
-Developing software.
-Developing software.   
+**Developer** | _Company_ | Jan 2024
+- Testing software.
+- Developing software.   
     """)
     sec = TrailingDotFix().fix(sec)
-    assert sec.raw_lines[1].raw_line == "Developing software"
-    assert sec.raw_lines[2].raw_line == "Developing software"
-
-
-def test_course_certificate_formatter_fix():
-    sec = parse_section("""
-## Courses and certificates
-  Course Name Jul 2026
-- Course Name Jul 2026
-    """)
-    sec = CourseCertificateFormatterFix().fix(sec)
-    assert sec.raw_lines[1].raw_line == "- Course Name \\hfill Jul 2026"
-    assert sec.raw_lines[2].raw_line == "- Course Name \\hfill Jul 2026"
+    assert sec.indexed_lines[2].line == "- Testing software"
+    assert sec.indexed_lines[3].line == "- Developing software"
 
 
 def test_last_pipe_fix():
-    sec = parse_section("""
+    md = """
+# John Doe
+
+Berlin, Germany | <john.doe@example.com> | +49 123 4567890  
+[linkedin.com/in/johndoe](https://www.linkedin.com/in/johndoe/) | [github.com/johndoe](https://github.com/johndoe)
+
 ## Work experience
 **Tester** | _ASM_ | Jun 2007
-    """)
-    sec = LastPipeFix().fix(sec)
-    assert sec.raw_lines[1].raw_line == "**Tester** | _ASM_ \\hfill Jun 2007"
+    """
+    fixed_md = fix_last_pipe(md)
+    assert "john.doe@example.com> | +49 123 4567890" in fixed_md
+    assert r"_ASM_ \hfill Jun 2007" in fixed_md
 
 
 def test_chronological_sorting_fix_personal_projects():
@@ -102,10 +97,10 @@ def test_chronological_sorting_fix_personal_projects():
         """
 ## Personal projects
 
-**[Proj A](link)** | _Udemy_ \\hfill Jul 2024
+**[Proj A](link)** | _Udemy_ | Jul 2024
 - Detail A
 
-**[Proj B](link)** | _Udemy_ \\hfill Aug 2025
+**[Proj B](link)** | _Udemy_ | Aug 2025
 - Detail B
     """,
         Path("fake"),
@@ -131,15 +126,23 @@ Developer.
 
 ## Work experience
 **Tester** | _ASM_ | Jun 2007
-- Thesis: assembler logic
-    """)
-    # Run do_fix with keep_thesis=False
-    fixed_cv = do_fix(cv, keep_thesis=False)
 
-    # Skills line should end with two spaces
-    assert fixed_cv.skills.raw_lines[1].raw_line == "**Python**: advanced  "
-    # Thesis line should be removed from work experience
-    work_lines = [l.raw_line for l in fixed_cv.body.work_experience_sec.raw_lines]
-    assert not any("Thesis" in l for l in work_lines)
-    # Last pipe in WorkExperience should be replaced with \hfill
-    assert "**Tester** | _ASM_ \\hfill Jun 2007" in work_lines
+## Education
+
+**Bachelor of Science in Computer Science** | _Technical University of Munich, Germany_ | 2010 - 2014
+
+- Thesis: [Automated web test framework development](https://example.com/thesis.pdf)
+
+## Languages
+
+**English**: Native, **German**: B2 (Upper Intermediate), **Spanish**: A2 (Elementary)
+
+    """)
+    fixed_cv = do_fix(cv, keep_thesis=False)
+    assert fixed_cv.skills.indexed_lines[1].line == "**Python**: advanced\\"
+
+    cv_str = fixed_cv.to_string()
+    assert "Developer." in cv_str
+    assert "Thesis" not in cv_str
+    assert "**Tester** | _ASM_ | Jun 2007" in cv_str
+    assert "john.doe@example.com> | +49 123 4567890" in cv_str

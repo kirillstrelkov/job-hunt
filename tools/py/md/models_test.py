@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import pytest
 
 from md.models import (
@@ -9,23 +7,15 @@ from md.models import (
     Degree,
     Duration,
     Footer,
+    Header,
     LanguageEntry,
     PersonalProjectsEntry,
     Skill,
     SkillGroup,
     Summary,
     Thesis,
-    Title,
     WorkExperienceEntry,
-    get_md_title,
 )
-
-
-def test_get_md_title() -> None:
-    assert get_md_title("# Title 2\nContent") == Title(prefix="#", text="Title 2")
-    assert get_md_title("## Title 2\nContent") == Title(prefix="##", text="Title 2")
-    assert get_md_title("### Title 2\nContent") == Title(prefix="###", text="Title 2")
-    assert get_md_title("previous lines\n# Title 2\nContent") == Title(prefix="#", text="Title 2")
 
 
 def test_duration_roundtrip() -> None:
@@ -36,16 +26,16 @@ def test_duration_roundtrip() -> None:
     assert d1.to_string() == "Sep 2022"
 
     # Test range with backslash-escaped hyphen
-    d2 = Duration.from_string("Jun 2007 \\- Aug 2007")
+    d2 = Duration.from_string("Jun 2007 - Aug 2007")
     assert d2.start_date == "Jun 2007"
     assert d2.end_date == "Aug 2007"
-    assert d2.to_string() == "Jun 2007 \\- Aug 2007"
+    assert d2.to_string() == "Jun 2007 - Aug 2007"
 
     # Test range with standard hyphen
     d3 = Duration.from_string("Jan 2024 - Present")
     assert d3.start_date == "Jan 2024"
     assert d3.end_date == "Present"
-    assert d3.to_string() == "Jan 2024 \\- Present"
+    assert d3.to_string() == "Jan 2024 - Present"
 
 
 def test_bullet_point_roundtrip() -> None:
@@ -80,7 +70,7 @@ def test_language_roundtrip() -> None:
 
 def test_degree_roundtrip() -> None:
     s = (
-        "**Bachelor of Science in Computer Science** | _Technical University of Munich, Germany_ \\hfill 2010 \\- 2014"
+        "**Bachelor of Science in Computer Science** | _Technical University of Munich, Germany_ | 2010 - 2014"
         "\n\n- Thesis: [Automated web test framework development](https://example.com/thesis.pdf)"
     )
     deg = Degree.from_string(s)
@@ -95,7 +85,7 @@ def test_degree_roundtrip() -> None:
 
 def test_degree_from_string_variants() -> None:
     # Test degree without thesis
-    s1 = "**Master of Science** | _Stanford University_ \\hfill 2015 \\- 2017"
+    s1 = "**Master of Science** | _Stanford University_ | 2015 - 2017"
     deg1 = Degree.from_string(s1)
     assert deg1.degree == "Master of Science"
     assert deg1.institution == "Stanford University"
@@ -104,7 +94,7 @@ def test_degree_from_string_variants() -> None:
     assert deg1.thesis is None
 
     # Test spacing and hfill variants
-    s2 = "**Ph.D. in Physics**| _MIT_\\hfill2018\\-2022"
+    s2 = "**Ph.D. in Physics**| _MIT_|2018-2022"
     deg2 = Degree.from_string(s2)
     assert deg2.degree == "Ph.D. in Physics"
     assert deg2.institution == "MIT"
@@ -118,7 +108,7 @@ def test_degree_from_string_variants() -> None:
 
 def test_work_experience_roundtrip() -> None:
     s1 = (
-        "**Tester** | _Fabek Elektroonika OÜ, Tallinn, Estonia_ | Jun 2007 \\- Aug 2007\n\n"
+        "**Tester** | _Fabek Elektroonika OÜ, Tallinn, Estonia_ | Jun 2007 - Aug 2007\n\n"
         "- Assembled and packaged electronic devices\n"
         "- Performed wire soldering for hardware devices\n\n"
         "> _Reason for resignation: studies_"
@@ -135,7 +125,7 @@ def test_work_experience_roundtrip() -> None:
     assert we1.to_string().strip() == s1.strip()
 
     s2 = (
-        "**Junior Developer** | _AS Tallink Group, Tallinn, Estonia_ | Jun 2013 \\- Jun 2013\n\n"
+        "**Junior Developer** | _AS Tallink Group, Tallinn, Estonia_ | Jun 2013 - Jun 2013\n\n"
         "- 12-days practical work to finalize Java course\n"
         "- Investigated and fixed bugs for Java XML/XSLT conversion engine and implemented additional unit tests\n"
         "- Skills: XML, XSLT, TDD, Java, JUnit, Mockito, oXygen XML Editor"
@@ -190,13 +180,18 @@ def test_courses_and_certificates_roundtrip() -> None:
 
 def test_summary_roundtrip() -> None:
     s = "## Summary\n\nExperienced software engineer with a track record of developing scalable applications."
-    sum_obj = Summary.from_string(s, Path("fake"), [])
+    sum_obj = Summary.from_string(s)
     assert sum_obj.text == "Experienced software engineer with a track record of developing scalable applications."
     assert sum_obj.to_string() == s
 
 
 def test_skills_roundtrip() -> None:
-    s = "## Skills\n\n**Languages**: Python, Go | **Cloud & DevOps**: AWS, Docker"
+    s = """
+## Skills
+
+**Languages**: Python, Go  
+**Cloud & DevOps**: AWS, Docker  
+    """
     skills_obj = SkillGroup.from_string(s)
     assert len(skills_obj.groups) == 2
     assert skills_obj.groups[0].name == "Languages"
@@ -205,23 +200,43 @@ def test_skills_roundtrip() -> None:
     assert skills_obj.groups[1].name == "Cloud & DevOps"
     assert len(skills_obj.groups[1].skills) == 2
     assert skills_obj.groups[1].skills[1].text == "Docker"
-    assert skills_obj.to_string() == s
+    assert skills_obj.to_string().strip() == s.strip()
+
+
+def test_header_roundtrip() -> None:
+    s = """
+# John Doe
+
+Berlin, Germany | <john.doe@example.com> | +49 123 4567890  
+[linkedin.com/in/johndoe](https://www.linkedin.com/in/johndoe/) | [github.com/johndoe](https://github.com/johndoe)
+
+---
+
+    """
+    header = Header.from_string(s)
+    assert header.name == "John Doe"
+    assert header.address == "Berlin, Germany"
+    assert header.email == "john.doe@example.com"
+    assert header.telephone == "+49 123 4567890"
+    assert header.linkedin == "https://www.linkedin.com/in/johndoe/"
+    assert header.github == "https://github.com/johndoe"
+    assert header.to_string().strip() == s.strip()
 
 
 def test_footer_multiple_degrees() -> None:
     s = """
 ## Education
 
-**Master of Science in Computer Science** | _Stanford University_ \\hfill 2015 \\- 2017
+**Master of Science in Computer Science** | _Stanford University_ | 2015 - 2017
 - Thesis: [Deep Learning](https://example.com/thesis1.pdf)
 
-**Bachelor of Science** | _MIT_ \\hfill 2011 \\- 2015
+**Bachelor of Science** | _MIT_ | 2011 - 2015
 - Thesis: [Robotics](https://example.com/thesis2.pdf)
 
 ## Languages
 **English**: Native, **Spanish**: A2
 """
-    footer = Footer.from_string(s, Path("fake"), [])
+    footer = Footer.from_string(s)
     assert len(footer.educations) == 2
     assert footer.educations[0].degree == "Master of Science in Computer Science"
     assert footer.educations[0].institution == "Stanford University"
@@ -248,7 +263,7 @@ def test_body_multiple_certificates() -> None:
 - AWS Certified Solutions Architect | _Amazon Web Services_ | Jan 2025
 
 """.strip()
-    body = Body.from_string(s, Path("fake"), [])
+    body = Body.from_string(s)
     assert len(body.courses_and_certificates) == 2
 
     c1 = body.courses_and_certificates[0]

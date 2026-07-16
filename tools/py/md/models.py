@@ -1,47 +1,26 @@
-"""Pydantic models representing structured sections and elements of a CV."""
+"""Pydantic models representing structured sections and elements of a CV.
+
+NOTE: This models are pure Markdown based and do not use any LaTeX or other formatting.
+
+"""
 
 import re
 from pathlib import Path
 
 from pydantic import BaseModel, Field
 
-from md.parse import Line, Section
+from md.parse import Heading, IndexedLine, Section, split_markdown_into_sections
 
-RE_MD_TITLE = re.compile(r"(?P<prefix>#+)\s*(?P<text>.+)$", re.MULTILINE)
-
-
-class Title(BaseModel):
-    """Represents a single line from the CV with its content and line number."""
-
-    prefix: str
-    text: str
+_REGEXP_URL_GROUP = re.compile(r"\[(?P<text>.*?)\]\((?P<url>.*?)\)")
+_REGEXP_MARKDOWN_STYLE = re.compile(r"^[*_-]+|[*_-]+$")
 
 
-def get_raw_lines(s: str) -> list[Line]:
-    """Split a string into lines, optionally stripping whitespace and filtering empty lines."""
-    lines = []
-    for i, line in enumerate(s.splitlines()):
-        lines.append(Line(raw_line=line, number=i + 1))
-    return lines
-
-
-def get_clean_lines(s: str) -> list[str]:
-    """Split a string into lines, optionally stripping whitespace and filtering empty lines."""
-    return [line.strip() for line in s.strip().splitlines() if line.strip()]
-
-
-def get_md_title(text: str) -> Title:
-    match = RE_MD_TITLE.search(text)
-    if not match:
-        msg = f"Invalid CV title format: {text}"
-        raise ValueError(msg)
-    return Title(**match.groupdict())
-
-
-def split_by_pipe_or_hfill(s: str) -> list[str]:
-    """Split a string by '|' or variations of hfill."""
-    normalized = re.sub(r"\\+hfill", " | ", s)
-    return [p.strip() for p in normalized.split("|") if p.strip()]
+class TextConstant:
+    PIPE = "|"
+    COMMA = ","
+    THESIS = "Thesis"
+    HEADER1 = "#"
+    HEADER2 = "##"
 
 
 class SectionConstant:
@@ -58,7 +37,11 @@ class SectionConstant:
 
 
 def is_root_section(sec: Section) -> bool:
-    return sec.md_prefix == "#"
+    return sec.heading.heading_prefix == TextConstant.HEADER1
+
+
+def clean_markdown_style(text: str) -> str:
+    return _REGEXP_MARKDOWN_STYLE.sub("", text.strip()).strip()
 
 
 class Duration(BaseModel):
@@ -69,10 +52,8 @@ class Duration(BaseModel):
 
     @classmethod
     def from_string(cls, s: str) -> "Duration":
-        lines = get_clean_lines(s)
-        s = lines[0] if lines else ""
-        # Find separators. Order matters (longer first)
-        separators = [" \\- ", " - ", " \\hfill ", " hfill ", " to ", "\\-", "-"]
+        s = s.strip()
+        separators = ["to", "-"]
         for sep in separators:
             if sep in s:
                 parts = s.split(sep, 1)
@@ -81,7 +62,7 @@ class Duration(BaseModel):
 
     def to_string(self) -> str:
         if self.start_date:
-            return f"{self.start_date} \\- {self.end_date}"
+            return f"{self.start_date} - {self.end_date}"
         return self.end_date
 
 
@@ -92,8 +73,7 @@ class BulletPoint(BaseModel):
 
     @classmethod
     def from_string(cls, s: str) -> "BulletPoint":
-        lines = get_clean_lines(s)
-        s = lines[0] if lines else ""
+        s = s.strip()
         if s.startswith(("- ", "* ")):
             s = s[2:].strip()
         return cls(text=s)
@@ -109,8 +89,7 @@ class Skill(BaseModel):
 
     @classmethod
     def from_string(cls, s: str) -> "Skill":
-        lines = get_clean_lines(s)
-        return cls(text=lines[0] if lines else "")
+        return cls(text=s.strip())
 
     def to_string(self) -> str:
         return self.text
@@ -119,32 +98,33 @@ class Skill(BaseModel):
 class Summary(Section):
     """Pydantic model representing a summary section."""
 
+    heading: Heading = Field(
+        default_factory=lambda: Heading(
+            text=SectionConstant.SUMMARY,
+            heading_prefix=TextConstant.HEADER2,
+        ),
+    )
     text: str = ""
 
     @classmethod
-    def from_string(cls, s: str, filepath: Path | None = None, raw_lines: list[Line] | None = None) -> "Summary":
+    def from_string(
+        cls, s: str, filepath: Path | None = None, indexed_lines: list[IndexedLine] | None = None
+    ) -> "Summary":
         """Parse summary section from a markdown string."""
-        # Strip header if present
-        title = get_md_title(s)
-        lines = get_clean_lines(s)
-        if not raw_lines:
-            raw_lines = get_raw_lines(s)
-        text_lines = []
-        for line in lines:
-            if line.startswith(f"{title.prefix} ") and title.text == SectionConstant.SUMMARY:
-                continue
-            text_lines.append(line)
-        text = "\n".join(text_lines).strip()
+        section = split_markdown_into_sections(s, filepath=filepath)[0]
+
+        if not indexed_lines:
+            indexed_lines = section.indexed_lines
+
         return cls(
-            name=title.text,
-            md_prefix=title.prefix,
+            heading=section.heading,
             filepath=filepath,
-            raw_lines=raw_lines,
-            text=text,
+            indexed_lines=indexed_lines,
+            text="\n".join(l.line for l in section.indexed_lines if not l.line.startswith("#")).strip(),
         )
 
     def to_string(self) -> str:
-        return f"{self.md_prefix} {self.name}\n\n{self.text}"
+        return f"{self.heading.heading_prefix} {self.heading.text}\n\n{self.text}"
 
 
 class SkillGroupEntry(BaseModel):
@@ -155,54 +135,55 @@ class SkillGroupEntry(BaseModel):
 
     @classmethod
     def from_string(cls, s: str) -> "SkillGroupEntry":
-        lines = get_clean_lines(s)
-        s = lines[0] if lines else ""
+        s = s.strip()
         if ":" in s:
             name_part, skills_part = s.split(":", 1)
             name = name_part.strip().strip("*").strip()
-            skills_list = [Skill.from_string(sk) for sk in skills_part.split(",") if sk.strip()]
+            skills_list = [Skill.from_string(sk) for sk in skills_part.split(TextConstant.COMMA) if sk.strip()]
             return cls(name=name, skills=skills_list)
         return cls(name="", skills=[Skill.from_string(s)])
 
     def to_string(self) -> str:
         skills_str = ", ".join(sk.to_string() for sk in self.skills)
-        return f"**{self.name}**: {skills_str}"
+        return f"**{self.name}**: {skills_str}  "
 
 
 class SkillGroup(Section):
     """Pydantic model representing a skills section containing a list of skill groups."""
 
+    heading: Heading = Field(
+        default_factory=lambda: Heading(text=SectionConstant.SKILLS, heading_prefix=TextConstant.HEADER2)
+    )
     groups: list[SkillGroupEntry] = Field(default_factory=list)
 
     @classmethod
-    def from_string(cls, s: str, filepath: Path | None = None, raw_lines: list[Line] | None = None) -> "SkillGroup":
+    def from_string(
+        cls, s: str, filepath: Path | None = None, indexed_lines: list[IndexedLine] | None = None
+    ) -> "SkillGroup":
         """Parse skill group section from a markdown string."""
-        title = get_md_title(s)
-        lines = get_clean_lines(s)
-        if not raw_lines:
-            raw_lines = get_raw_lines(s)
-        content_line = ""
-        for line in lines:
-            if line.startswith(f"{title.prefix} ") and title.text.lower() == SectionConstant.SKILLS.lower():
-                continue
-            content_line = line
-            break
+        section = split_markdown_into_sections(s, filepath=filepath)[0]
+        if not indexed_lines:
+            indexed_lines = section.indexed_lines
 
         groups_list = []
-        if content_line:
-            parts = [p.strip() for p in content_line.split("|") if p.strip()]
-            groups_list.extend(SkillGroupEntry.from_string(part) for part in parts)
+        for l in section.indexed_lines:
+            line_str = l.line
+            if line_str.startswith("#"):
+                continue
+            if not line_str.strip():
+                continue
+            groups_list.append(SkillGroupEntry.from_string(line_str))
+
         return cls(
-            name=SectionConstant.SKILLS,
-            md_prefix=title.prefix,
+            heading=section.heading,
             filepath=filepath,
-            raw_lines=raw_lines,
+            indexed_lines=indexed_lines,
             groups=groups_list,
         )
 
     def to_string(self) -> str:
-        groups_str = " | ".join(g.to_string() for g in self.groups)
-        return f"{self.md_prefix} {self.name}\n\n{groups_str}"
+        groups_str = "\n".join(g.to_string() for g in self.groups)
+        return f"{self.heading.heading_prefix} {self.heading.text}\n\n{groups_str}"
 
 
 class Thesis(BaseModel):
@@ -213,8 +194,7 @@ class Thesis(BaseModel):
 
     @classmethod
     def from_string(cls, s: str) -> "Thesis":
-        lines = get_clean_lines(s)
-        s = lines[0] if lines else ""
+        s = s.strip()
         for prefix in ["- Thesis:", "Thesis:", "- Thesis: "]:
             if s.startswith(prefix):
                 s = s[len(prefix) :].strip()
@@ -236,8 +216,7 @@ class LanguageEntry(BaseModel):
 
     @classmethod
     def from_string(cls, s: str) -> "LanguageEntry":
-        lines = get_clean_lines(s)
-        s = lines[0] if lines else ""
+        s = s.strip()
         if ":" in s:
             name_part, level_part = s.split(":", 1)
             name = name_part.strip().strip("*").strip()
@@ -252,36 +231,33 @@ class LanguageEntry(BaseModel):
 class Language(Section):
     """Pydantic model representing the languages section."""
 
-    name: str = SectionConstant.LANGUAGES
-    md_prefix: str = "##"
+    heading: Heading = Field(
+        default_factory=lambda: Heading(text=SectionConstant.LANGUAGES, heading_prefix=TextConstant.HEADER2)
+    )
     languages: list[LanguageEntry] = Field(default_factory=list)
 
     @classmethod
-    def from_string(cls, s: str, filepath: Path | None = None, raw_lines: list[Line] | None = None) -> "Language":
+    def from_string(
+        cls, s: str, filepath: Path | None = None, indexed_lines: list[IndexedLine] | None = None
+    ) -> "Language":
         """Parse language section from a markdown string."""
-        title = get_md_title(s)
-        lines = get_clean_lines(s)
-        if not raw_lines:
-            raw_lines = get_raw_lines(s)
-        content_lines = []
-        for line in lines:
-            if line.startswith(f"{title.prefix} ") and title.text.lower() == SectionConstant.LANGUAGES.lower():
-                continue
-            content_lines.append(line)
-        lang_line = " ".join(content_lines).strip()
-        lang_parts = [lp.strip() for lp in lang_line.split(",") if lp.strip()]
+        section = split_markdown_into_sections(s, filepath=filepath)[0]
+        if not indexed_lines:
+            indexed_lines = section.indexed_lines
+
+        lang_line = " ".join(l.line for l in section.indexed_lines if not l.line.startswith("#")).strip()
+        lang_parts = [lp.strip() for lp in lang_line.split(TextConstant.COMMA) if lp.strip()]
         languages = [LanguageEntry.from_string(lp) for lp in lang_parts if lp.strip()]
         return cls(
-            name=SectionConstant.LANGUAGES,
-            md_prefix=title.prefix,
+            heading=section.heading,
             filepath=filepath,
-            raw_lines=raw_lines,
+            indexed_lines=indexed_lines,
             languages=languages,
         )
 
     def to_string(self) -> str:
         lang_strs = [lang.to_string() for lang in self.languages]
-        return f"{self.md_prefix} {self.name}\n\n" + ", ".join(lang_strs)
+        return f"{self.heading.heading_prefix} {self.heading.text}\n\n" + ", ".join(lang_strs)
 
 
 class Degree(BaseModel):
@@ -294,12 +270,12 @@ class Degree(BaseModel):
 
     @classmethod
     def from_string(cls, s: str) -> "Degree":
-        lines = get_clean_lines(s)
+        lines = s.strip().splitlines()
         if not lines:
             raise ValueError("Empty string for Degree")
 
         header_line = lines[0]
-        parts = split_by_pipe_or_hfill(header_line)
+        parts = header_line.split(TextConstant.PIPE)
         degree = ""
         institution = ""
         duration_str = ""
@@ -314,8 +290,8 @@ class Degree(BaseModel):
         duration = Duration.from_string(duration_str)
 
         thesis = None
-        for line in lines[1:]:
-            if "Thesis:" in line or "thesis" in line.lower():
+        for line in s.splitlines()[1:]:
+            if TextConstant.THESIS in line or "thesis" in line.lower():
                 thesis = Thesis.from_string(line)
                 break
 
@@ -323,7 +299,7 @@ class Degree(BaseModel):
 
     def to_string(self) -> str:
         duration_str = self.duration.to_string()
-        lines = [f"**{self.degree}** | _{self.institution}_ \\hfill {duration_str}"]
+        lines = [f"**{self.degree}** | _{self.institution}_ | {duration_str}"]
         if self.thesis:
             lines.append("")
             lines.append(self.thesis.to_string())
@@ -333,20 +309,26 @@ class Degree(BaseModel):
 class Education(Section):
     """Pydantic model representing the education section."""
 
+    heading: Heading = Field(
+        default_factory=lambda: Heading(text=SectionConstant.EDUCATION, heading_prefix=TextConstant.HEADER2)
+    )
     degrees: list[Degree] = Field(default_factory=list)
 
     @classmethod
-    def from_string(cls, s: str, filepath: Path | None = None, raw_lines: list[Line] | None = None) -> "Education":
+    def from_string(
+        cls, s: str, filepath: Path | None = None, indexed_lines: list[IndexedLine] | None = None
+    ) -> "Education":
         """Parse education section from a markdown string."""
-        title = get_md_title(s)
-        lines = get_clean_lines(s)
-        if not raw_lines:
-            raw_lines = get_raw_lines(s)
-        content_lines = []
-        for line in lines:
-            if line.startswith(f"{title.prefix} ") and title.text.lower() == SectionConstant.EDUCATION.lower():
-                continue
-            content_lines.append(line)
+        sections = split_markdown_into_sections(s, filepath=filepath)
+        section = sections[0]
+
+        title_text = section.heading.text
+        title_prefix = section.heading.heading_prefix
+
+        if not indexed_lines:
+            indexed_lines = section.indexed_lines
+
+        content_lines = section.lines[1:]
 
         edu_blocks = []
         current_block_lines = []
@@ -358,17 +340,16 @@ class Education(Section):
         if current_block_lines:
             edu_blocks.append("\n".join(current_block_lines))
 
-        degrees = [Degree.from_string(block) for block in edu_blocks]
+        degrees = [Degree.from_string(block) for block in edu_blocks if block.strip()]
         return cls(
-            name=SectionConstant.EDUCATION,
-            md_prefix=title.prefix,
+            heading=Heading(text=title_text, heading_prefix=title_prefix),
             filepath=filepath,
-            raw_lines=raw_lines,
+            indexed_lines=indexed_lines,
             degrees=degrees,
         )
 
     def to_string(self) -> str:
-        lines = [f"{self.md_prefix} {self.name}", ""]
+        lines = [f"{self.heading.heading_prefix} {self.heading.text}", ""]
         for edu in self.degrees:
             lines.append(edu.to_string())
             lines.append("")
@@ -388,29 +369,23 @@ class WorkExperienceEntry(BaseModel):
 
     @classmethod
     def from_string(cls, s: str) -> "WorkExperienceEntry":
-        lines = get_clean_lines(s)
+        lines = s.strip().splitlines()
         if not lines:
             raise ValueError("Empty string for WorkExperienceEntry")
 
         header_line = lines[0]
-        parts = split_by_pipe_or_hfill(header_line)
+        parts = header_line.split(TextConstant.PIPE)
+        assert len(parts) == 3, f"Expected 3 parts, got {len(parts)}: {parts}"
 
-        title = ""
-        company_loc = ""
-        duration_str = ""
-
-        if len(parts) >= 1:
-            title = parts[0].strip().strip("*").strip()
-        if len(parts) >= 2:
-            company_loc = parts[1].strip().strip("_").strip()
-        if len(parts) >= 3:
-            duration_str = parts[2].strip()
+        title = clean_markdown_style(parts[0])
+        company_loc = clean_markdown_style(parts[1])
+        duration_str = clean_markdown_style(parts[2])
 
         # Split on the first comma to support company and location
         company = company_loc
         location = None
-        if "," in company_loc:
-            c_part, l_part = company_loc.split(",", 1)
+        if TextConstant.COMMA in company_loc:
+            c_part, l_part = company_loc.split(TextConstant.COMMA, 1)
             company = c_part.strip()
             location = l_part.strip()
 
@@ -438,7 +413,7 @@ class WorkExperienceEntry(BaseModel):
                         skills_part = skills_part[len(prefix) :].strip()
                         break
                 skills_part = skills_part.rstrip(".")
-                skill_names = [sk.strip() for sk in skills_part.split(",") if sk.strip()]
+                skill_names = [sk.strip() for sk in skills_part.split(TextConstant.COMMA) if sk.strip()]
                 skills = [Skill(text=name) for name in skill_names]
             elif line_str.startswith(("- ", "* ")):
                 bullet_points.append(BulletPoint.from_string(line_str))
@@ -472,50 +447,45 @@ class WorkExperienceEntry(BaseModel):
 class WorkExperience(Section):
     """Pydantic model representing the work experience section."""
 
+    heading: Heading = Field(
+        default_factory=lambda: Heading(text=SectionConstant.WORK_EXPERIENCE, heading_prefix=TextConstant.HEADER2)
+    )
     entries: list[WorkExperienceEntry] = Field(default_factory=list)
 
     @classmethod
-    def from_string(cls, s: str, filepath: Path | None = None, raw_lines: list[Line] | None = None) -> "WorkExperience":
+    def from_string(
+        cls, s: str, filepath: Path | None = None, indexed_lines: list[IndexedLine] | None = None
+    ) -> "WorkExperience":
         """Parse work experience section from a markdown string."""
-        title = get_md_title(s)
-        lines = get_clean_lines(s)
-        if not raw_lines:
-            raw_lines = get_raw_lines(s)
-        content_lines = []
-        for line in lines:
-            if (
-                line.strip().startswith(f"{title.prefix} ")
-                and title.text.lower() == SectionConstant.WORK_EXPERIENCE.lower()
-            ):
-                continue
-            content_lines.append(line)
+        section = split_markdown_into_sections(s, filepath=filepath)[0]
+
+        title_text = section.heading.text
+        title_prefix = section.heading.heading_prefix
+
+        indexed_lines = indexed_lines or section.indexed_lines
+
+        content_lines = section.lines[1:]
 
         work_text = "\n".join(content_lines).strip()
         entries = []
-        if work_text:
-            we_block = []
-            for w_line in get_clean_lines(work_text):
-                stripped = w_line.strip()
-                if (
-                    stripped.startswith("**")
-                    and (" | " in stripped or "\\hfill" in stripped or "hfill" in stripped)
-                    and we_block
-                ):
-                    entries.append(WorkExperienceEntry.from_string("\n".join(we_block)))
-                    we_block = []
-                we_block.append(w_line)
-            if we_block:
+        we_block = []
+        for w_line in work_text.splitlines():
+            stripped = w_line.strip()
+            if stripped.startswith("**") and TextConstant.PIPE in stripped and we_block:
                 entries.append(WorkExperienceEntry.from_string("\n".join(we_block)))
+                we_block = []
+            we_block.append(w_line)
+        if we_block:
+            entries.append(WorkExperienceEntry.from_string("\n".join(we_block)))
         return cls(
-            name=title.text,
-            md_prefix=title.prefix,
+            heading=Heading(text=title_text, heading_prefix=title_prefix),
             filepath=filepath,
-            raw_lines=raw_lines,
+            indexed_lines=indexed_lines,
             entries=entries,
         )
 
     def to_string(self) -> str:
-        lines = [f"{self.md_prefix} {self.name}", ""]
+        lines = [f"{self.heading.heading_prefix} {self.heading.text}", ""]
         lines.append("\n\n".join(we.to_string() for we in self.entries))
         return "\n".join(lines)
 
@@ -531,26 +501,25 @@ class PersonalProjectsEntry(BaseModel):
 
     @classmethod
     def from_string(cls, s: str) -> "PersonalProjectsEntry":
-        lines = get_clean_lines(s)
+        lines = s.splitlines()
         if not lines:
             raise ValueError("Empty string for PersonalProjectsEntry")
 
         header_line = lines[0]
-        match = re.search(r"\||\\+hfill", header_line)
-        if match:
-            idx = match.start()
-            link_part = header_line[:idx].strip().strip("*").strip()
-            duration_str = header_line[idx + len(match.group(0)) :].strip()
+        if TextConstant.PIPE in header_line:
+            left, right = header_line.split(TextConstant.PIPE, 1)
+            link_part = left.strip().strip("*").strip()
+            duration_str = right.strip()
         else:
             link_part = header_line.strip().strip("*").strip()
             duration_str = ""
 
         name = link_part
         url = ""
-        match_url = re.search(r"\[(.*?)\]\((.*?)\)", link_part)
+        match_url = _REGEXP_URL_GROUP.search(link_part)
         if match_url:
-            name = match_url.group(1).strip()
-            url = match_url.group(2).strip()
+            name = match_url.group("text").strip()
+            url = match_url.group("url").strip()
 
         duration = Duration.from_string(duration_str)
 
@@ -568,7 +537,7 @@ class PersonalProjectsEntry(BaseModel):
                         skills_part = skills_part[len(prefix) :].strip()
                         break
                 skills_part = skills_part.rstrip(".")
-                skill_names = [sk.strip() for sk in skills_part.split(",") if sk.strip()]
+                skill_names = [sk.strip() for sk in skills_part.split(TextConstant.COMMA) if sk.strip()]
                 skills = [Skill(text=name) for name in skill_names]
             elif line_str.startswith(("- ", "* ")):
                 bullet_points.append(BulletPoint.from_string(line_str))
@@ -595,53 +564,47 @@ class PersonalProjectsEntry(BaseModel):
 class PersonalProjects(Section):
     """Pydantic model representing the personal projects section."""
 
+    heading: Heading = Field(
+        default_factory=lambda: Heading(text=SectionConstant.PERSONAL_PROJECTS, heading_prefix=TextConstant.HEADER2)
+    )
     entries: list[PersonalProjectsEntry] = Field(default_factory=list)
 
     @classmethod
     def from_string(
-        cls, s: str, filepath: Path | None = None, raw_lines: list[Line] | None = None
+        cls, s: str, filepath: Path | None = None, indexed_lines: list[IndexedLine] | None = None
     ) -> "PersonalProjects":
         """Parse personal projects section from a markdown string."""
-        title = get_md_title(s)
+        section = split_markdown_into_sections(s, filepath=filepath)[0]
 
-        lines = get_clean_lines(s.strip())
-        if not raw_lines:
-            raw_lines = get_raw_lines(s)
-        content_lines = []
-        for line in lines:
-            if (
-                line.strip().startswith(f"{title.prefix} ")
-                and title.text.lower() == SectionConstant.PERSONAL_PROJECTS.lower()
-            ):
-                continue
-            content_lines.append(line)
+        title_text = section.heading.text
+        title_prefix = section.heading.heading_prefix
+
+        if not indexed_lines:
+            indexed_lines = section.indexed_lines
+
+        content_lines = section.lines[1:]
 
         project_text = "\n".join(content_lines).strip()
         entries = []
         if project_text:
             pp_block = []
-            for p_line in get_clean_lines(project_text):
+            for p_line in project_text.splitlines():
                 stripped = p_line.strip()
-                if (
-                    stripped.startswith("**")
-                    and (" | " in stripped or "[" in stripped or "\\hfill" in stripped or "hfill" in stripped)
-                    and pp_block
-                ):
+                if stripped.startswith("**") and TextConstant.PIPE in stripped and pp_block:
                     entries.append(PersonalProjectsEntry.from_string("\n".join(pp_block)))
                     pp_block = []
                 pp_block.append(p_line)
             if pp_block:
                 entries.append(PersonalProjectsEntry.from_string("\n".join(pp_block)))
         return cls(
-            name=title.text,
-            md_prefix=title.prefix,
+            heading=Heading(text=title_text, heading_prefix=title_prefix),
             filepath=filepath,
-            raw_lines=raw_lines,
+            indexed_lines=indexed_lines,
             entries=entries,
         )
 
     def to_string(self) -> str:
-        lines = [f"{self.md_prefix} {self.name}", ""]
+        lines = [f"{self.heading.heading_prefix} {self.heading.text}", ""]
         lines.append("\n\n".join(pp.to_string() for pp in self.entries))
         return "\n".join(lines)
 
@@ -655,24 +618,17 @@ class CourseOrCertificateEntry(BaseModel):
 
     @classmethod
     def from_string(cls, s: str) -> "CourseOrCertificateEntry":
-        lines = get_clean_lines(s)
-        s = lines[0] if lines else ""
-        if s.startswith(("- ", "* ")):
-            s = s[2:].strip()
+        lines = s.splitlines()
+        assert lines
+        first_line = lines[0].strip()
+        if first_line.startswith(("- ", "* ")):
+            first_line = first_line[2:].strip()
 
-        parts = split_by_pipe_or_hfill(s)
-        name = ""
-        institution = ""
-        duration_str = ""
-
-        if len(parts) >= 1:
-            name = parts[0].strip()
-        if len(parts) >= 2:
-            institution = parts[1].strip().strip("_").strip()
-        if len(parts) >= 3:
-            duration_str = parts[2].strip()
-
-        duration = Duration.from_string(duration_str)
+        parts = first_line.split(TextConstant.PIPE)
+        assert len(parts) == 3, f"Expected 3 parts, got {len(parts)}"
+        name = clean_markdown_style(parts[0])
+        institution = clean_markdown_style(parts[1])
+        duration = Duration.from_string(parts[2].strip())
         return cls(name=name, institution=institution, duration=duration)
 
     def to_string(self) -> str:
@@ -683,40 +639,43 @@ class CourseOrCertificateEntry(BaseModel):
 class CourseOrCertificate(Section):
     """Pydantic model representing the courses and certificates section."""
 
+    heading: Heading = Field(
+        default_factory=lambda: Heading(
+            text=SectionConstant.COURSES_AND_CERTIFICATES, heading_prefix=TextConstant.HEADER2
+        )
+    )
     entries: list[CourseOrCertificateEntry] = Field(default_factory=list)
 
     @classmethod
     def from_string(
-        cls, s: str, filepath: Path | None = None, raw_lines: list[Line] | None = None
+        cls, s: str, filepath: Path | None = None, indexed_lines: list[IndexedLine] | None = None
     ) -> "CourseOrCertificate":
         """Parse courses and certificates section from a markdown string."""
-        title = get_md_title(s)
-        lines = get_clean_lines(s)
-        if not raw_lines:
-            raw_lines = get_raw_lines(s)
-        content_lines = []
-        for line in lines:
-            if line.strip().startswith(f"{title.prefix} "):
-                continue
-            content_lines.append(line)
+        section = split_markdown_into_sections(s, filepath=filepath)[0]
+        title_text = section.heading.text
+        title_prefix = section.heading.heading_prefix
+
+        if not indexed_lines and section:
+            indexed_lines = section.indexed_lines
+
+        content_lines = section.lines[1:]
 
         course_text = "\n".join(content_lines).strip()
         entries = []
         if course_text:
-            for c_line in get_clean_lines(course_text):
+            for c_line in course_text.splitlines():
                 stripped = c_line.strip()
                 if stripped.startswith(("- ", "* ")):
                     entries.append(CourseOrCertificateEntry.from_string(c_line))
         return cls(
-            name=title.text,
-            md_prefix=title.prefix,
+            heading=Heading(text=title_text, heading_prefix=title_prefix),
             filepath=filepath,
-            raw_lines=raw_lines,
+            indexed_lines=indexed_lines,
             entries=entries,
         )
 
     def to_string(self) -> str:
-        lines = [f"{self.md_prefix} {self.name}", ""]
+        lines = [f"{self.heading.heading_prefix} {self.heading.text}", ""]
         lines.append("\n".join(cc.to_string() for cc in self.entries))
         return "\n".join(lines)
 
@@ -724,6 +683,7 @@ class CourseOrCertificate(Section):
 class Info(Section):
     """Pydantic model representing the personal contact info section."""
 
+    heading: Heading = Field(default_factory=lambda: Heading(text=SectionConstant.INFO, heading_prefix="#"))
     address: str = ""
     email: str = ""
     telephone: str = ""
@@ -731,14 +691,18 @@ class Info(Section):
     github: str = ""
 
     @classmethod
-    def from_string(cls, s: str, filepath: Path | None = None, raw_lines: list[Line] | None = None) -> "Info":
+    def from_string(
+        cls, s: str, filepath: Path | None = None, indexed_lines: list[IndexedLine] | None = None
+    ) -> "Info":
         """Parse contact info section from a markdown string."""
-        title = get_md_title(s)
-        lines = get_clean_lines(s)
-        if not raw_lines:
-            raw_lines = get_raw_lines(s)
+        section = split_markdown_into_sections(s, filepath=filepath)[0]
 
-        name = title.text
+        title_text = section.heading.text
+        title_prefix = section.heading.heading_prefix
+
+        if not indexed_lines and section:
+            indexed_lines = section.indexed_lines
+
         address = ""
         email = ""
         telephone = ""
@@ -746,41 +710,39 @@ class Info(Section):
         github = ""
 
         def get_md_link_url(text: str) -> str:
-            match = re.search(r"\[(.*?)\]\((.*?)\)", text)
-            if match:
-                return match.group(2).strip()
-            return text.strip()
+            match = _REGEXP_URL_GROUP.search(text)
+            assert match is not None
+            return match.group("url").strip()
 
-        for line in lines:
-            if line.strip().startswith(f"{title.prefix} "):
-                name = line[len(title.prefix) + 1 :].strip()
-            elif "---" in line:
-                continue
-            elif "|" in line:
-                parts = [p.strip() for p in line.split("|")]
-                if any("linkedin.com" in p or "github.com" in p for p in parts):
-                    for part in parts:
-                        if "linkedin.com" in part:
-                            linkedin = get_md_link_url(part)
-                        elif "github.com" in part:
-                            github = get_md_link_url(part)
-                else:
-                    for part in parts:
-                        if "@" in part or "<" in part:
-                            email_str = part.strip()
-                            if email_str.startswith("<") and email_str.endswith(">"):
-                                email_str = email_str[1:-1].strip()
-                            email = email_str
-                        elif part.strip().startswith("+") or any(c.isdigit() for c in part):
-                            telephone = part.strip()
-                        else:
-                            address = part.strip()
+        if section:
+            for l in section.indexed_lines:
+                line = l.line
+                if line.strip().startswith(title_prefix) or "---" in line:
+                    continue
+                if "|" in line:
+                    parts = [p.strip() for p in line.split("|")]
+                    if any("linkedin.com" in p or "github.com" in p for p in parts):
+                        for part in parts:
+                            if "linkedin.com" in part:
+                                linkedin = get_md_link_url(part)
+                            elif "github.com" in part:
+                                github = get_md_link_url(part)
+                    else:
+                        for part in parts:
+                            if "@" in part or "<" in part:
+                                email_str = part.strip()
+                                if email_str.startswith("<") and email_str.endswith(">"):
+                                    email_str = email_str[1:-1].strip()
+                                email = email_str
+                            elif part.strip().startswith("+") or any(c.isdigit() for c in part):
+                                telephone = part.strip()
+                            else:
+                                address = part.strip()
 
         return cls(
-            name=name,
-            md_prefix=title.prefix,
+            heading=Heading(text=title_text, heading_prefix=title_prefix),
             filepath=filepath,
-            raw_lines=raw_lines,
+            indexed_lines=indexed_lines,
             address=address,
             email=email,
             telephone=telephone,
@@ -790,7 +752,7 @@ class Info(Section):
 
     def to_string(self) -> str:
         lines = []
-        lines.append(f"{self.md_prefix} {self.name}")
+        lines.append(f"{self.heading.heading_prefix} {self.heading.text}")
         lines.append("")
 
         contact_parts = []
@@ -826,12 +788,12 @@ class Header(BaseModel):
     }
 
     @classmethod
-    def from_string(cls, s: str, filepath: Path | None = None, raw_lines: list[Line] | None = None) -> "Header":
+    def from_string(
+        cls, s: str, filepath: Path | None = None, indexed_lines: list[IndexedLine] | None = None
+    ) -> "Header":
         """Parse CV header from a markdown string."""
-        lines = get_clean_lines(s)
-        if not raw_lines:
-            raw_lines = get_raw_lines(s)
-        info = Info.from_string("\n".join(lines), filepath=filepath, raw_lines=raw_lines)
+        lines = s.splitlines()
+        info = Info.from_string("\n".join(lines), filepath=filepath, indexed_lines=indexed_lines)
         return cls(info=info)
 
     def to_string(self) -> str:
@@ -839,7 +801,7 @@ class Header(BaseModel):
 
     @property
     def name(self) -> str:
-        return self.info_sec.name
+        return self.info_sec.heading.text
 
     @property
     def address(self) -> str:
@@ -865,36 +827,23 @@ class Header(BaseModel):
 class Footer(BaseModel):
     """Pydantic model representing the CV footer containing education and languages."""
 
-    education_sec: Education = Field(
-        default_factory=lambda: Education(name=Education.NAME, md_prefix=Education.MD_PREFIX), alias="education"
-    )
-    language_sec: Language = Field(
-        default_factory=lambda: Language(name=Language.NAME, md_prefix=Language.MD_PREFIX), alias="language"
-    )
+    education_sec: Education = Field(default_factory=Education, alias="education")
+    language_sec: Language = Field(default_factory=Language, alias="language")
 
     model_config = {
         "populate_by_name": True,
     }
 
     @classmethod
-    def from_string(cls, s: str, filepath: Path | None = None, raw_lines: list[Line] | None = None) -> "Footer":
+    def from_string(
+        cls, s: str, filepath: Path | None = None, indexed_lines: list[IndexedLine] | None = None
+    ) -> "Footer":
         """Parse CV footer from a markdown string."""
-        from md.parse import split_markdown_into_sections
-
-        lines = get_clean_lines(s)
-        if not raw_lines:
-            raw_lines = get_raw_lines(s)
-        sections = split_markdown_into_sections("\n".join(lines))
-        edu = Education(name=SectionConstant.EDUCATION, filepath=filepath, raw_lines=raw_lines)
-        lang = Language(name=SectionConstant.LANGUAGES, filepath=filepath, raw_lines=raw_lines)
-
-        for sec in sections:
-            sec_name = sec.name.lower()
-            sec_text = "\n".join(l.raw_line for l in sec.raw_lines)
-            if "education" in sec_name:
-                edu = Education.from_string(sec_text, filepath=sec.filepath, raw_lines=sec.raw_lines)
-            elif "language" in sec_name:
-                lang = Language.from_string(sec_text, filepath=sec.filepath, raw_lines=sec.raw_lines)
+        sections = split_markdown_into_sections(s, filepath=filepath)
+        assert len(sections) == 2, f"Only two sections supported in footer. Found: {len(sections)}"
+        edu_sec, lang_sec = sections
+        edu = Education.from_string(str(edu_sec), filepath=filepath, indexed_lines=edu_sec.indexed_lines)
+        lang = Language.from_string(str(lang_sec), filepath=filepath, indexed_lines=lang_sec.indexed_lines)
 
         return cls(education=edu, language=lang)
 
@@ -919,17 +868,15 @@ class Body(BaseModel):
     """Pydantic model representing the CV body containing work history, projects, and courses."""
 
     work_experience_sec: WorkExperience = Field(
-        default_factory=lambda: WorkExperience(name=WorkExperience.NAME, md_prefix=WorkExperience.MD_PREFIX),
+        default_factory=WorkExperience,
         alias="work_experience",
     )
     personal_projects_sec: PersonalProjects = Field(
-        default_factory=lambda: PersonalProjects(name=PersonalProjects.NAME, md_prefix=PersonalProjects.MD_PREFIX),
+        default_factory=PersonalProjects,
         alias="personal_projects",
     )
     courses_and_certificates_sec: CourseOrCertificate = Field(
-        default_factory=lambda: CourseOrCertificate(
-            name=CourseOrCertificate.NAME, md_prefix=CourseOrCertificate.MD_PREFIX
-        ),
+        default_factory=CourseOrCertificate,
         alias="courses_and_certificates",
     )
 
@@ -938,27 +885,24 @@ class Body(BaseModel):
     }
 
     @classmethod
-    def from_string(cls, s: str, filepath: Path | None = None, raw_lines: list[Line] | None = None) -> "Body":
+    def from_string(
+        cls, s: str, filepath: Path | None = None, indexed_lines: list[IndexedLine] | None = None
+    ) -> "Body":
         """Parse CV body from a markdown string."""
-        from md.parse import split_markdown_into_sections
-
-        lines = get_clean_lines(s)
-        if not raw_lines:
-            raw_lines = get_raw_lines(s)
-        sections = split_markdown_into_sections("\n".join(lines))
-        we = WorkExperience(name=SectionConstant.WORK_EXPERIENCE, filepath=filepath, raw_lines=raw_lines)
-        pp = PersonalProjects(name=SectionConstant.PERSONAL_PROJECTS, filepath=filepath, raw_lines=raw_lines)
-        cc = CourseOrCertificate(name=SectionConstant.COURSES_AND_CERTIFICATES, filepath=filepath, raw_lines=raw_lines)
+        sections = split_markdown_into_sections(s)
+        we = WorkExperience(filepath=filepath, indexed_lines=indexed_lines)
+        pp = PersonalProjects(filepath=filepath, indexed_lines=indexed_lines)
+        cc = CourseOrCertificate(filepath=filepath, indexed_lines=indexed_lines)
 
         for sec in sections:
-            sec_name = sec.name.lower()
-            sec_text = "\n".join(l.raw_line for l in sec.raw_lines)
-            if "work" in sec_name:
-                we = WorkExperience.from_string(sec_text, filepath=sec.filepath, raw_lines=sec.raw_lines)
-            elif "project" in sec_name:
-                pp = PersonalProjects.from_string(sec_text, filepath=sec.filepath, raw_lines=sec.raw_lines)
-            elif "course" in sec_name or "cert" in sec_name:
-                cc = CourseOrCertificate.from_string(sec_text, filepath=sec.filepath, raw_lines=sec.raw_lines)
+            sec_name = sec.heading.text.lower()
+            sec_text = "\n".join(l.line for l in sec.indexed_lines)
+            if sec_name == SectionConstant.WORK_EXPERIENCE.lower():
+                we = WorkExperience.from_string(sec_text, filepath=sec.filepath, indexed_lines=sec.indexed_lines)
+            elif sec_name == SectionConstant.PERSONAL_PROJECTS.lower():
+                pp = PersonalProjects.from_string(sec_text, filepath=sec.filepath, indexed_lines=sec.indexed_lines)
+            elif sec_name == SectionConstant.COURSES_AND_CERTIFICATES.lower():
+                cc = CourseOrCertificate.from_string(sec_text, filepath=sec.filepath, indexed_lines=sec.indexed_lines)
 
         return cls(work_experience=we, personal_projects=pp, courses_and_certificates=cc)
 
@@ -995,44 +939,41 @@ class CV(BaseModel):
     footer: Footer | None = None
 
     @classmethod
-    def from_string(cls, s: str, filepath: Path | None = None, raw_lines: list[Line] | None = None) -> "CV":
+    def from_string(cls, s: str, filepath: Path | None = None, indexed_lines: list[IndexedLine] | None = None) -> "CV":
         """Parse entire CV from a markdown string."""
-        from md.parse import split_markdown_into_sections
-
-        lines = get_clean_lines(s)
-        sections = split_markdown_into_sections("\n".join(lines))
+        sections = split_markdown_into_sections(s)
 
         info = None
         summary = None
         skills = None
 
-        we = WorkExperience(name=SectionConstant.WORK_EXPERIENCE)
-        pp = PersonalProjects(name=SectionConstant.PERSONAL_PROJECTS)
-        cc = CourseOrCertificate(name=SectionConstant.COURSES_AND_CERTIFICATES)
+        we = WorkExperience()
+        pp = PersonalProjects()
+        cc = CourseOrCertificate()
 
-        edu = Education(name=SectionConstant.EDUCATION)
-        lang = Language(name=SectionConstant.LANGUAGES)
+        edu = Education()
+        lang = Language()
 
         for sec in sections:
-            sec_name = sec.name.lower()
-            sec_text = "\n".join(l.raw_line for l in sec.raw_lines)
+            sec_name = sec.heading.text.lower()
+            sec_text = "\n".join(l.line for l in sec.indexed_lines)
 
-            if sec.md_prefix == "#":
-                info = Info.from_string(sec_text, filepath=sec.filepath, raw_lines=sec.raw_lines)
-            elif "summary" in sec_name:
-                summary = Summary.from_string(sec_text, filepath=sec.filepath, raw_lines=sec.raw_lines)
-            elif "skills" in sec_name:
-                skills = SkillGroup.from_string(sec_text, filepath=sec.filepath, raw_lines=sec.raw_lines)
-            elif "work" in sec_name:
-                we = WorkExperience.from_string(sec_text, filepath=sec.filepath, raw_lines=sec.raw_lines)
-            elif "project" in sec_name:
-                pp = PersonalProjects.from_string(sec_text, filepath=sec.filepath, raw_lines=sec.raw_lines)
-            elif "course" in sec_name or "cert" in sec_name:
-                cc = CourseOrCertificate.from_string(sec_text, filepath=sec.filepath, raw_lines=sec.raw_lines)
-            elif "education" in sec_name:
-                edu = Education.from_string(sec_text, filepath=sec.filepath, raw_lines=sec.raw_lines)
-            elif "language" in sec_name:
-                lang = Language.from_string(sec_text, filepath=sec.filepath, raw_lines=sec.raw_lines)
+            if sec.heading.heading_prefix == "#":
+                info = Info.from_string(sec_text, filepath=sec.filepath, indexed_lines=sec.indexed_lines)
+            elif sec_name == SectionConstant.SUMMARY.lower():
+                summary = Summary.from_string(sec_text, filepath=sec.filepath, indexed_lines=sec.indexed_lines)
+            elif sec_name == SectionConstant.SKILLS.lower():
+                skills = SkillGroup.from_string(sec_text, filepath=sec.filepath, indexed_lines=sec.indexed_lines)
+            elif sec_name == SectionConstant.WORK_EXPERIENCE.lower():
+                we = WorkExperience.from_string(sec_text, filepath=sec.filepath, indexed_lines=sec.indexed_lines)
+            elif sec_name == SectionConstant.PERSONAL_PROJECTS.lower():
+                pp = PersonalProjects.from_string(sec_text, filepath=sec.filepath, indexed_lines=sec.indexed_lines)
+            elif sec_name == SectionConstant.COURSES_AND_CERTIFICATES.lower():
+                cc = CourseOrCertificate.from_string(sec_text, filepath=sec.filepath, indexed_lines=sec.indexed_lines)
+            elif sec_name == SectionConstant.EDUCATION.lower():
+                edu = Education.from_string(sec_text, filepath=sec.filepath, indexed_lines=sec.indexed_lines)
+            elif sec_name == SectionConstant.LANGUAGES.lower():
+                lang = Language.from_string(sec_text, filepath=sec.filepath, indexed_lines=sec.indexed_lines)
 
         header = Header(info=info) if info else None
         body = Body(work_experience=we, personal_projects=pp, courses_and_certificates=cc)
@@ -1047,7 +988,7 @@ class CV(BaseModel):
         if self.summary:
             parts.append(self.summary.to_string().strip())
         if self.skills:
-            parts.append(self.skills.to_string().strip())
+            parts.append(self.skills.to_string())  # No strip - skills can contain trailing spaces
         if self.body:
             parts.append(self.body.to_string().strip())
         if self.footer:

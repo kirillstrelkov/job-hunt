@@ -22,7 +22,7 @@ from md.models import (
     WorkExperience,
     is_root_section,
 )
-from md.parse import Line, Section, split_markdown_into_sections
+from md.parse import IndexedLine, Section, split_markdown_into_sections
 
 MONTHS_TO_SHORT = {
     "January": "Jan",
@@ -60,13 +60,13 @@ class Error:
     line: str
 
 
-def make_error(msg: str, section: Section, line: Line) -> Error:
+def make_error(msg: str, section: Section, line: IndexedLine) -> Error:
     """Create an Error instance for a specific section and line."""
     return Error(
         msg=msg,
         filepath=str(section.filepath),
-        line_num=line.number,
-        line=line.raw_line,
+        line_num=line.index,
+        line=line.line,
     )
 
 
@@ -117,12 +117,12 @@ class DotCheck(Check):
     """Checks that lines do not end with a dot, except in 'Summary' section."""
 
     def check(self, section: Section) -> list[Error]:
-        if section.name.lower() == SectionConstant.SUMMARY.lower():
+        if section.heading.text.lower() == SectionConstant.SUMMARY.lower():
             return []
 
         errors = []
-        for line in section.raw_lines:
-            stripped = line.raw_line.strip()
+        for line in section.indexed_lines:
+            stripped = line.line.strip()
             if not stripped or stripped.startswith("#"):
                 continue
             # Allow thesis lines or other custom formats that might end with a dot?
@@ -140,18 +140,18 @@ class TwoSpaceCheck(Check):
         if is_root_section(section):
             return errors
 
-        is_skills = section.name.lower() == SectionConstant.SKILLS.lower()
+        is_skills = section.heading.text.lower() == SectionConstant.SKILLS.lower()
 
-        for line in section.raw_lines:
-            stripped = line.raw_line.strip()
+        for line in section.indexed_lines:
+            stripped = line.line.strip()
             if not stripped or stripped.startswith("#"):
                 continue
 
-            ends_with_two_spaces = line.raw_line.endswith("  ") and not line.raw_line.endswith("   ")
+            ends_with_two_spaces = line.line.endswith("  ")
 
             if is_skills:
-                # Skills section lines must end with exactly two spaces
-                if not ends_with_two_spaces:
+                # Skills section lines must end with exactly two spaces or backslash
+                if not ends_with_two_spaces or line.line.endswith("\\"):
                     errors.append(
                         make_error(
                             "Line in Skills section must end with exactly two spaces",
@@ -160,7 +160,7 @@ class TwoSpaceCheck(Check):
                         )
                     )
             # Other sections must not end with two spaces
-            elif line.raw_line.endswith("  "):
+            elif line.line.endswith("  "):
                 errors.append(make_error("Line ends with two spaces", section, line))
         return errors
 
@@ -170,11 +170,11 @@ class ASpaceCheck(Check):
 
     def check(self, section: Section) -> list[Error]:
         errors = []
-        if section.name == SectionConstant.COURSES_AND_CERTIFICATES:
+        if section.heading.text == SectionConstant.COURSES_AND_CERTIFICATES:
             return errors
 
-        for line in section.raw_lines:
-            if " a " in line.raw_line:
+        for line in section.indexed_lines:
+            if " a " in line.line:
                 errors.append(make_error("Text contains ' a '", section, line))
         return errors
 
@@ -197,15 +197,15 @@ class DurationCheck(Check):
         pat_present = re.compile(rf"^{months_pat}\s+\d{{4}}\s+-\s+Present$")
         pat_single = re.compile(rf"^{months_pat}\s+\d{{4}}$")
 
-        for line in section.raw_lines:
-            parts = RE_PIPE_SPLIT.split(line.raw_line)
+        for line in section.indexed_lines:
+            parts = RE_PIPE_SPLIT.split(line.line)
             if not parts:
                 continue
             last_part = parts[-1].strip()
 
-            if (is_root_section(section) or section.name.lower() == SectionConstant.INFO.lower()) and RE_PHONE.search(
-                last_part
-            ):
+            if (
+                is_root_section(section) or section.heading.text.lower() == SectionConstant.INFO.lower()
+            ) and RE_PHONE.search(last_part):
                 # skip for telephone
                 continue
 
@@ -236,9 +236,9 @@ class BraketCheck(Check):
 
     def check(self, section: Section) -> list[Error]:
         errors = []
-        for line in section.raw_lines:
+        for line in section.indexed_lines:
             # 1. Check spacing before '('
-            matches = list(re.finditer(r"\s+\(", line.raw_line))
+            matches = list(re.finditer(r"\s+\(", line.line))
             for m in matches:
                 if len(m.group(0)) != 2:  # 2 characters means exactly one space followed by '('
                     errors.append(
@@ -250,7 +250,7 @@ class BraketCheck(Check):
                     )
 
             # 2. Check spacing after '('
-            if "( " in line.raw_line:
+            if "( " in line.line:
                 errors.append(make_error("Space after open bracket '(' is not allowed", section, line))
 
         return errors
@@ -261,12 +261,12 @@ class ChronologicalCheck(Check):
 
     def check(self, section: Section) -> list[Error]:
         errors = []
-        heading_title = section.name.lower()
+        heading_title = section.heading.text.lower()
 
         if SectionConstant.WORK_EXPERIENCE.lower() in heading_title:
             line_and_dates = []
-            for line_obj in section.raw_lines:
-                line_str = line_obj.raw_line.strip()
+            for line_obj in section.indexed_lines:
+                line_str = line_obj.line.strip()
                 if line_str.startswith("**") and "_ " in line_str and RE_WORK_EXP.match(line_str):
                     date_str = RE_PIPE_SPLIT.split(line_str)[-1].strip()
                     skey = get_sort_key(date_str)
@@ -275,8 +275,8 @@ class ChronologicalCheck(Check):
 
         elif SectionConstant.COURSES_AND_CERTIFICATES.lower() in heading_title:
             line_and_dates = []
-            for line_obj in section.raw_lines:
-                line_str = line_obj.raw_line.strip()
+            for line_obj in section.indexed_lines:
+                line_str = line_obj.line.strip()
                 if not line_str:
                     continue
                 if RE_ENDS_WITH_YEAR.search(line_str):
@@ -295,8 +295,8 @@ class ChronologicalCheck(Check):
 
         elif "projects" in heading_title or SectionConstant.PERSONAL_PROJECTS.lower() in heading_title:
             line_and_dates = []
-            for line_obj in section.raw_lines:
-                line_str = line_obj.raw_line.strip()
+            for line_obj in section.indexed_lines:
+                line_str = line_obj.line.strip()
                 if line_str.startswith("**["):
                     date_str = RE_PIPE_SPLIT.split(line_str)[-1].strip()
                     skey = get_sort_key(date_str)
@@ -315,7 +315,7 @@ class ChronologicalCheck(Check):
             if key1 < key2:
                 errors.append(
                     make_error(
-                        f"Chronological order broken in {section.name}: '{line_str1}' is before '{line_str2}'",
+                        f"Chronological order broken in {section.heading.text}: '{line_str1}' is before '{line_str2}'",
                         section,
                         line1_obj,
                     )
@@ -323,7 +323,7 @@ class ChronologicalCheck(Check):
                 if double_error:
                     errors.append(
                         make_error(
-                            f"Chronological order broken in {section.name}: '{line_str2}' is after '{line_str1}'",
+                            f"Chronological order broken in {section.heading.text}: '{line_str2}' is after '{line_str1}'",
                             section,
                             line2_obj,
                         )
@@ -336,21 +336,21 @@ class FormatCheck(Check):
 
     def check(self, section: Section) -> list[Error]:
         errors = []
-        heading_title = section.name.lower()
+        heading_title = section.heading.text.lower()
 
         if SectionConstant.WORK_EXPERIENCE.lower() in heading_title:
-            for line_obj in section.raw_lines:
-                line_str = line_obj.raw_line.strip()
+            for line_obj in section.indexed_lines:
+                line_str = line_obj.line.strip()
                 if line_str.startswith("**") and "_ " in line_str and not RE_WORK_EXP.match(line_str):
-                    errors.append(make_error(f"{section.name} format mismatch", section, line_obj))
+                    errors.append(make_error(f"{section.heading.text} format mismatch", section, line_obj))
 
         elif SectionConstant.COURSES_AND_CERTIFICATES.lower() in heading_title:
-            for line_obj in section.raw_lines:
-                line_str = line_obj.raw_line.strip()
+            for line_obj in section.indexed_lines:
+                line_str = line_obj.line.strip()
                 if not line_str:
                     continue
                 if RE_ENDS_WITH_YEAR.search(line_str) and not RE_COURSE_FORMAT.match(line_str):
-                    errors.append(make_error(f"{section.name} format mismatch", section, line_obj))
+                    errors.append(make_error(f"{section.heading.text} format mismatch", section, line_obj))
         return errors
 
 
@@ -359,7 +359,7 @@ class RequiredSectionsCheck:
 
     def check_all(self, sections: list[Section]) -> list[Error]:
         filepath = str(sections[0].filepath) if sections else ""
-        section_names = [s.name.lower() for s in sections if s.name]
+        section_names = [s.heading.text.lower() for s in sections if s.heading.text]
         required_headers = [
             SectionConstant.WORK_EXPERIENCE.lower(),
             SectionConstant.PERSONAL_PROJECTS.lower(),
@@ -386,7 +386,7 @@ def get_section_class(section: Section) -> type[Section]:
     if is_root_section(section):
         return Info
 
-    name_lower = section.name.lower()
+    name_lower = section.heading.text.lower()
     mapping = {
         SectionConstant.SUMMARY.lower(): Summary,
         SectionConstant.SKILLS.lower(): SkillGroup,

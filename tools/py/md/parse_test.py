@@ -1,6 +1,58 @@
 from pathlib import Path
 
 from md.models import Body, Footer, Header, parse
+from md.parse import split_markdown_into_sections
+
+
+def test_split_markdown_into_sections() -> None:
+    md = """# Top
+
+## Section 1
+
+Content of section 1
+
+## Sub section
+Content of sub section
+
+### Another sub section
+
+Content of another sub section
+
+## Section 2
+Content of section 2
+
+    """
+    sections = split_markdown_into_sections(md)
+    assert len(sections) == 5
+    assert sections[0].heading.text == "Top"
+    assert sections[1].heading.text == "Section 1"
+    assert sections[2].heading.text == "Sub section"
+    assert sections[3].heading.text == "Another sub section"
+    assert sections[4].heading.text == "Section 2"
+
+
+def test_split_broken_markdown_into_sections() -> None:
+    md = """
+
+Content of section 1
+
+# Section 1
+
+Content of section 1
+
+## Sub section
+Content of sub section
+
+### Another sub section
+
+Content of another sub section
+
+    """
+    sections = split_markdown_into_sections(md)
+    assert len(sections) == 3
+    assert sections[0].heading.text == "Section 1"
+    assert sections[1].heading.text == "Sub section"
+    assert sections[2].heading.text == "Another sub section"
 
 
 def test_parse_header_example() -> None:
@@ -51,8 +103,8 @@ def test_parse_body_example() -> None:
     assert cc.duration.end_date == "Feb 2026"
 
     # Let's compare normalized roundtrip
-    normalized_content = content.replace(" \\- ", " - ").strip()
-    normalized_output = body.to_string().replace(" \\- ", " - ").strip()
+    normalized_content = content.strip()
+    normalized_output = body.to_string().strip()
     assert normalized_output == normalized_content
 
 
@@ -82,8 +134,8 @@ def test_parse_footer_example() -> None:
     assert l3.level == "A2 (Elementary)"
 
     # Normalize for comparison
-    normalized_content = content.replace(" \\- ", " - ").strip()
-    normalized_output = footer.to_string().replace(" \\- ", " - ").strip()
+    normalized_content = content.strip()
+    normalized_output = footer.to_string().strip()
     assert normalized_output == normalized_content
 
 
