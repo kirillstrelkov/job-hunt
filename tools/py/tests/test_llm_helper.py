@@ -23,12 +23,12 @@ def test_dict_to_model_settings():
         "seed": 42,
     }
     settings = dict_to_model_settings(options)
-    assert settings.temperature == 0.5
-    assert settings.max_tokens == 100
-    assert settings.seed == 42
+    assert settings["temperature"] == 0.5
+    assert settings["max_tokens"] == 100
+    assert settings["seed"] == 42
 
 
-@patch("helpers.llm_helper.GeminiModel")
+@patch("helpers.llm_helper.GoogleModel")
 @patch("helpers.llm_helper.Agent")
 def test_generate_response(mock_agent_class, mock_gemini_model_class, monkeypatch):
     monkeypatch.setenv("GEMINI_API_KEY", "fake-key")
@@ -46,7 +46,7 @@ def test_generate_response(mock_agent_class, mock_gemini_model_class, monkeypatc
     mock_agent.run_sync.assert_called_once()
 
 
-@patch("helpers.llm_helper.GeminiModel")
+@patch("helpers.llm_helper.GoogleModel")
 @patch("helpers.llm_helper.Agent")
 def test_run_model(mock_agent_class, mock_gemini_model_class, monkeypatch):
     monkeypatch.setenv("GEMINI_API_KEY", "fake-key")

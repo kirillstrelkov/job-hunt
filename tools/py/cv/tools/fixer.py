@@ -132,9 +132,9 @@ class ChronologicalSortingFix(Fix):
         if not isinstance(section, (PersonalProjects, CourseOrCertificate)):
             return section
 
-        sec_text = "\n".join(l.raw_line for l in section.raw_lines)
+        sec_text = "\n".join(l.raw_line for l in section.raw_lines) if section.raw_lines else section.to_string()
         try:
-            new_section = type(section).from_string(sec_text, section.filepath, section.raw_lines)
+            new_section = type(section).from_string(sec_text, section.filepath)
             new_section.entries.sort(key=lambda x: get_sort_key(x.duration.to_string()), reverse=True)
             new_sec_text = new_section.to_string()
             new_section.raw_lines = [

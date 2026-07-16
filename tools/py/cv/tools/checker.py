@@ -205,7 +205,7 @@ class DurationCheck(Check):
                 continue
             last_part = parts[-1].strip()
 
-            if RE_PHONE.search(last_part):
+            if (is_root_section(section) or section.name.lower() == SectionConstant.INFO.lower()) and RE_PHONE.search(last_part):
                 # skip for telephone
                 continue
 
@@ -374,7 +374,7 @@ class RequiredSectionsCheck:
                 line="",
             )
             for req in required_headers
-            if not any(req in name for name in section_names)
+            if not any(req in name or (req == SectionConstant.PERSONAL_PROJECTS.lower() and "projects" in name) for name in section_names)
         ]
 
 

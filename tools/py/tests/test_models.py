@@ -107,13 +107,13 @@ def test_tailored_cv_parsing() -> None:
 
 def test_get_agent_gemini() -> None:
     """Test that get_agent for Gemini returns a valid Agent."""
-    agent = get_gemini_agent("gemini-2.5-flash")
+    agent = get_gemini_agent("gemini-2.5-flash", TailoredCVBody)
     assert isinstance(agent, Agent)
     assert agent.output_type == TailoredCVBody
 
 
 def test_get_agent_ollama() -> None:
     """Test that get_agent for Ollama returns a valid Agent."""
-    agent = get_ollama_agent("gemma4:e2b")
+    agent = get_ollama_agent("gemma4:e2b", TailoredCVBody)
     assert isinstance(agent, Agent)
     assert agent.output_type == TailoredCVBody

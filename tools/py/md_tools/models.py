@@ -43,6 +43,13 @@ def get_md_title(text: str) -> Title:
     return Title(**match.groupdict())
 
 
+def split_by_pipe_or_hfill(s: str) -> list[str]:
+    """Split a string by '|' or variations of hfill."""
+    normalized = re.sub(r"\\+hfill", " | ", s)
+    return [p.strip() for p in normalized.split("|") if p.strip()]
+
+
+
 class SectionConstant:
     """Constants for section names in a CV."""
 
@@ -130,10 +137,12 @@ class Summary(Section):
     text: str = ""
 
     @classmethod
-    def from_string(cls, s: str, filepath: Path, raw_lines: list[Line]) -> "Summary":
+    def from_string(cls, s: str, filepath: Path = Path("dummy.md"), raw_lines: list[Line] | None = None) -> "Summary":
         # Strip header if present
         title = get_md_title(s)
         lines = get_clean_lines(s)
+        if not raw_lines:
+            raw_lines = get_raw_lines(s)
         text_lines = []
         for line in lines:
             if line.startswith(f"{title.prefix} ") and title.text == SectionConstant.SUMMARY:
@@ -180,9 +189,11 @@ class SkillGroup(Section):
     groups: list[SkillGroupEntry] = Field(default_factory=list)
 
     @classmethod
-    def from_string(cls, s: str, filepath: Path, raw_lines: list[Line]) -> "SkillGroup":
+    def from_string(cls, s: str, filepath: Path = Path("dummy.md"), raw_lines: list[Line] | None = None) -> "SkillGroup":
         title = get_md_title(s)
         lines = get_clean_lines(s)
+        if not raw_lines:
+            raw_lines = get_raw_lines(s)
         content_line = ""
         for line in lines:
             if line.startswith(f"{title.prefix} ") and title.text.lower() == SectionConstant.SKILLS.lower():
@@ -198,7 +209,7 @@ class SkillGroup(Section):
             name=SectionConstant.SKILLS,
             md_prefix=title.prefix,
             filepath=filepath,
-            raw_lines=raw_lines or get_raw_lines(s),
+            raw_lines=raw_lines,
             groups=groups_list,
         )
 
@@ -263,9 +274,11 @@ class Language(Section):
     languages: list[LanguageEntry] = Field(default_factory=list)
 
     @classmethod
-    def from_string(cls, s: str, filepath: Path, raw_lines: list[Line]) -> "Language":
+    def from_string(cls, s: str, filepath: Path = Path("dummy.md"), raw_lines: list[Line] | None = None) -> "Language":
         title = get_md_title(s)
         lines = get_clean_lines(s)
+        if not raw_lines:
+            raw_lines = get_raw_lines(s)
         content_lines = []
         for line in lines:
             if line.startswith(f"{title.prefix} ") and title.text.lower() == SectionConstant.LANGUAGES.lower():
@@ -302,17 +315,7 @@ class Degree(BaseModel):
             raise ValueError("Empty string for Degree")
 
         header_line = lines[0]
-        parts = []
-        for part in header_line.split("|"):
-            for subsep in [" \\hfill ", " \\hfill", "\\hfill ", "\\hfill"]:
-                if subsep in part:
-                    subparts = part.split(subsep, 1)
-                    parts.extend(subparts)
-                    break
-            else:
-                parts.append(part)
-
-        parts = [p.strip() for p in parts if p.strip()]
+        parts = split_by_pipe_or_hfill(header_line)
         degree = ""
         institution = ""
         duration_str = ""
@@ -349,9 +352,11 @@ class Education(Section):
     degrees: list[Degree] = Field(default_factory=list)
 
     @classmethod
-    def from_string(cls, s: str, filepath: Path, raw_lines: list[Line]) -> "Education":
+    def from_string(cls, s: str, filepath: Path = Path("dummy.md"), raw_lines: list[Line] | None = None) -> "Education":
         title = get_md_title(s)
         lines = get_clean_lines(s)
+        if not raw_lines:
+            raw_lines = get_raw_lines(s)
         content_lines = []
         for line in lines:
             if line.startswith(f"{title.prefix} ") and title.text.lower() == SectionConstant.EDUCATION.lower():
@@ -403,7 +408,7 @@ class WorkExperienceEntry(BaseModel):
             raise ValueError("Empty string for WorkExperienceEntry")
 
         header_line = lines[0]
-        parts = [p.strip() for p in header_line.split("|")]
+        parts = split_by_pipe_or_hfill(header_line)
 
         title = ""
         company_loc = ""
@@ -485,9 +490,11 @@ class WorkExperience(Section):
     entries: list[WorkExperienceEntry] = Field(default_factory=list)
 
     @classmethod
-    def from_string(cls, s: str, filepath: Path, raw_lines: list[Line]) -> "WorkExperience":
+    def from_string(cls, s: str, filepath: Path = Path("dummy.md"), raw_lines: list[Line] | None = None) -> "WorkExperience":
         title = get_md_title(s)
         lines = get_clean_lines(s)
+        if not raw_lines:
+            raw_lines = get_raw_lines(s)
         content_lines = []
         for line in lines:
             if (
@@ -503,7 +510,7 @@ class WorkExperience(Section):
             we_block = []
             for w_line in get_clean_lines(work_text):
                 stripped = w_line.strip()
-                if stripped.startswith("**") and " | " in stripped and we_block:
+                if stripped.startswith("**") and (" | " in stripped or "\\hfill" in stripped or "hfill" in stripped) and we_block:
                     entries.append(WorkExperienceEntry.from_string("\n".join(we_block)))
                     we_block = []
                 we_block.append(w_line)
@@ -513,7 +520,7 @@ class WorkExperience(Section):
             name=title.text,
             md_prefix=title.prefix,
             filepath=filepath,
-            raw_lines=raw_lines or get_raw_lines(s),
+            raw_lines=raw_lines,
             entries=entries,
         )
 
@@ -539,22 +546,21 @@ class PersonalProjectsEntry(BaseModel):
             raise ValueError("Empty string for PersonalProjectsEntry")
 
         header_line = lines[0]
-        parts = [p.strip() for p in header_line.split("|")]
-
-        link_part = ""
-        duration_str = ""
-
-        if len(parts) >= 1:
-            link_part = parts[0].strip().strip("*").strip()
-        if len(parts) >= 2:
-            duration_str = parts[1].strip()
+        match = re.search(r"\||\\+hfill", header_line)
+        if match:
+            idx = match.start()
+            link_part = header_line[:idx].strip().strip("*").strip()
+            duration_str = header_line[idx + len(match.group(0)) :].strip()
+        else:
+            link_part = header_line.strip().strip("*").strip()
+            duration_str = ""
 
         name = link_part
         url = ""
-        match = re.search(r"\[(.*?)\]\((.*?)\)", link_part)
-        if match:
-            name = match.group(1).strip()
-            url = match.group(2).strip()
+        match_url = re.search(r"\[(.*?)\]\((.*?)\)", link_part)
+        if match_url:
+            name = match_url.group(1).strip()
+            url = match_url.group(2).strip()
 
         duration = Duration.from_string(duration_str)
 
@@ -602,10 +608,12 @@ class PersonalProjects(Section):
     entries: list[PersonalProjectsEntry] = Field(default_factory=list)
 
     @classmethod
-    def from_string(cls, s: str, filepath: Path, raw_lines: list[Line]) -> "PersonalProjects":
+    def from_string(cls, s: str, filepath: Path = Path("dummy.md"), raw_lines: list[Line] | None = None) -> "PersonalProjects":
         title = get_md_title(s)
 
         lines = get_clean_lines(s.strip())
+        if not raw_lines:
+            raw_lines = get_raw_lines(s)
         content_lines = []
         for line in lines:
             if (
@@ -621,7 +629,7 @@ class PersonalProjects(Section):
             pp_block = []
             for p_line in get_clean_lines(project_text):
                 stripped = p_line.strip()
-                if stripped.startswith("**") and (" | " in stripped or "[" in stripped) and pp_block:
+                if stripped.startswith("**") and (" | " in stripped or "[" in stripped or "\\hfill" in stripped or "hfill" in stripped) and pp_block:
                     entries.append(PersonalProjectsEntry.from_string("\n".join(pp_block)))
                     pp_block = []
                 pp_block.append(p_line)
@@ -631,7 +639,7 @@ class PersonalProjects(Section):
             name=title.text,
             md_prefix=title.prefix,
             filepath=filepath,
-            raw_lines=raw_lines or get_raw_lines(s),
+            raw_lines=raw_lines,
             entries=entries,
         )
 
@@ -655,7 +663,7 @@ class CourseOrCertificateEntry(BaseModel):
         if s.startswith(("- ", "* ")):
             s = s[2:].strip()
 
-        parts = [p.strip() for p in s.split("|")]
+        parts = split_by_pipe_or_hfill(s)
         name = ""
         institution = ""
         duration_str = ""
@@ -681,9 +689,11 @@ class CourseOrCertificate(Section):
     entries: list[CourseOrCertificateEntry] = Field(default_factory=list)
 
     @classmethod
-    def from_string(cls, s: str, filepath: Path, raw_lines: list[Line]) -> "CourseOrCertificate":
+    def from_string(cls, s: str, filepath: Path = Path("dummy.md"), raw_lines: list[Line] | None = None) -> "CourseOrCertificate":
         title = get_md_title(s)
         lines = get_clean_lines(s)
+        if not raw_lines:
+            raw_lines = get_raw_lines(s)
         content_lines = []
         for line in lines:
             if line.strip().startswith(f"{title.prefix} "):
@@ -721,9 +731,11 @@ class Info(Section):
     github: str = ""
 
     @classmethod
-    def from_string(cls, s: str, filepath: Path, raw_lines: list[Line]) -> "Info":
+    def from_string(cls, s: str, filepath: Path = Path("dummy.md"), raw_lines: list[Line] | None = None) -> "Info":
         title = get_md_title(s)
         lines = get_clean_lines(s)
+        if not raw_lines:
+            raw_lines = get_raw_lines(s)
 
         name = title.text
         address = ""
@@ -813,9 +825,11 @@ class Header(BaseModel):
     }
 
     @classmethod
-    def from_string(cls, s: str) -> "Header":
+    def from_string(cls, s: str, filepath: Path = Path("dummy.md"), raw_lines: list[Line] | None = None) -> "Header":
         lines = get_clean_lines(s)
-        info = Info.from_string("\n".join(lines))
+        if not raw_lines:
+            raw_lines = get_raw_lines(s)
+        info = Info.from_string("\n".join(lines), filepath=filepath, raw_lines=raw_lines)
         return cls(info=info)
 
     def to_string(self) -> str:
@@ -861,10 +875,12 @@ class Footer(BaseModel):
     }
 
     @classmethod
-    def from_string(cls, s: str, filepath: Path, raw_lines: list[Line]) -> "Footer":
+    def from_string(cls, s: str, filepath: Path = Path("dummy.md"), raw_lines: list[Line] | None = None) -> "Footer":
         from md_tools.parse import split_markdown_into_sections
 
         lines = get_clean_lines(s)
+        if not raw_lines:
+            raw_lines = get_raw_lines(s)
         sections = split_markdown_into_sections("\n".join(lines))
         edu = Education(name=SectionConstant.EDUCATION, filepath=filepath, raw_lines=raw_lines)
         lang = Language(name=SectionConstant.LANGUAGES, filepath=filepath, raw_lines=raw_lines)
@@ -919,10 +935,12 @@ class Body(BaseModel):
     }
 
     @classmethod
-    def from_string(cls, s: str, filepath: Path, raw_lines: list[Line]) -> "Body":
+    def from_string(cls, s: str, filepath: Path = Path("dummy.md"), raw_lines: list[Line] | None = None) -> "Body":
         from md_tools.parse import split_markdown_into_sections
 
         lines = get_clean_lines(s)
+        if not raw_lines:
+            raw_lines = get_raw_lines(s)
         sections = split_markdown_into_sections("\n".join(lines))
         we = WorkExperience(name=SectionConstant.WORK_EXPERIENCE, filepath=filepath, raw_lines=raw_lines)
         pp = PersonalProjects(name=SectionConstant.PERSONAL_PROJECTS, filepath=filepath, raw_lines=raw_lines)
