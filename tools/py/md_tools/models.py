@@ -5,6 +5,8 @@ from pathlib import Path
 
 from pydantic import BaseModel, Field
 
+from md_tools.parse import Line, Section
+
 RE_MD_TITLE = re.compile(r"(?P<prefix>#+)\s*(?P<text>.+)$", re.MULTILINE)
 
 
@@ -13,13 +15,6 @@ class Title(BaseModel):
 
     prefix: str
     text: str
-
-
-class Line(BaseModel):
-    """Represents a single line from the CV with its content and line number."""
-
-    raw_line: str
-    number: int
 
 
 def get_raw_lines(s: str) -> list[Line]:
@@ -49,7 +44,6 @@ def split_by_pipe_or_hfill(s: str) -> list[str]:
     return [p.strip() for p in normalized.split("|") if p.strip()]
 
 
-
 class SectionConstant:
     """Constants for section names in a CV."""
 
@@ -61,15 +55,6 @@ class SectionConstant:
     PERSONAL_PROJECTS = "Personal projects"
     COURSES_AND_CERTIFICATES = "Courses and certificates"
     INFO = "Info"
-
-
-class Section(BaseModel):
-    """Base Pydantic model representing a structured section of a CV."""
-
-    name: str
-    md_prefix: str = Field(default="##")
-    filepath: Path = Field(default_factory=lambda: Path("/tmp/dummy"))
-    raw_lines: list[Line] = Field(default_factory=list)
 
 
 def is_root_section(sec: Section) -> bool:
@@ -137,7 +122,8 @@ class Summary(Section):
     text: str = ""
 
     @classmethod
-    def from_string(cls, s: str, filepath: Path = Path("dummy.md"), raw_lines: list[Line] | None = None) -> "Summary":
+    def from_string(cls, s: str, filepath: Path | None = None, raw_lines: list[Line] | None = None) -> "Summary":
+        """Parse summary section from a markdown string."""
         # Strip header if present
         title = get_md_title(s)
         lines = get_clean_lines(s)
@@ -189,7 +175,8 @@ class SkillGroup(Section):
     groups: list[SkillGroupEntry] = Field(default_factory=list)
 
     @classmethod
-    def from_string(cls, s: str, filepath: Path = Path("dummy.md"), raw_lines: list[Line] | None = None) -> "SkillGroup":
+    def from_string(cls, s: str, filepath: Path | None = None, raw_lines: list[Line] | None = None) -> "SkillGroup":
+        """Parse skill group section from a markdown string."""
         title = get_md_title(s)
         lines = get_clean_lines(s)
         if not raw_lines:
@@ -274,7 +261,8 @@ class Language(Section):
     languages: list[LanguageEntry] = Field(default_factory=list)
 
     @classmethod
-    def from_string(cls, s: str, filepath: Path = Path("dummy.md"), raw_lines: list[Line] | None = None) -> "Language":
+    def from_string(cls, s: str, filepath: Path | None = None, raw_lines: list[Line] | None = None) -> "Language":
+        """Parse language section from a markdown string."""
         title = get_md_title(s)
         lines = get_clean_lines(s)
         if not raw_lines:
@@ -352,7 +340,8 @@ class Education(Section):
     degrees: list[Degree] = Field(default_factory=list)
 
     @classmethod
-    def from_string(cls, s: str, filepath: Path = Path("dummy.md"), raw_lines: list[Line] | None = None) -> "Education":
+    def from_string(cls, s: str, filepath: Path | None = None, raw_lines: list[Line] | None = None) -> "Education":
+        """Parse education section from a markdown string."""
         title = get_md_title(s)
         lines = get_clean_lines(s)
         if not raw_lines:
@@ -490,7 +479,8 @@ class WorkExperience(Section):
     entries: list[WorkExperienceEntry] = Field(default_factory=list)
 
     @classmethod
-    def from_string(cls, s: str, filepath: Path = Path("dummy.md"), raw_lines: list[Line] | None = None) -> "WorkExperience":
+    def from_string(cls, s: str, filepath: Path | None = None, raw_lines: list[Line] | None = None) -> "WorkExperience":
+        """Parse work experience section from a markdown string."""
         title = get_md_title(s)
         lines = get_clean_lines(s)
         if not raw_lines:
@@ -510,7 +500,11 @@ class WorkExperience(Section):
             we_block = []
             for w_line in get_clean_lines(work_text):
                 stripped = w_line.strip()
-                if stripped.startswith("**") and (" | " in stripped or "\\hfill" in stripped or "hfill" in stripped) and we_block:
+                if (
+                    stripped.startswith("**")
+                    and (" | " in stripped or "\\hfill" in stripped or "hfill" in stripped)
+                    and we_block
+                ):
                     entries.append(WorkExperienceEntry.from_string("\n".join(we_block)))
                     we_block = []
                 we_block.append(w_line)
@@ -608,7 +602,10 @@ class PersonalProjects(Section):
     entries: list[PersonalProjectsEntry] = Field(default_factory=list)
 
     @classmethod
-    def from_string(cls, s: str, filepath: Path = Path("dummy.md"), raw_lines: list[Line] | None = None) -> "PersonalProjects":
+    def from_string(
+        cls, s: str, filepath: Path | None = None, raw_lines: list[Line] | None = None
+    ) -> "PersonalProjects":
+        """Parse personal projects section from a markdown string."""
         title = get_md_title(s)
 
         lines = get_clean_lines(s.strip())
@@ -629,7 +626,11 @@ class PersonalProjects(Section):
             pp_block = []
             for p_line in get_clean_lines(project_text):
                 stripped = p_line.strip()
-                if stripped.startswith("**") and (" | " in stripped or "[" in stripped or "\\hfill" in stripped or "hfill" in stripped) and pp_block:
+                if (
+                    stripped.startswith("**")
+                    and (" | " in stripped or "[" in stripped or "\\hfill" in stripped or "hfill" in stripped)
+                    and pp_block
+                ):
                     entries.append(PersonalProjectsEntry.from_string("\n".join(pp_block)))
                     pp_block = []
                 pp_block.append(p_line)
@@ -689,7 +690,10 @@ class CourseOrCertificate(Section):
     entries: list[CourseOrCertificateEntry] = Field(default_factory=list)
 
     @classmethod
-    def from_string(cls, s: str, filepath: Path = Path("dummy.md"), raw_lines: list[Line] | None = None) -> "CourseOrCertificate":
+    def from_string(
+        cls, s: str, filepath: Path | None = None, raw_lines: list[Line] | None = None
+    ) -> "CourseOrCertificate":
+        """Parse courses and certificates section from a markdown string."""
         title = get_md_title(s)
         lines = get_clean_lines(s)
         if not raw_lines:
@@ -731,7 +735,8 @@ class Info(Section):
     github: str = ""
 
     @classmethod
-    def from_string(cls, s: str, filepath: Path = Path("dummy.md"), raw_lines: list[Line] | None = None) -> "Info":
+    def from_string(cls, s: str, filepath: Path | None = None, raw_lines: list[Line] | None = None) -> "Info":
+        """Parse contact info section from a markdown string."""
         title = get_md_title(s)
         lines = get_clean_lines(s)
         if not raw_lines:
@@ -825,7 +830,8 @@ class Header(BaseModel):
     }
 
     @classmethod
-    def from_string(cls, s: str, filepath: Path = Path("dummy.md"), raw_lines: list[Line] | None = None) -> "Header":
+    def from_string(cls, s: str, filepath: Path | None = None, raw_lines: list[Line] | None = None) -> "Header":
+        """Parse CV header from a markdown string."""
         lines = get_clean_lines(s)
         if not raw_lines:
             raw_lines = get_raw_lines(s)
@@ -875,7 +881,8 @@ class Footer(BaseModel):
     }
 
     @classmethod
-    def from_string(cls, s: str, filepath: Path = Path("dummy.md"), raw_lines: list[Line] | None = None) -> "Footer":
+    def from_string(cls, s: str, filepath: Path | None = None, raw_lines: list[Line] | None = None) -> "Footer":
+        """Parse CV footer from a markdown string."""
         from md_tools.parse import split_markdown_into_sections
 
         lines = get_clean_lines(s)
@@ -935,7 +942,8 @@ class Body(BaseModel):
     }
 
     @classmethod
-    def from_string(cls, s: str, filepath: Path = Path("dummy.md"), raw_lines: list[Line] | None = None) -> "Body":
+    def from_string(cls, s: str, filepath: Path | None = None, raw_lines: list[Line] | None = None) -> "Body":
+        """Parse CV body from a markdown string."""
         from md_tools.parse import split_markdown_into_sections
 
         lines = get_clean_lines(s)
@@ -991,7 +999,8 @@ class CV(BaseModel):
     footer: Footer | None = None
 
     @classmethod
-    def from_string(cls, s: str) -> "CV":
+    def from_string(cls, s: str, filepath: Path | None = None, raw_lines: list[Line] | None = None) -> "CV":
+        """Parse entire CV from a markdown string."""
         from md_tools.parse import split_markdown_into_sections
 
         lines = get_clean_lines(s)
@@ -1048,3 +1057,16 @@ class CV(BaseModel):
         if self.footer:
             parts.append(self.footer.to_string().strip())
         return "\n\n".join(parts) + "\n"
+
+
+def parse(text: str) -> CV:
+    """Parse CV markdown text into a CV Pydantic model.
+
+    Args:
+        text: The raw markdown content of the CV.
+
+    Returns:
+        CV: The parsed CV Pydantic model.
+
+    """
+    return CV.from_string(text)

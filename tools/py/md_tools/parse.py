@@ -3,7 +3,23 @@
 import re
 from pathlib import Path
 
-from md_tools.models import CV, Line, Section
+from pydantic import BaseModel, Field
+
+
+class Line(BaseModel):
+    """Represents a single line from the CV with its content and line number."""
+
+    raw_line: str
+    number: int
+
+
+class Section(BaseModel):
+    """Base Pydantic model representing a structured section of a CV."""
+
+    name: str
+    md_prefix: str = Field(default="##")
+    filepath: Path | None = Field(default_factory=lambda: Path("/tmp/dummy"))
+    raw_lines: list[Line] | None = Field(default_factory=list)
 
 
 def split_markdown_into_sections(md: str, filepath: Path | None = None) -> list[Section]:
@@ -38,16 +54,3 @@ def split_markdown_into_sections(md: str, filepath: Path | None = None) -> list[
         sections.append(cur_section)
 
     return sections
-
-
-def parse(text: str) -> CV:
-    """Parse CV markdown text into a CV Pydantic model.
-
-    Args:
-        text: The raw markdown content of the CV.
-
-    Returns:
-        CV: The parsed CV Pydantic model.
-
-    """
-    return CV.from_string(text)

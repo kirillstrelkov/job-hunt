@@ -12,7 +12,8 @@ from cv.tools.checker import (
     check,
     make_error,
 )
-from md_tools.models import Line, Section, SectionConstant
+from md_tools.models import SectionConstant
+from md_tools.parse import Line, Section
 
 
 def test_dot_check():

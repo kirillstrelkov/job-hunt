@@ -6,13 +6,12 @@ from md_tools.models import (
     Education,
     Info,
     Language,
-    Line,
     PersonalProjects,
-    Section,
     SkillGroup,
     Summary,
     WorkExperience,
 )
+from md_tools.parse import Line, Section
 
 MONTHS_TO_SHORT = {
     "January": "Jan",

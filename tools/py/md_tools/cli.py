@@ -5,7 +5,7 @@ from pathlib import Path
 
 from pydantic import ValidationError
 
-from md_tools.parse import parse
+from md_tools.models import parse
 
 
 def main() -> None:

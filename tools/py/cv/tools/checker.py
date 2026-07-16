@@ -15,16 +15,14 @@ from md_tools.models import (
     Education,
     Info,
     Language,
-    Line,
     PersonalProjects,
-    Section,
     SectionConstant,
     SkillGroup,
     Summary,
     WorkExperience,
     is_root_section,
 )
-from md_tools.parse import split_markdown_into_sections
+from md_tools.parse import Line, Section, split_markdown_into_sections
 
 MONTHS_TO_SHORT = {
     "January": "Jan",
@@ -205,7 +203,9 @@ class DurationCheck(Check):
                 continue
             last_part = parts[-1].strip()
 
-            if (is_root_section(section) or section.name.lower() == SectionConstant.INFO.lower()) and RE_PHONE.search(last_part):
+            if (is_root_section(section) or section.name.lower() == SectionConstant.INFO.lower()) and RE_PHONE.search(
+                last_part
+            ):
                 # skip for telephone
                 continue
 
@@ -374,7 +374,10 @@ class RequiredSectionsCheck:
                 line="",
             )
             for req in required_headers
-            if not any(req in name or (req == SectionConstant.PERSONAL_PROJECTS.lower() and "projects" in name) for name in section_names)
+            if not any(
+                req in name or (req == SectionConstant.PERSONAL_PROJECTS.lower() and "projects" in name)
+                for name in section_names
+            )
         ]
 
 
