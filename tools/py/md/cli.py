@@ -5,13 +5,13 @@ from pathlib import Path
 
 from pydantic import ValidationError
 
-from md_tools.models import parse
+from md.models import parse
 
 
 def main() -> None:
     """CLI entrypoint to parse CV markdown file and report errors."""
     if len(sys.argv) < 2:  # noqa: PLR2004
-        print("Usage: uv run python md_tools/cli.py <path_to_markdown_file>")  # noqa: T201
+        print("Usage: uv run python md/cli.py <path_to_markdown_file>")  # noqa: T201
         sys.exit(1)
 
     filepath = Path(sys.argv[1])

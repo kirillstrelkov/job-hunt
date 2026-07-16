@@ -1,5 +1,5 @@
 from cv.tools.process_cv import fix_markdown
-from md_tools.format import format
+from md.format import format
 
 
 def test_format_courses_equivalence() -> None:

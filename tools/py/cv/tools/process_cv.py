@@ -10,9 +10,9 @@ from loguru import logger
 from cv.tools.checker import Error, get_section_class
 from cv.tools.checker import check as do_check
 from cv.tools.fixer import _FIX_CONFIG
-from md_tools.format import format as format_md
-from md_tools.models import CV
-from md_tools.parse import Section, split_markdown_into_sections
+from md.format import format as format_md
+from md.models import CV
+from md.parse import Section, split_markdown_into_sections
 
 
 def parse_args() -> argparse.Namespace:

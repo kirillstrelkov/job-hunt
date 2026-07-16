@@ -10,7 +10,7 @@ from pathlib import Path
 
 from loguru import logger
 
-from md_tools.models import (
+from md.models import (
     CourseOrCertificate,
     Education,
     Info,
@@ -22,7 +22,7 @@ from md_tools.models import (
     WorkExperience,
     is_root_section,
 )
-from md_tools.parse import Line, Section, split_markdown_into_sections
+from md.parse import Line, Section, split_markdown_into_sections
 
 MONTHS_TO_SHORT = {
     "January": "Jan",

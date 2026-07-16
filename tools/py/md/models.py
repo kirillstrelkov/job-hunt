@@ -5,7 +5,7 @@ from pathlib import Path
 
 from pydantic import BaseModel, Field
 
-from md_tools.parse import Line, Section
+from md.parse import Line, Section
 
 RE_MD_TITLE = re.compile(r"(?P<prefix>#+)\s*(?P<text>.+)$", re.MULTILINE)
 
@@ -879,7 +879,7 @@ class Footer(BaseModel):
     @classmethod
     def from_string(cls, s: str, filepath: Path | None = None, raw_lines: list[Line] | None = None) -> "Footer":
         """Parse CV footer from a markdown string."""
-        from md_tools.parse import split_markdown_into_sections
+        from md.parse import split_markdown_into_sections
 
         lines = get_clean_lines(s)
         if not raw_lines:
@@ -940,7 +940,7 @@ class Body(BaseModel):
     @classmethod
     def from_string(cls, s: str, filepath: Path | None = None, raw_lines: list[Line] | None = None) -> "Body":
         """Parse CV body from a markdown string."""
-        from md_tools.parse import split_markdown_into_sections
+        from md.parse import split_markdown_into_sections
 
         lines = get_clean_lines(s)
         if not raw_lines:
@@ -997,7 +997,7 @@ class CV(BaseModel):
     @classmethod
     def from_string(cls, s: str, filepath: Path | None = None, raw_lines: list[Line] | None = None) -> "CV":
         """Parse entire CV from a markdown string."""
-        from md_tools.parse import split_markdown_into_sections
+        from md.parse import split_markdown_into_sections
 
         lines = get_clean_lines(s)
         sections = split_markdown_into_sections("\n".join(lines))

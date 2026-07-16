@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from md_tools.models import (
+from md.models import (
     Body,
     BulletPoint,
     CourseOrCertificateEntry,

@@ -1,7 +1,7 @@
 import re
 
 from cv.tools.checker import get_sort_key
-from md_tools.models import (
+from md.models import (
     CourseOrCertificate,
     Education,
     Info,
@@ -11,7 +11,7 @@ from md_tools.models import (
     Summary,
     WorkExperience,
 )
-from md_tools.parse import Line, Section
+from md.parse import Line, Section
 
 MONTHS_TO_SHORT = {
     "January": "Jan",
