@@ -13,13 +13,13 @@ EVALUATION_RESULTS: list[dict[str, Any]] = []
 
 
 @pytest.hookimpl(tryfirst=True)
-def pytest_sessionstart(_session: pytest.Session) -> None:
+def pytest_sessionstart(session: pytest.Session) -> None:
     """Run initial setup actions before the test session starts."""
     # Ensure outputs directory exists
     get_tmp_output_dir().mkdir(parents=True, exist_ok=True)
 
 
-def pytest_sessionfinish(_session: pytest.Session, _exitstatus: int) -> None:
+def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
     """Analyze gathered results and write a Markdown comparison report when the session finishes."""
     if not EVALUATION_RESULTS:
         logger.warning("No evaluation results gathered.")

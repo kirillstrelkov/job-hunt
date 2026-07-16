@@ -18,6 +18,11 @@ from job_finder.reviewer.llm import (
 __DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 
 
+@pytest.fixture
+def cv_text() -> str:
+    return (__DATA_DIR / "private/cv.txt").read_text(encoding="utf-8")
+
+
 def assert_llm_response(
     result: JobMatchResult, min_match: int = 0, fail_reason: str | None = None, max_match: int = 100
 ) -> None:
@@ -33,15 +38,13 @@ def assert_llm_response(
     assert get_match_percentage(result) <= max_match
 
 
-def _run_and_assert(sub_path: str, min_match: int, fail_reason: str | None = None) -> None:
+def _run_and_assert(sub_path: str, min_match: int, fail_reason: str | None = None, cv_text: str = "") -> None:
     logger.debug("Path: {}", sub_path)
     job_desc = (__DATA_DIR / sub_path).read_text(encoding="utf-8")
 
-    res = analyze_cv(CV_TEXT, job_desc)
+    res = analyze_cv(cv_text, job_desc)
     assert_llm_response(res, min_match, fail_reason)
 
-
-CV_TEXT = (__DATA_DIR / "private/cv.txt").read_text(encoding="utf-8")
 
 _SCREENING_DATA = (
     (
@@ -95,8 +98,8 @@ def test_screening_output(file_path: str, expected_flag: str) -> None:
     ("file_path", "min_match"),
     _ANALYSIS_DATA,
 )
-def test_analysis_output(file_path: str, min_match: int) -> None:
+def test_analysis_output(file_path: str, min_match: int, cv_text: str) -> None:
     """Test that _get_analysis returns correct fit and match thresholds."""
     job_desc = (__DATA_DIR / file_path).read_text(encoding="utf-8")
-    analysis = _get_analysis(CV_TEXT, job_desc)
+    analysis = _get_analysis(cv_text, job_desc)
     assert analysis.match_percentage > min_match

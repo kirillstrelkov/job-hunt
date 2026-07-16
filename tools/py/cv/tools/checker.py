@@ -139,7 +139,7 @@ class TwoSpaceCheck(Check):
 
     def check(self, section: Section) -> list[Error]:
         errors = []
-        if section.is_root():
+        if is_root_section(section):
             return errors
 
         is_skills = section.name.lower() == SectionConstant.SKILLS.lower()

@@ -7,5 +7,10 @@ lint:
     uv run ruff check --fix
     uv run ruff check
 
+# Start Arize Phoenix UI
 arize-phoenix:
     uv run phoenix serve
+
+# Run only unit tests
+test:
+    uv run pytest -k 'not func'

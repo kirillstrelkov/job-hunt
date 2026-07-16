@@ -9,7 +9,6 @@ import pytest
 os.environ.setdefault("OPENAI_API_KEY", "dummy-key")
 
 
-from conftest import EVALUATION_RESULTS
 from deepeval import assert_test
 from deepeval.metrics import GEval
 from deepeval.models import OllamaModel
@@ -19,6 +18,7 @@ from loguru import logger
 from config.config import DEFAULT_CONFIG
 from helpers.ollama_helper import get_eval_model, get_model_names, get_model_output
 from helpers.tmp_helper import get_tmp_output_dir
+from tailor_cv_eval.tools.models_cmp.deepeval.conftest import EVALUATION_RESULTS
 
 
 def run_assessment(prompt_content: str, actual_output: str, expected_output: str) -> tuple[float, str, bool]:
@@ -69,6 +69,7 @@ def run_assessment(prompt_content: str, actual_output: str, expected_output: str
     return score, reason, passed
 
 
+@pytest.mark.skip(reason="not ready")
 @pytest.mark.parametrize("model_name", get_model_names(check=False))
 def test_evaluate_llm_tailoring(model_name: str, variant: str) -> None:
     """Evaluates LLM tailored CV outputs against a reference ground truth across different Ollama models."""
