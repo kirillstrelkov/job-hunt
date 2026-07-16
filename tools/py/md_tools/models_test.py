@@ -12,7 +12,7 @@ from md_tools.models import (
     LanguageEntry,
     PersonalProjectsEntry,
     Skill,
-    Skills,
+    SkillGroup,
     Summary,
     Thesis,
     Title,
@@ -197,7 +197,7 @@ def test_summary_roundtrip() -> None:
 
 def test_skills_roundtrip() -> None:
     s = "## Skills\n\n**Languages**: Python, Go | **Cloud & DevOps**: AWS, Docker"
-    skills_obj = Skills.from_string(s, Path("fake"), [])
+    skills_obj = SkillGroup.from_string(s)
     assert len(skills_obj.groups) == 2
     assert skills_obj.groups[0].name == "Languages"
     assert len(skills_obj.groups[0].skills) == 2

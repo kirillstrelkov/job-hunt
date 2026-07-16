@@ -205,10 +205,6 @@ class SkillGroup(Section):
         return f"{self.md_prefix} {self.name}\n\n{groups_str}"
 
 
-# Alias for backward compatibility
-Skills = SkillGroup
-
-
 class Thesis(BaseModel):
     """Pydantic model representing a thesis with name and URL."""
 
