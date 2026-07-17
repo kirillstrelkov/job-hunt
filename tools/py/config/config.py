@@ -76,6 +76,7 @@ class LLMConfig:
     """Root configuration options for LLMs."""
 
     eval_model: str
+    fix_model: str
     embeddings_model: str
     model_default_options: dict[str, Any]
     top_models: list[str]
@@ -235,6 +236,7 @@ class ConfigManager:
             llm = raw_config.get("llm", {})
             if llm:
                 raw_config["eval_model"] = llm.get("eval_model")
+                raw_config["fix_model"] = llm.get("fix_model")
                 raw_config["embeddings_model"] = llm.get("embeddings_model")
                 raw_config["model_default_options"] = llm.get("model_default_options")
                 raw_config["top_models"] = llm.get("top_models")
@@ -299,6 +301,7 @@ class ConfigManager:
 
         self.llm = LLMConfig(
             eval_model=str(ll.get("eval_model", "")),
+            fix_model=str(ll.get("fix_model", "")),
             embeddings_model=str(ll.get("embeddings_model", "qwen3-embedding:0.6b")),
             model_default_options=dict(ll.get("model_default_options", {})),
             top_models=list(ll.get("top_models", [])),

@@ -4,11 +4,11 @@
 import argparse
 import re
 import sys
-from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 
 from loguru import logger
+from pydantic import BaseModel
 
 from md.models import (
     CourseOrCertificate,
@@ -22,7 +22,7 @@ from md.models import (
     WorkExperience,
     is_root_section,
 )
-from md.parse import IndexedLine, Section, split_markdown_into_sections
+from md.parse import Heading, IndexedLine, Section, split_markdown_into_sections
 
 MONTHS_TO_SHORT = {
     "January": "Jan",
@@ -50,8 +50,7 @@ RE_PHONE = re.compile(r"[\d\s]{5,}")
 _CUR_YEAR = datetime.now(UTC).year
 
 
-@dataclass
-class Error:
+class Error(BaseModel):
     """Represents a validation error found in the CV."""
 
     msg: str
@@ -108,19 +107,32 @@ def get_sort_key(date_str: str) -> tuple[int, int]:
 class Check:
     """Base class for all checkers."""
 
+    _DEFAULT_ERROR_MSG = ""
+
+    def __init__(self) -> None:
+        self.errors = []
+
     def check(self, section: Section) -> list[Error]:
         """Run check on a Section and return a list of Error objects."""
         raise NotImplementedError
+
+    def add_error(self, section: Section, line: IndexedLine, msg: str | None = None) -> None:
+        if not msg:
+            msg = self._DEFAULT_ERROR_MSG
+
+        self.errors.append(make_error(msg, section, line))
 
 
 class DotCheck(Check):
     """Checks that lines do not end with a dot, except in 'Summary' section."""
 
-    def check(self, section: Section) -> list[Error]:
-        if section.heading.text.lower() == SectionConstant.SUMMARY.lower():
-            return []
+    _DEFAULT_ERROR_MSG = "Line ends with a dot"
 
-        errors = []
+    def check(self, section: Section) -> list[Error]:
+        self.errors = []
+        if section.heading.text.lower() == SectionConstant.SUMMARY.lower():
+            return self.errors
+
         for line in section.indexed_lines:
             stripped = line.line.strip()
             if not stripped or stripped.startswith("#"):
@@ -128,17 +140,20 @@ class DotCheck(Check):
             # Allow thesis lines or other custom formats that might end with a dot?
             # Standard requirements say "lines doesn't ends with '.'"
             if stripped.endswith("."):
-                errors.append(make_error("Line ends with a dot", section, line))
-        return errors
+                self.add_error(section, line)
+        return self.errors
 
 
 class TwoSpaceCheck(Check):
     """Checks that lines do not end with two spaces, except in Skills section (which must)."""
 
+    _DEFAULT_ERROR_MSG = "Line in Skills section must end with single backslash"
+    _ERR_MSG_WRONG_ENDING = "Line must not end with two spaces or backslash"
+
     def check(self, section: Section) -> list[Error]:
-        errors = []
+        self.errors = []
         if is_root_section(section):
-            return errors
+            return self.errors
 
         is_skills = section.heading.text.lower() == SectionConstant.SKILLS.lower()
 
@@ -147,36 +162,30 @@ class TwoSpaceCheck(Check):
             if not stripped or stripped.startswith("#"):
                 continue
 
-            ends_with_two_spaces = line.line.endswith("  ")
-
             if is_skills:
                 # Skills section lines must end with exactly two spaces or backslash
-                if not ends_with_two_spaces or line.line.endswith("\\"):
-                    errors.append(
-                        make_error(
-                            "Line in Skills section must end with exactly two spaces",
-                            section,
-                            line,
-                        )
-                    )
-            # Other sections must not end with two spaces
-            elif line.line.endswith("  "):
-                errors.append(make_error("Line ends with two spaces", section, line))
-        return errors
+                if not line.line.endswith("\\"):
+                    self.add_error(section, line)
+            # Other sections must not end with two spaces or backslash
+            elif line.line.endswith("  ") or line.line.endswith("\\"):
+                self.add_error(section, line)
+        return self.errors
 
 
 class ASpaceCheck(Check):
     """Checks that text does not contain ' a '."""
 
+    _DEFAULT_ERROR_MSG = "Text contains ' a '"
+
     def check(self, section: Section) -> list[Error]:
-        errors = []
+        self.errors = []
         if section.heading.text == SectionConstant.COURSES_AND_CERTIFICATES:
-            return errors
+            return self.errors
 
         for line in section.indexed_lines:
             if " a " in line.line:
-                errors.append(make_error("Text contains ' a '", section, line))
-        return errors
+                self.add_error(section, line)
+        return self.errors
 
 
 class DurationCheck(Check):
@@ -188,8 +197,10 @@ class DurationCheck(Check):
     - MMM YYYY - Present
     """
 
+    _DEFAULT_ERROR_MSG = "Line contains a year in an invalid format. Must be in MMM YYYY, MMM YYYY - MMM YYYY, or MMM YYYY - Present format"
+
     def check(self, section: Section) -> list[Error]:
-        errors = []
+        self.errors = []
         months_pat = r"(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)"
 
         # Patterns matching the entire last segment
@@ -216,15 +227,9 @@ class DurationCheck(Check):
                     or pat_single.match(last_part) is not None
                 )
                 if not is_valid:
-                    errors.append(
-                        make_error(
-                            "Line contains a year in an invalid format. Must be in MMM YYYY, MMM YYYY - MMM YYYY, or MMM YYYY - Present format",
-                            section,
-                            line,
-                        )
-                    )
+                    self.add_error(section, line)
 
-        return errors
+        return self.errors
 
 
 class BraketCheck(Check):
@@ -234,33 +239,35 @@ class BraketCheck(Check):
     - '( ' is not correct (space after open bracket is invalid)
     """
 
+    _DEFAULT_ERROR_MSG = "Invalid spacing around brackets"
+
     def check(self, section: Section) -> list[Error]:
-        errors = []
+        self.errors = []
         for line in section.indexed_lines:
             # 1. Check spacing before '('
             matches = list(re.finditer(r"\s+\(", line.line))
             for m in matches:
                 if len(m.group(0)) != 2:  # 2 characters means exactly one space followed by '('
-                    errors.append(
-                        make_error(
-                            f"Invalid spacing before open bracket: '{m.group(0)}'",
-                            section,
-                            line,
-                        )
+                    self.add_error(
+                        section,
+                        line,
+                        f"Invalid spacing before open bracket: '{m.group(0)}'",
                     )
 
             # 2. Check spacing after '('
             if "( " in line.line:
-                errors.append(make_error("Space after open bracket '(' is not allowed", section, line))
+                self.add_error(section, line, "Space after open bracket '(' is not allowed")
 
-        return errors
+        return self.errors
 
 
 class ChronologicalCheck(Check):
     """Checks chronological ordering in specific CV sections."""
 
+    _DEFAULT_ERROR_MSG = "Chronological order broken"
+
     def check(self, section: Section) -> list[Error]:
-        errors = []
+        self.errors = []
         heading_title = section.heading.text.lower()
 
         if SectionConstant.WORK_EXPERIENCE.lower() in heading_title:
@@ -271,7 +278,7 @@ class ChronologicalCheck(Check):
                     date_str = RE_PIPE_SPLIT.split(line_str)[-1].strip()
                     skey = get_sort_key(date_str)
                     line_and_dates.append((line_obj, (skey, date_str, line_str)))
-            errors.extend(self._check_chronological(line_and_dates, section))
+            self._check_chronological(line_and_dates, section)
 
         elif SectionConstant.COURSES_AND_CERTIFICATES.lower() in heading_title:
             line_and_dates = []
@@ -291,7 +298,7 @@ class ChronologicalCheck(Check):
                             date_str = match.group(1) if match else line_str
                     skey = get_sort_key(date_str)
                     line_and_dates.append((line_obj, (skey, date_str, line_str)))
-            errors.extend(self._check_chronological(line_and_dates, section))
+            self._check_chronological(line_and_dates, section)
 
         elif "projects" in heading_title or SectionConstant.PERSONAL_PROJECTS.lower() in heading_title:
             line_and_dates = []
@@ -301,48 +308,46 @@ class ChronologicalCheck(Check):
                     date_str = RE_PIPE_SPLIT.split(line_str)[-1].strip()
                     skey = get_sort_key(date_str)
                     line_and_dates.append((line_obj, (skey, date_str, line_str)))
-            errors.extend(self._check_chronological(line_and_dates, section, double_error=True))
+            self._check_chronological(line_and_dates, section, double_error=True)
 
-        return errors
+        return self.errors
 
-    def _check_chronological(
-        self, line_and_dates: list, section: Section, *, double_error: bool = False
-    ) -> list[Error]:
-        errors = []
+    def _check_chronological(self, line_and_dates: list, section: Section, *, double_error: bool = False) -> None:
         for i in range(len(line_and_dates) - 1):
             line1_obj, (key1, _, line_str1) = line_and_dates[i]
             line2_obj, (key2, _, line_str2) = line_and_dates[i + 1]
             if key1 < key2:
-                errors.append(
-                    make_error(
-                        f"Chronological order broken in {section.heading.text}: '{line_str1}' is before '{line_str2}'",
-                        section,
-                        line1_obj,
-                    )
+                self.add_error(
+                    section,
+                    line1_obj,
+                    f"Chronological order broken in {section.heading.text}: '{line_str1}' is before '{line_str2}'",
                 )
                 if double_error:
-                    errors.append(
-                        make_error(
-                            f"Chronological order broken in {section.heading.text}: '{line_str2}' is after '{line_str1}'",
-                            section,
-                            line2_obj,
-                        )
+                    self.add_error(
+                        section,
+                        line2_obj,
+                        f"Chronological order broken in {section.heading.text}: '{line_str2}' is after '{line_str1}'",
                     )
-        return errors
 
 
 class FormatCheck(Check):
     """Checks structural formatting conventions in specific CV sections."""
 
+    _DEFAULT_ERROR_MSG = "Format mismatch"
+
     def check(self, section: Section) -> list[Error]:
-        errors = []
+        self.errors = []
         heading_title = section.heading.text.lower()
 
         if SectionConstant.WORK_EXPERIENCE.lower() in heading_title:
             for line_obj in section.indexed_lines:
                 line_str = line_obj.line.strip()
                 if line_str.startswith("**") and "_ " in line_str and not RE_WORK_EXP.match(line_str):
-                    errors.append(make_error(f"{section.heading.text} format mismatch", section, line_obj))
+                    self.add_error(
+                        section,
+                        line_obj,
+                        f"{section.heading.text} format mismatch",
+                    )
 
         elif SectionConstant.COURSES_AND_CERTIFICATES.lower() in heading_title:
             for line_obj in section.indexed_lines:
@@ -350,15 +355,27 @@ class FormatCheck(Check):
                 if not line_str:
                     continue
                 if RE_ENDS_WITH_YEAR.search(line_str) and not RE_COURSE_FORMAT.match(line_str):
-                    errors.append(make_error(f"{section.heading.text} format mismatch", section, line_obj))
-        return errors
+                    self.add_error(
+                        section,
+                        line_obj,
+                        f"{section.heading.text} format mismatch",
+                    )
+        return self.errors
 
 
 class RequiredSectionsCheck:
     """Checks that all required sections exist in the CV."""
 
     def check_all(self, sections: list[Section]) -> list[Error]:
-        filepath = str(sections[0].filepath) if sections else ""
+        if not sections:
+            sec = Section(
+                heading=Heading(text="", heading_prefix=""),
+                filepath=Path(),
+                indexed_lines=[],
+            )
+        else:
+            sec = sections[0]
+
         section_names = [s.heading.text.lower() for s in sections if s.heading.text]
         required_headers = [
             SectionConstant.WORK_EXPERIENCE.lower(),
@@ -366,13 +383,10 @@ class RequiredSectionsCheck:
             SectionConstant.COURSES_AND_CERTIFICATES.lower(),
         ]
 
+        dummy_line = IndexedLine(line="", index=1)
+
         return [
-            Error(
-                msg=f"Missing '{req}' section in headers",
-                filepath=filepath,
-                line_num=1,
-                line="",
-            )
+            make_error(f"Missing '{req}' section in headers", sec, dummy_line)
             for req in required_headers
             if not any(
                 req in name or (req == SectionConstant.PERSONAL_PROJECTS.lower() and "projects" in name)

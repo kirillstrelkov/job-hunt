@@ -11,7 +11,7 @@ from cv.tools.md2pdf import convert_md_to_pdf
 from cv.tools.prepare_cv import prepare_cv
 from cv.tools.process_cv import check_file, fix_file
 from cv.tools.tailor_cv_body import get_eval_model, process_output_of_ollama, run_ollama
-from helpers.llm import get_agent
+from helpers.llm import run_model
 
 
 class ThesisDecision(BaseModel):
@@ -32,16 +32,16 @@ def decide_keep_thesis(jd_text: str) -> bool:
     model_name = get_eval_model()
 
     logger.info(f"Running LLM ({model_name}) to decide whether to keep the thesis based on job description...")
-    agent = get_agent(
+    result = run_model(
         model_name=model_name,
         output_type=ThesisDecision,
-        instructions=(
+        user_prompt=f"Job Description:\n{jd_text}",
+        system_prompt=(
             "Recruiter and CV compiler. Analyze the job description and decide "
             "if it is for a software test engineer / QA / SDET (set keep_thesis to True) "
             "and not a software developer / engineer (set keep_thesis to False)."
         ),
     )
-    result = agent.run_sync(f"Job Description:\n{jd_text}")
     decision: ThesisDecision = result.output
     logger.info(f"Thesis decision: keep_thesis={decision.keep_thesis} (Reason: {decision.reason})")
     return decision.keep_thesis

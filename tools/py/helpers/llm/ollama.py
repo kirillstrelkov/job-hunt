@@ -1,4 +1,4 @@
-"""Ollama agent integration helper."""
+from collections.abc import Sequence
 
 from pydantic import BaseModel
 from pydantic_ai import Agent
@@ -6,14 +6,13 @@ from pydantic_ai.models.ollama import OllamaModel
 from pydantic_ai.profiles import ModelProfile
 from pydantic_ai.providers.ollama import OllamaProvider
 
-from helpers.constants import SYS_PROMPT_WITH_TAILORED_CV
 from helpers.llm_helper import dict_to_model_settings, get_model_options
 
 
-def get_agent(
+def _get_agent(
     model_name: str,
     output_type: BaseModel,
-    instructions: str = SYS_PROMPT_WITH_TAILORED_CV,
+    system_prompt: str | Sequence[str] = (),
 ) -> Agent:
     """Return a configured Ollama Pydantic AI agent."""
     options = get_model_options(model_name)
@@ -45,9 +44,10 @@ def get_agent(
         ),
     )
 
-    return Agent(
+    agent = Agent(
         model,
         output_type=output_type,
-        instructions=instructions,
+        system_prompt=system_prompt,
         model_settings=settings,
     )
+    return agent

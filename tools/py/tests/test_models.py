@@ -2,8 +2,8 @@
 
 from pydantic_ai import Agent
 
-from helpers.llm.gemini import get_agent as get_gemini_agent
-from helpers.llm.ollama import get_agent as get_ollama_agent
+from helpers.llm.gemini import _get_agent as get_gemini_agent
+from helpers.llm.ollama import _get_agent as get_ollama_agent
 from helpers.models import TailoredCVBody
 
 
@@ -107,13 +107,13 @@ def test_tailored_cv_parsing() -> None:
 
 def test_get_agent_gemini() -> None:
     """Test that get_agent for Gemini returns a valid Agent."""
-    agent = get_gemini_agent("gemini-2.5-flash", TailoredCVBody)
+    agent = get_gemini_agent("gemini-2.5-flash", TailoredCVBody, "test system prompt")
     assert isinstance(agent, Agent)
     assert agent.output_type == TailoredCVBody
 
 
 def test_get_agent_ollama() -> None:
     """Test that get_agent for Ollama returns a valid Agent."""
-    agent = get_ollama_agent("gemma4:e2b", TailoredCVBody)
+    agent = get_ollama_agent("gemma4:e2b", TailoredCVBody, "test system prompt")
     assert isinstance(agent, Agent)
     assert agent.output_type == TailoredCVBody

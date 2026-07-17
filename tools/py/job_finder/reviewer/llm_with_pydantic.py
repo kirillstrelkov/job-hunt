@@ -1,13 +1,9 @@
 """LLM integration for CV and job description screening and analysis."""
 
-from typing import Any
-
 from pydantic import BaseModel, Field
 
-from helpers.llm.gemini import get_agent as get_gemini_agent
-from helpers.llm.ollama import get_agent as get_ollama_agent
+from helpers.llm import run_model
 from helpers.llm_helper import get_eval_model
-from helpers.llm_helper import get_model_names as get_gemini_model_names
 
 MODEL = get_eval_model()
 
@@ -112,31 +108,24 @@ class JobMatchResult(BaseModel):
     }
 
 
-def get_agent(model_name: str, output_type: type[BaseModel], instructions: str) -> Any:
-    """Get a Pydantic AI agent configured for the specified model and output type."""
-    if model_name in get_gemini_model_names():
-        return get_gemini_agent(model_name, output_type, instructions)
-    return get_ollama_agent(model_name, output_type, instructions)
-
-
 def _get_screening(job_description: str, model: str = MODEL) -> Screening:
-    agent = get_agent(
+    result = run_model(
         model_name=model,
         output_type=Screening,
-        instructions=SYSTEM_PROMPT_SCREENING,
+        user_prompt=JD_PROMPT.format(job_description=job_description.strip()),
+        system_prompt=SYSTEM_PROMPT_SCREENING,
     )
-    result = agent.run_sync(JD_PROMPT.format(job_description=job_description.strip()))
     return result.output
 
 
 def _get_analysis(cv: str, job_description: str, model: str = MODEL) -> Analysis:
-    agent = get_agent(
+    user_prompt = f"{CV_PROMPT.format(cv=cv.strip())}\n{JD_PROMPT.format(job_description=job_description.strip())}"
+    result = run_model(
         model_name=model,
         output_type=Analysis,
-        instructions=SYSTEM_PROMPT_CANDIDATE,
+        user_prompt=user_prompt,
+        system_prompt=SYSTEM_PROMPT_CANDIDATE,
     )
-    user_prompt = f"{CV_PROMPT.format(cv=cv.strip())}\n{JD_PROMPT.format(job_description=job_description.strip())}"
-    result = agent.run_sync(user_prompt)
     return result.output
 
 

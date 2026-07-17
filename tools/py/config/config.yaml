@@ -10,7 +10,8 @@ tailor:
 
 # LLM / Ollama Configuration
 llm:
-  eval_model: gemma4:e2b-ctx32k
+  eval_model: gemma4:e2b-ctx65k
+  fix_model: gemma4:e4b-it-qat-ctx65k
   embeddings_model: qwen3-embedding:4b
   model_default_options:
     num_ctx: 32768
@@ -23,8 +24,9 @@ llm:
 
   top_models:
     - "gemma4:e2b"
-    - "gemma4:e2b-ctx16k"
-    - "gemma4:e2b-ctx32k"
+    - "gemma4:e2b-ctx65k"
+    - "gemma4:e2b-it-qat-ctx65k"
+    - "gemma4:e4b-it-qat-ctx65k"
     - "gemma4:e2b-it-qat"
     - "deepseek-r1:1.5b"
     - "gemma4:e4b-it-qat"
@@ -50,10 +52,11 @@ llm:
       - name: "falcon3:7b"
       - name: "gemma2:9b-instruct-q5_K_M"
       - name: "gemma4:12b-it-qat"
-      - name: "gemma4:e2b-ctx16k"
-      - name: "gemma4:e2b-ctx32k"
+      - name: "gemma4:e2b-it-qat-ctx65k"
       - name: "gemma4:e2b-it-qat"
+      - name: "gemma4:e2b-ctx65k"
       - name: "gemma4:e2b"
+      - name: "gemma4:e4b-it-qat-ctx65k"
       - name: "gemma4:e4b-it-qat"
       - name: "llama3.1:8b-instruct-q6_K"
       - name: "llama3.1:8b-text-q4_K_M"
