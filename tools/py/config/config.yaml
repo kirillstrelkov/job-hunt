@@ -141,6 +141,7 @@ scraper:
     - scientist
     - director
     - postdoctoral
+    - freelance
   urls:
     # indeed:
     # Python
