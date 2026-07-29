@@ -459,6 +459,12 @@ def check(sections: list[Section], *, is_cv: bool = False) -> list[Error]:
     return errors
 
 
+def check_and_get_errors(markdown: str, *, is_cv: bool = False) -> list[Error]:
+    """Check markdown string and return a list of Error objects."""
+    sections = split_markdown_into_sections(markdown)
+    return check(sections, is_cv=is_cv)
+
+
 def check_file(filepath: str, *, is_cv: bool = False) -> None:
     """Check a markdown file path for errors."""
     logger.debug("Checking file {}", filepath)
@@ -468,9 +474,7 @@ def check_file(filepath: str, *, is_cv: bool = False) -> None:
         sys.exit(1)
 
     content = path.read_text(encoding="utf-8")
-
-    sections = split_markdown_into_sections(content, filepath=path)
-    errors = check(sections, is_cv=is_cv)
+    errors = check_and_get_errors(content, is_cv=is_cv)
     if errors:
         logger.error("Found {} errors", len(errors))
         for err in errors:

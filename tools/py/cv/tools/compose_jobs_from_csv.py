@@ -45,6 +45,7 @@ def main() -> None:  # noqa: PLR0915
     )
     parser.add_argument(
         "--model",
+        default=None,
         help="Optional Ollama model to use for composing. If not set, defaults to configured eval model.",
     )
     parser.add_argument(
@@ -52,6 +53,12 @@ def main() -> None:  # noqa: PLR0915
         action="store_true",
         default=False,
         help="Force execution of Step 2 (LLM tailoring) even if tailored body already exists.",
+    )
+    parser.add_argument(
+        "--feedback",
+        action="store_true",
+        default=False,
+        help="Run AI feedback loop if checking errors step (Step 5) finds validation errors.",
     )
     args = parser.parse_args()
 
@@ -119,7 +126,12 @@ def main() -> None:  # noqa: PLR0915
         jd_file.write_text(description, encoding="utf-8")
 
         try:
-            compose_cv(folder=job_folder, model=args.model, force=args.force)
+            compose_cv(
+                folder=job_folder,
+                model=args.model,
+                force=args.force,
+                feedback=args.feedback,
+            )
         except Exception as e:
             logger.error(f"Failed to compose CV for job ID {job_id}: {e}")
 

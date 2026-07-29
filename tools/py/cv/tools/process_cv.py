@@ -7,8 +7,7 @@ from pathlib import Path
 
 from loguru import logger
 
-from cv.tools.checker import Error, get_section_class
-from cv.tools.checker import check as do_check
+from cv.tools.checker import Error, check_and_get_errors, get_section_class
 from cv.tools.fixer import _FIX_CONFIG, fix_last_pipe
 from md.format import format as format_md
 from md.models import CV
@@ -73,10 +72,8 @@ def do_fix(cv: CV, *, keep_thesis: bool = True) -> CV:
 
 def check_file(filepath: str) -> None:
     """Run verification checks on a CV file path."""
-    logger.debug("Checking file {}", filepath)
-
-    sections = split_into_sections(filepath)
-    errors = do_check(sections, is_cv=True)
+    content = Path(filepath).read_text(encoding="utf-8")
+    errors = check_and_get_errors(content, is_cv=True)
     if errors:
         logger.error("Found {} errors", len(errors))
         for err in errors:
@@ -97,8 +94,7 @@ def fix_file(filepath: str, *, keep_thesis: bool = True) -> None:
 
 def check_markdown(md: str, *, filepath: str = "CV.md") -> list[Error]:
     """Run verification checks on a CV markdown string, returning a list of Error objects."""
-    sections = split_markdown_into_sections(md, filepath=Path(filepath) if filepath else None)
-    return do_check(sections, is_cv=True)
+    return check_and_get_errors(md, is_cv=True)
 
 
 def fix_markdown(md: str, *, keep_thesis: bool = True) -> str:

@@ -7,9 +7,11 @@ from pathlib import Path
 from loguru import logger
 from pydantic import BaseModel, Field
 
+from cv.tools.checker import check_and_get_errors
+from cv.tools.feedback_loop import fix_with_feedback
 from cv.tools.md2pdf import convert_md_to_pdf
 from cv.tools.prepare_cv import prepare_cv
-from cv.tools.process_cv import check_file, fix_file
+from cv.tools.process_cv import fix_file
 from cv.tools.tailor_cv_body import get_eval_model, process_output_of_ollama, run_ollama
 from helpers.llm import run_model
 
@@ -47,7 +49,12 @@ def decide_keep_thesis(jd_text: str) -> bool:
     return decision.keep_thesis
 
 
-def compose_cv(folder: str | Path, model: str | None = None, force: bool = False) -> None:
+def compose_cv(
+    folder: str | Path,
+    model: str | None = None,
+    force: bool = False,
+    feedback: bool = False,
+) -> None:
     """Compose CV locally for a given folder using the specified Ollama model."""
     folder = Path(folder).resolve()
     if not folder.exists():
@@ -101,10 +108,25 @@ def compose_cv(folder: str | Path, model: str | None = None, force: bool = False
     fix_file(str(assembled_cv), keep_thesis=keep_thesis)
 
     logger.info(f"Step 5: Checking CV: {assembled_cv}")
-    try:
-        check_file(str(assembled_cv))
-    except (SystemExit, Exception):
-        logger.warning("Step 5 check failed, but proceeding to Step 6 anyway.")
+
+    for _ in range(2):  # first run is for fixer, second to check for feedback if needed
+        content = assembled_cv.read_text(encoding="utf-8")
+        errors = check_and_get_errors(content, is_cv=True)
+        if not errors:
+            logger.info("No errors found during Step 5 check.")
+            break
+
+        logger.warning(f"Found {len(errors)} errors during Step 5 check.")
+        for err in errors:
+            logger.error(f"{err.msg}\n{err.filepath}:{err.line_num}: `{err.line}`")
+
+        if feedback:
+            logger.info("Feedback option enabled: running fix_with_feedback...")
+            fixed_content = fix_with_feedback(content)
+            assembled_cv.write_text(fixed_content, encoding="utf-8")
+        else:
+            # feedback not enabled, just stop after the first run
+            break
 
     logger.info(f"Step 6: Converting CV to PDF: {pdf_output}")
     convert_md_to_pdf(assembled_cv, pdf_output)
@@ -132,9 +154,20 @@ def main() -> None:
         default=False,
         help="Force execution of Step 2 (LLM tailoring) even if the tailored body file already exists",
     )
+    parser.add_argument(
+        "--feedback",
+        action="store_true",
+        default=False,
+        help="Run AI feedback loop if checking errors step (Step 5) finds validation errors.",
+    )
     args = parser.parse_args()
 
-    compose_cv(folder=args.job_description, model=args.model, force=args.force)
+    compose_cv(
+        folder=args.job_description,
+        model=args.model,
+        force=args.force,
+        feedback=args.feedback,
+    )
 
 
 if __name__ == "__main__":
