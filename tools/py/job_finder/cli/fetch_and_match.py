@@ -2,7 +2,6 @@
 
 import argparse
 import sys
-from dataclasses import asdict, is_dataclass
 from pathlib import Path
 
 import pandas as pd
@@ -29,7 +28,7 @@ def create_save_df(objects: list[Job | JobMatch], sort_by: str, output: Path, *,
         msg = "No matches found"
         raise ValueError(msg)
 
-    data = [asdict(item) if is_dataclass(item) else item for item in objects]
+    data = [dict(item) for item in objects]
     df = pd.DataFrame(data).sort_values(by=sort_by, ascending=ascending)
     df.to_csv(output, index=False)
     logger.info(f"Saved to {output}")

@@ -8,7 +8,10 @@ from easelenium.browser import Browser
 from loguru import logger
 from selenium.webdriver.remote.webelement import WebElement
 
-from .base import Job, JobBoard
+from job_finder.scraper.base import BoardCSSSelectors
+from job_finder.utils.models import BaseJob
+
+from .base import JobBoard
 
 _LINKEDIN_JOB_URL_TEMPLATE = "https://www.linkedin.com/jobs/view/{}"
 
@@ -31,7 +34,17 @@ def _find_first_visible(browser: Browser, **kwargs: object) -> WebElement:
 class LinkedinBoard(JobBoard):
     """Scraper class for the LinkedIn job search website."""
 
-    _CSS_NEXT_PAGE = '[aria-label="View next page"]'
+    _BOARD_CSS_SELECTORS = BoardCSSSelectors(
+        job_results=".scaffold-layout__list  ul > li.ember-view",
+        job_results_url="a",
+        job_results_company=".artdeco-entity-lockup__subtitle",
+        next_page='[aria-label="View next page"]',
+        profile='"header button>span>span"',
+        job_desc_page_title="div[data-display-contents] > p",
+        job_desc_page_company="div > p > a",
+        job_desc_page_description='[componentkey*="AboutTheJob"]',
+        job_results_empty_banner=".jobs-search-no-results-banner",
+    )
 
     def _signin(self) -> bool:
         """Sign in to LinkedIn if not already logged in."""
@@ -89,57 +102,76 @@ class LinkedinBoard(JobBoard):
         logger.debug(f"Loggedin {is_logged}")
         return is_logged
 
-    def _get_job(self, url: str | None = None) -> Job:
-        """Scrape job details from a LinkedIn job page."""
-        if url:
-            self.open(url)
-        css_job_desc = "[componentkey*='AboutTheJob']"
-        self._browser.wait_for_visible(by_css=css_job_desc)
+    # Linkedin is tricky - default implementation are not stable
 
-        url = self._browser.get_current_url()
+    def _get_description_from_current_page(self) -> str:
+        """Get description from the current page.
+
+        Linkedin hides description under 'Show more' button.
+        """
+        self._browser.wait_for_visible(by_css=self._BOARD_CSS_SELECTORS.job_desc_page_description)
 
         # wait until text is fully loaded
         self._browser.webdriver_wait(
-            lambda _: len(self._browser.get_attribute(by_css=css_job_desc, attr="textContent")) > 0,
+            lambda _: (
+                len(
+                    self._browser.get_attribute(
+                        by_css=self._BOARD_CSS_SELECTORS.job_desc_page_description,
+                        attr="textContent",
+                    )
+                )
+                > 0
+            ),
             timeout=10,
         )
 
-        text = self._browser.get_attribute(by_css=css_job_desc, attr="textContent").strip()
+        return self._browser.get_attribute(
+            by_css=self._BOARD_CSS_SELECTORS.job_desc_page_description, attr="textContent"
+        ).strip()
 
-        company = self._browser.get_text(by_css="div > p > a").strip()
-        title = self._browser.get_text(by_css="div[data-display-contents] > p").strip()
-
-        logger.debug(
-            "Got job: title '{}', company '{}', description[{}]: '{}...'",
-            title,
-            company,
-            len(text),
-            text[:20],
-        )
-
-        return Job(title=title, company=company, url=url, description=text, error="")
-
-    def _get_job_urls(self) -> list[str]:
+    def _get_base_jobs_from_current_page(self) -> list[BaseJob]:
         """Scrape job URLs from the current LinkedIn job search list."""
-        css_no_jobs = ".jobs-search-no-results-banner"
-        if self._browser.is_visible(by_css=css_no_jobs):
-            return []
-
-        css_job_list_item = ".scaffold-layout__list  ul > li.ember-view"
 
         def find_jobs() -> list[WebElement]:
-            return self._browser.find_elements(by_css=css_job_list_item)
+            return self._browser.find_elements(by_css=self._BOARD_CSS_SELECTORS.job_results)
 
         self.__wait_for_same_result(lambda: len(find_jobs()))
 
         # additional just to be sure banner is not shown after wait
-        if self._browser.is_visible(by_css=css_no_jobs):
+        if self._browser.is_visible(by_css=self._BOARD_CSS_SELECTORS.job_results_empty_banner):
             return []
 
-        return [
-            _LINKEDIN_JOB_URL_TEMPLATE.format(self._browser.get_attribute(element=e, attr="data-occludable-job-id"))
-            for e in find_jobs()
-        ]
+        base_jobs: list[BaseJob] = []
+        for job_result in find_jobs():
+            # fix for dynamic loading of some job result data
+            self._browser.mouse.hover(element=job_result)
+
+            title = (
+                self._browser.get_text(
+                    parent=job_result,
+                    by_css=self._BOARD_CSS_SELECTORS.job_results_url,
+                    visible=False,
+                )
+                .strip()
+                .splitlines()[0]
+            )  # Linkedin has 2 lines - show only first one
+
+            if not self._browser.is_visible(job_result):
+                logger.debug("Skipping job result for {} because it is not visible", title)
+                continue
+
+            url = _LINKEDIN_JOB_URL_TEMPLATE.format(
+                self._browser.get_attribute(element=job_result, attr="data-occludable-job-id")
+            )
+            company = self._browser.get_text(
+                parent=job_result,
+                by_css=self._BOARD_CSS_SELECTORS.job_results_company,
+                visible=False,
+            ).strip()
+
+            base_jobs.append(BaseJob(url=url, title=title, company=company))
+
+        return base_jobs
 
     def __wait_for_same_result(self, func: Callable[[], int], times: int = 5) -> None:
         """Wait for same result of func to appears number of times."""

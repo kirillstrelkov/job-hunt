@@ -15,7 +15,7 @@ from job_finder.reviewer.llm import (
     get_match_percentage,
 )
 
-__DATA_DIR = Path(__file__).resolve().parents[1] / "data"
+__DATA_DIR = Path(__file__).resolve().parent.parent.parent / "data"
 
 
 @pytest.fixture
@@ -38,7 +38,7 @@ def assert_llm_response(
     assert get_match_percentage(result) <= max_match
 
 
-def _run_and_assert(sub_path: str, min_match: int, fail_reason: str | None = None, cv_text: str = "") -> None:
+def _run_and_assert(cv_text: str, sub_path: str, min_match: int, fail_reason: str | None = None) -> None:
     logger.debug("Path: {}", sub_path)
     job_desc = (__DATA_DIR / sub_path).read_text(encoding="utf-8")
 
@@ -67,18 +67,18 @@ _ANALYSIS_DATA = (
     ("file_path", "fail_reason"),
     _SCREENING_DATA,
 )
-def test_screening_reason(file_path: str, fail_reason: str) -> None:
+def test_screening_reason(file_path: str, fail_reason: str, cv_text: str) -> None:
     """Test that jobs failing pre-screening are rejected with the correct flag."""
-    _run_and_assert(file_path, 0, fail_reason)
+    _run_and_assert(cv_text, file_path, 0, fail_reason)
 
 
 @pytest.mark.parametrize(
     ("file_path", "min_match"),
     _ANALYSIS_DATA,
 )
-def test_min_match_percentage(file_path: str, min_match: int) -> None:
+def test_min_match_percentage(file_path: str, min_match: int, cv_text: str) -> None:
     """Test that acceptable jobs pass screening with at least the minimum match percentage."""
-    _run_and_assert(file_path, min_match)
+    _run_and_assert(cv_text, file_path, min_match)
 
 
 @pytest.mark.parametrize(

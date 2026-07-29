@@ -46,8 +46,6 @@ def _filter_jobs(jobs: list[Job]) -> list[Job]:
     scraped_urls = {j.url for j in scraped_jobs}
 
     # filter for excluded companies, keywords, and already scraped URLs
-    filtered_jobs = []
-    excluded_jobs = defaultdict(list)
     skipped_by_url_count = 0
 
     for job in uniq_jobs:
@@ -55,34 +53,9 @@ def _filter_jobs(jobs: list[Job]) -> list[Job]:
             skipped_by_url_count += 1
             continue
 
-        is_excluded = False
-        for company in _EXCLUDED_COMPANIES:
-            if company in job.company.lower():
-                excluded_jobs[company].append(job)
-                is_excluded = True
-                break
-
-        if is_excluded:
-            continue
-
-        for keyword in _EXCLUDED_TITLE_KEYWORDS:
-            if keyword in job.title.lower():
-                excluded_jobs[keyword].append(job)
-                is_excluded = True
-                break
-
-        if not is_excluded:
-            filtered_jobs.append(job)
-
     logger.debug("Skipped {} jobs already present in scraped_jobs", skipped_by_url_count)
 
-    for trigger, ex_jobs in excluded_jobs.items():
-        logger.warning("Jobs {} excluded due to {}", len(ex_jobs), trigger)
-
-    logger.debug("Excluded jobs count: {}", len(excluded_jobs))
-    logger.debug("Filtered jobs count: {}", len(filtered_jobs))
-
-    return filtered_jobs
+    return uniq_jobs
 
 
 def get_jobs(*urls: str, limit: None | int = None, use_cache: bool = False) -> list[Job]:
@@ -115,7 +88,12 @@ def get_jobs(*urls: str, limit: None | int = None, use_cache: bool = False) -> l
         location_and_pages = {}
         for loc in grouped_url:
             # login via constructor
-            page = page_classes[loc](browser, use_cache=use_cache)
+            page = page_classes[loc](
+                browser,
+                use_cache=use_cache,
+                excluded_companies=_EXCLUDED_COMPANIES,
+                excluded_title_keywords=_EXCLUDED_TITLE_KEYWORDS,
+            )
             location_and_pages[loc] = page
             if "linkedin" in loc:
                 logger.warning(
@@ -123,10 +101,20 @@ def get_jobs(*urls: str, limit: None | int = None, use_cache: bool = False) -> l
                     "front otherwise it would fail to get description"
                 )
 
-        for loc, loc_urls in grouped_url.items():
+        loc_order = [
+            "www.linkedin.com",
+            "www.stepstone.de",
+            "de.indeed.com",
+        ]
+
+        for loc in loc_order:
+            loc_urls = grouped_url.get(loc)
+            if not loc_urls:
+                continue
+
             page = location_and_pages[loc]
             for url in loc_urls:
-                url_jobs = page.get_jobs(url=url, limit=limit)
+                url_jobs = page.get_all_jobs(url=url, limit=limit)
                 logger.info("{} jobs found for {}", len(url_jobs), url)
                 jobs += url_jobs
 

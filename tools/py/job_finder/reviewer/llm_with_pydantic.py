@@ -1,5 +1,7 @@
 """LLM integration for CV and job description screening and analysis."""
 
+from typing import Any
+
 from pydantic import BaseModel, Field
 
 from helpers.llm import run_model
@@ -78,6 +80,18 @@ class Screening(BaseModel):
     model_config = {
         "populate_by_name": True,
     }
+
+    def model_post_init(self, context: Any) -> None:
+        self.gate_passed = not any(
+            [
+                self.is_contract,
+                self.is_excluded_role,
+                self.is_german_required,
+                self.is_german_text,
+                self.is_manager,
+                self.is_staff,
+            ]
+        )
 
 
 class Analysis(BaseModel):

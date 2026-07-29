@@ -21,8 +21,8 @@ sys.path.append(str(Path(__file__).parent.parent))
 from cv.tools import process_cv
 
 importlib.reload(process_cv)
-from cv.tools.md2pdf import convert_md_to_pdf
 from cv.tools.feedback_loop import fix_with_feedback
+from cv.tools.md2pdf import convert_md_to_pdf
 from helpers.llm_helper import get_model_names as get_gemini_models
 from helpers.llm_helper import run_model as run_gemini_model
 from helpers.ollama_helper import run_model as run_ollama_model
