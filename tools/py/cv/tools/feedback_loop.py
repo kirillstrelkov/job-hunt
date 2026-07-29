@@ -9,7 +9,7 @@ from config.config import DEFAULT_CONFIG
 from cv.tools.process_cv import check_markdown
 from helpers.llm import get_agent, run_agent
 
-_DEPTH_LIMIT = 5
+_MAX_RETRIES = 5
 SYSTEM_INSTRUCTIONS = """# You are an expert Resume Formatter Agent.
 Your task is to fix specific formatting and validation errors in markdown CV documents.
 
@@ -109,9 +109,8 @@ def extract_final_resume(llm_output: str) -> str:
 def fix_with_feedback(
     md: str,
     model: str = DEFAULT_CONFIG.llm.fix_model,
-    errors: list[Any] | None = None,
+    max_retries: int = _MAX_RETRIES,
     *,
-    _depth: int = 0,
     agent: Agent[Any, Any] | None = None,
 ) -> str:
     """Recursively run agent to fix CV validation errors statelessly."""
@@ -122,38 +121,40 @@ def fix_with_feedback(
             system_prompt=SYSTEM_INSTRUCTIONS,
         )
 
-    if errors is None:
-        errors = check_markdown(md)
+    def _fix_with_feedback(
+        current_md: str,
+        current_errors: list[Any] | None = None,
+        iteration: int = 0,
+    ) -> str:
+        if current_errors is None:
+            current_errors = check_markdown(current_md)
 
-    if not errors:
-        logger.info("All validation errors successfully fixed.")
-        return md
+        if not current_errors:
+            logger.info("All validation errors successfully fixed.")
+            return current_md
 
-    if _depth >= _DEPTH_LIMIT:
-        logger.warning("Max recursion depth reached. Returning current markdown.")
-        return md
+        if iteration >= max_retries:
+            logger.warning("Max iterations reached. Returning current markdown.")
+            return current_md
 
-    logger.info(f"Running agent to fix {len(errors)} errors (depth={_depth})...")
+        logger.info(f"Running agent to fix {len(current_errors)} errors (iteration={iteration})...")
 
-    errors_formatted = json.dumps([e.model_dump() for e in errors], indent=2)
+        errors_formatted = json.dumps([e.model_dump() for e in current_errors], indent=2)
 
-    prompt = FIX_PROMPT_TEMPLATE.format(md=md, errors_formatted=errors_formatted)
+        prompt = FIX_PROMPT_TEMPLATE.format(md=current_md, errors_formatted=errors_formatted)
 
-    try:
-        result = run_agent(
-            agent=agent,
-            user_prompt=prompt,
-        )
+        try:
+            result = run_agent(
+                agent=agent,
+                user_prompt=prompt,
+            )
 
-        new_md = extract_final_resume(result.output)
+            new_md = extract_final_resume(result.output)
 
-    except Exception as e:
-        logger.error(f"Error during LLM generation: {e}")
-        return md
+        except Exception as e:
+            logger.error(f"Error during LLM generation: {e}")
+            return current_md
 
-    return fix_with_feedback(
-        new_md,
-        model,
-        _depth=_depth + 1,
-        agent=agent,
-    )
+        return _fix_with_feedback(new_md, None, iteration + 1)
+
+    return _fix_with_feedback(md)
