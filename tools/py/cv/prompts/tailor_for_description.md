@@ -7,12 +7,14 @@ You must condense the Master CV into a concise resume that fits on a maximum of 
 Here are the strict rules for tailoring the CV:
 
 1. ATS HIRING PLATFORM OPTIMIZATION & KEYWORD STRATEGY:
+
    - Exact Keyword Matching: Identify the hard skills, tools, frameworks, and methodologies in the Target Job Description. If (and ONLY if) these skills exist in my Master CV, use the exact phrasing from the JD in the output (e.g., if JD says "Amazon Web Services", change my "AWS" to "Amazon Web Services (AWS)").
    - Acronyms: If the JD uses an acronym (e.g., "CI/CD"), ensure both the spelled-out version and the acronym are used at least once in the CV (e.g., "Continuous Integration/Continuous Deployment (CI/CD)").
    - Keyword Density: Distribute matching core technical requirements naturally across the Summary, Skills, and Work Experience sections.
    - STRICT ZERO HALLUCINATION & NO EXAGGERATION: Do not invent, inflate, or assume any skills, metrics, or experiences. If a required ATS keyword is missing from my Master CV, DO NOT add it. Do not artificially increase my level of expertise (e.g., do not turn "assisted with AWS" into "architected AWS solutions").
 
 2. WORK EXPERIENCE:
+
    - Keep ALL roles from the Master CV EXCEPT "Junior Developer | AS Tallink Group" and "Assembler | Fabek Elektroonika OÜ" (completely remove these two).
    - Strict Source Alignment & Merging: Keep the core facts, metrics, and narrative of the original Master CV EXACTLY intact. Limit your modifications strictly to: 1) Upgrading the starting action verb to a clean, professional standard, 2) Merging 2-3 related bullet points into a single concise bullet point to save space, 3) Trimming unnecessary words, and 4) Substituting existing words with exact-match ATS keywords from the JD ONLY where it perfectly matches my actual experience.
    - DO NOT INFLATE IMPACT: When merging bullet points, do not invent new accomplishments, do not imply I led or owned a project if the Master CV only states I contributed, and do not combine unrelated metrics. Stay 100% true to the source text's facts and seniority level.
@@ -30,23 +32,26 @@ Here are the strict rules for tailoring the CV:
      ```
 
 3. COURSES AND CERTIFICATES:
+
    - Do NOT list all items. Handpick ONLY the top 5 to 8 most highly relevant courses and certificates that prove I have the skills required for this specific job and match ATS keywords. Discard the rest.
    - Sort the selected items in chronological order from most recent to oldest.
 
 4. PERSONAL PROJECTS:
+
    - Select ONLY the top 2 or 4 most relevant projects that demonstrate practical application of the core skills needed for the job.
    - Use bullet points for the project descriptions.
    - Project Format: Use the exact format below for each project entry:
 
      ```
-     **[Project Name](Link)** | Year
+     **[Project Name](Link)** | Mon Year
 
-     - Bullet point describing the project, highlighting the outcome.
-     - Another bullet point if needed.
+     - Bullet point describing the project, highlighting the outcome
+     - Another bullet point if needed
      - Skills: Skill 1, Skill 2, Skill 3, etc.
      ```
 
 5. STRICT TONE, STYLE & ZERO PARAPHRASING RULE:
+
    - Extractive Editing Only: You are strictly forbidden from paraphrasing, "improving," or rewriting my sentences.
    - The "Lego" Rule for Merging: When merging 2-3 bullet points together, you must act like you are copying and pasting the exact clauses from my Master CV and simply stitching them together with conjunctions (like "and" or "while").
    - No Synonyms: Treat my Master CV as an absolute vocabulary bank. Do not replace my nouns, verbs, or adjectives with "better" synonyms. If my CV says "wrote code for a feature," DO NOT change it to "engineered software solutions."
@@ -89,7 +94,7 @@ Here are the strict rules for tailoring the CV:
 
 <work experience in the exact format specified>
 
-## Projects
+## Personal Projects
 
 <projects in the exact format specified>
 
