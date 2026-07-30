@@ -1,12 +1,30 @@
 """Telemetry initialization and helper utilities for OpenTelemetry and Arize Phoenix."""
 
 import os
+import socket
+from urllib.parse import urlparse
 
 from loguru import logger
 from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
+
+_CONNECT_TIMEOUT_SECONDS = 0.5
+
+
+def _is_endpoint_reachable(endpoint: str) -> bool:
+    """Check whether the OTLP collector endpoint is accepting connections."""
+    host = urlparse(endpoint).hostname
+    port = urlparse(endpoint).port or (443 if endpoint.startswith("https://") else 80)
+    if not host:
+        return False
+
+    try:
+        with socket.create_connection((host, port), timeout=_CONNECT_TIMEOUT_SECONDS):
+            return True
+    except OSError:
+        return False
 
 
 def init_telemetry() -> None:
@@ -17,6 +35,10 @@ def init_telemetry() -> None:
         or os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
         or "http://localhost:6006/v1/traces"
     )
+
+    if not _is_endpoint_reachable(endpoint):
+        logger.debug(f"OTLP collector at {endpoint} is not reachable; skipping telemetry initialization.")
+        return
 
     try:
         # Avoid duplicate initialization

@@ -9,7 +9,6 @@ from loguru import logger
 
 from cv.tools.checker import Error, check_and_get_errors, get_section_class
 from cv.tools.fixer import _FIX_CONFIG, fix_last_pipe
-from md.format import format as format_md
 from md.models import CV
 from md.parse import Section, split_markdown_into_sections
 
@@ -99,10 +98,13 @@ def check_markdown(md: str, *, filepath: str = "CV.md") -> list[Error]:
 
 def fix_markdown(md: str, *, keep_thesis: bool = True) -> str:
     """Apply auto-formatting and structure fixes to a CV markdown string, returning the fixed string."""
+    # \hfill is not supported so first replace it
+    md = md.replace("\\hfill", "|")
+
     cv_obj = CV.from_string(md)
     cv_obj = do_fix(cv_obj, keep_thesis=keep_thesis)
-    fmt_md = format_md(cv_obj.to_string())
-    return fix_last_pipe(fmt_md)
+    # fmt_md = format_md(cv_obj.to_string()) # has errors for '\'
+    return fix_last_pipe(cv_obj.to_string())
 
 
 def main() -> None:

@@ -139,7 +139,7 @@ Developer.
 
     """)
     fixed_cv = do_fix(cv, keep_thesis=False)
-    assert fixed_cv.skills.indexed_lines[1].line == "**Python**: advanced\\"
+    assert fixed_cv.skills.indexed_lines[1].line == "**Python**: advanced  "
 
     cv_str = fixed_cv.to_string()
     assert "Developer." in cv_str

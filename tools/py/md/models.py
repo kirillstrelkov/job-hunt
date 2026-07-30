@@ -139,6 +139,7 @@ class SkillGroupEntry(BaseModel):
         if ":" in s:
             name_part, skills_part = s.split(":", 1)
             name = name_part.strip().strip("*").strip()
+            skills_part = skills_part.strip().strip("*").strip()
             skills_list = [Skill.from_string(sk) for sk in skills_part.split(TextConstant.COMMA) if sk.strip()]
             return cls(name=name, skills=skills_list)
         return cls(name="", skills=[Skill.from_string(s)])

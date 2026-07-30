@@ -147,8 +147,8 @@ class DotCheck(Check):
 class TwoSpaceCheck(Check):
     """Checks that lines do not end with two spaces, except in Skills section (which must)."""
 
-    _DEFAULT_ERROR_MSG = "Line in Skills section must end with single backslash"
-    _ERR_MSG_WRONG_ENDING = "Line must not end with two spaces or backslash"
+    _DEFAULT_ERROR_MSG = "Line in Skills section must end two spaces"
+    _ERR_MSG_WRONG_ENDING = "Line must not end with two spaces"
 
     def check(self, section: Section) -> list[Error]:
         self.errors = []
@@ -164,11 +164,11 @@ class TwoSpaceCheck(Check):
 
             if is_skills:
                 # Skills section lines must end with exactly two spaces or backslash
-                if not line.line.endswith("\\"):
+                if not line.line.endswith("  "):
                     self.add_error(section, line)
             # Other sections must not end with two spaces or backslash
-            elif line.line.endswith("  ") or line.line.endswith("\\"):
-                self.add_error(section, line)
+            elif line.line.endswith("  "):
+                self.add_error(section, line, self._ERR_MSG_WRONG_ENDING)
         return self.errors
 
 

@@ -47,7 +47,7 @@ def test_two_space_check():
         filepath=Path("dummy.md"),
         indexed_lines=[
             IndexedLine(line="**Python**: advanced", index=1),
-            IndexedLine(line="**Go**: basic\\", index=2),
+            IndexedLine(line="**Go**: basic  ", index=2),
         ],
     )
     errors = checker.check(sec_skills_err)
@@ -66,7 +66,7 @@ def test_two_space_check():
     errors = checker.check(sec_other_err)
     assert len(errors) == 1
     assert errors[0].line_num == 1
-    assert TwoSpaceCheck._DEFAULT_ERROR_MSG in errors[0].msg
+    assert TwoSpaceCheck._ERR_MSG_WRONG_ENDING in errors[0].msg
 
 
 def test_a_space_check():

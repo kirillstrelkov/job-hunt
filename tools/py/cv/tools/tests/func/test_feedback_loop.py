@@ -7,15 +7,15 @@ from cv.tools.process_cv import check_markdown
 @pytest.mark.parametrize(
     "model",
     [
+        "gemma4:e4b-it-qat-ctx65k",  # default fix model from config.yaml
         "gemma4:e2b-ctx65k",
         # "gemma4:e2b-it-qat-ctx65k", Performs worse then others
-        "gemma4:e4b-it-qat-ctx65k",
     ],
 )
 def test_fix_with_feedback_real_gemma(model: str):
     md = """# John Doe
 
-Berlin, Germany | <john.doe@example.com> | +49 123 4567890\\
+Berlin, Germany | <john.doe@example.com> | +49 123 4567890  
 [linkedin.com/in/johndoe](https://www.linkedin.com/in/johndoe/) | [github.com/johndoe](https://github.com/johndoe)
 
 ## Summary
@@ -41,6 +41,8 @@ Software Engineer with extensive experience.
 
 - Built a custom tool.
 
+\\break
+
 ## Courses and certificates
 
 - Course A | _Provider_ \\hfill Jan 2023
@@ -54,8 +56,14 @@ Software Engineer with extensive experience.
 **English**: Native
 """
     res = fix_with_feedback(md, model)
+
     assert isinstance(res, str)
     assert len(res) > 200
 
     errors = check_markdown(res)
-    assert not errors, f"Fixed markdown still has errors: {errors}\n\nFixed MD:\n{res}"
+    errros_str = "\n".join([str(e) for e in errors])
+    assert not errors, f"Fixed markdown still has {len(errors)} errors:\n{errros_str}\n\nFixed MD:\n{res}"
+
+    assert "## Error" not in res
+    assert "```" not in res
+    assert "\\break" in res

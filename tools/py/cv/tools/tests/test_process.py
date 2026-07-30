@@ -5,7 +5,7 @@ def test_do_fix() -> None:
     cv_md = """
 # John Doe
 
-Berlin, Germany | <john.doe@example.com> | +49 123 4567890\\
+Berlin, Germany | <john.doe@example.com> | +49 123 4567890  
 [linkedin.com/in/johndoe](https://www.linkedin.com/in/johndoe/) | [github.com/johndoe](https://github.com/johndoe)
 
 ---
@@ -59,7 +59,7 @@ Proficient in Java, Go, TypeScript, and Python.
     """
     fixed_md = fix_markdown(cv_md)
     assert cv_md != fixed_md
-    assert r"+49 123 4567890\\" in fixed_md, "Phone should end with \\"
+    assert r"+49 123 4567890  " in fixed_md, "Phone should end with two spaces"
     for hfill in [
         r"Germany_ \hfill Jan",
         r"cloud-gateway)** \hfill Jun 2025",
@@ -68,11 +68,12 @@ Proficient in Java, Go, TypeScript, and Python.
     ]:
         assert hfill in fixed_md, r"| should be replaced \hfill"
 
-    assert ", Ruby\\" in fixed_md, "Skills should end with \\"
-    assert ", MongoDB\\" in fixed_md, "Skills should end with \\"
+    assert ", Ruby  " in fixed_md, "Skills should end with two spaces"
+    assert ", MongoDB  " in fixed_md, "Skills should end with two spaces"
 
     assert "automated test frameworks." in fixed_md, "Dot should be in Summary"
 
     assert "Python, Go, and PostgreSQL." not in fixed_md, "Should not end with dot"
 
     # TODO run do check over fixed cv
+    # TODO: add check for \break - should not be removed after fix

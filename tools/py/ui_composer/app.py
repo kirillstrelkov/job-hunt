@@ -21,7 +21,6 @@ sys.path.append(str(Path(__file__).parent.parent))
 from cv.tools import process_cv
 
 importlib.reload(process_cv)
-from cv.tools.feedback_loop import fix_with_feedback
 from cv.tools.md2pdf import convert_md_to_pdf
 from helpers.llm_helper import get_model_names as get_gemini_models
 from helpers.llm_helper import run_model as run_gemini_model
@@ -824,7 +823,7 @@ with tabs[1]:
                 st.session_state["manual_tailor_warning"] = "No CV text to fix."
                 st.rerun()
             else:
-                fixed_content = fix_with_feedback(md=edited_full_cv)
+                fixed_content = process_cv.fix_markdown(md=edited_full_cv)
                 st.session_state["edited_cv_manual"] = fixed_content
                 st.session_state["_persistent_edited_cv_manual"] = fixed_content
                 st.session_state["manual_tailor_note"] = "CV Markdown formatting fixed!"

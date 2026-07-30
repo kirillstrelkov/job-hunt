@@ -34,6 +34,7 @@ RE_COURSE_ADD_HFILL = re.compile(r"\s+([A-Za-z]+\s+\d{4})$")
 RE_LAST_PIPE_YEAR = re.compile(r"\|\s*([A-Za-z]*\s*\d{4}.*)$")
 RE_LAST_PIPE_REPLACE = re.compile(r"\|([^|]*)$")
 RE_TRAILING_DOT = re.compile(r"\.(\s*)$")
+RE_END_WITH_BACKSLASH_SPACE = re.compile(r"^(.*?)[\s\\]*$")
 
 MONTHS_TO_SHORT_RE = {re.compile(rf"\b{full_m}\b"): short_m for full_m, short_m in MONTHS_TO_SHORT.items()}
 
@@ -62,8 +63,10 @@ class SkillsFix(Fix):
         new_lines = []
         for line_obj in section.indexed_lines:
             line_str = line_obj.line
-            if (line_str.startswith("**") or ":" in line_str) and not line_str.endswith("\\"):
-                line_obj.line = line_str.rstrip() + "\\"
+
+            if line_str.startswith("**") and ":" in line_str and (match := RE_END_WITH_BACKSLASH_SPACE.match(line_str)):
+                line_obj.line = match.group(1) + "  "  # TODO: should be \\ not in ui it shows as '\\' and not '\'
+
             new_lines.append(line_obj)
         section.indexed_lines = new_lines
         return recreate_section(section)

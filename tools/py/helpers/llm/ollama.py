@@ -11,7 +11,7 @@ from helpers.llm_helper import dict_to_model_settings, get_model_options
 
 def _get_agent(
     model_name: str,
-    output_type: BaseModel,
+    output_type: type[BaseModel] | type[str] = str,
     system_prompt: str | Sequence[str] = (),
 ) -> Agent:
     """Return a configured Ollama Pydantic AI agent."""

@@ -48,7 +48,7 @@ Do not output anything after the </final_resume> tag.
 ```markdown
 
 ## Error: "Line in Skills section must end with single backslash", lines: 12, 13
-I added '\\' at the end of line 12, 13
+I added '  ' at the end of line 12, 13
 ## ...
 
 ```
@@ -59,8 +59,8 @@ I added '\\' at the end of line 12, 13
 ...
 ## Skills
 
-**Languages**: Python, Go, C++\\
-**Databases**: PostgreSQL\\
+**Languages**: Python, Go, C++  
+**Databases**: PostgreSQL  
 ...
 
 ```
@@ -107,7 +107,7 @@ def extract_final_resume(llm_output: str) -> str:
 
 
 def fix_with_feedback(
-    md: str,
+    resume: str,
     model: str = DEFAULT_CONFIG.llm.fix_model,
     max_retries: int = _MAX_RETRIES,
     *,
@@ -121,27 +121,25 @@ def fix_with_feedback(
             system_prompt=SYSTEM_INSTRUCTIONS,
         )
 
-    def _fix_with_feedback(
-        current_md: str,
-        current_errors: list[Any] | None = None,
-        iteration: int = 0,
-    ) -> str:
-        if current_errors is None:
-            current_errors = check_markdown(current_md)
+    cur_resume = resume
+    current_errors = check_markdown(cur_resume)
 
-        if not current_errors:
+    md_with_min_errors = cur_resume
+    min_errors = len(current_errors)
+
+    for iteration in range(max_retries):
+        if min_errors == 0:
             logger.info("All validation errors successfully fixed.")
-            return current_md
+            break
 
-        if iteration >= max_retries:
-            logger.warning("Max iterations reached. Returning current markdown.")
-            return current_md
-
-        logger.info(f"Running agent to fix {len(current_errors)} errors (iteration={iteration})...")
+        logger.info(f"Running agent to fix {min_errors} errors (iteration={iteration})...")
 
         errors_formatted = json.dumps([e.model_dump() for e in current_errors], indent=2)
 
-        prompt = FIX_PROMPT_TEMPLATE.format(md=current_md, errors_formatted=errors_formatted)
+        prompt = FIX_PROMPT_TEMPLATE.format(
+            md=cur_resume,
+            errors_formatted=errors_formatted,
+        )
 
         try:
             result = run_agent(
@@ -149,12 +147,15 @@ def fix_with_feedback(
                 user_prompt=prompt,
             )
 
-            new_md = extract_final_resume(result.output)
+            cur_resume = extract_final_resume(result.output)
 
         except Exception as e:
             logger.error(f"Error during LLM generation: {e}")
-            return current_md
+            break
 
-        return _fix_with_feedback(new_md, None, iteration + 1)
+        current_errors = check_markdown(cur_resume)
+        if min_errors > len(current_errors):
+            min_errors = len(current_errors)
+            md_with_min_errors = cur_resume
 
-    return _fix_with_feedback(md)
+    return extract_final_resume(md_with_min_errors)

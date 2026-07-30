@@ -13,7 +13,7 @@ load_dotenv(DEFAULT_CONFIG.get_env_file())
 
 def _get_agent(
     model_name: str,
-    output_type: BaseModel,
+    output_type: type[BaseModel] | type[str] = str,
     system_prompt: str | Sequence[str] = (),
 ) -> Agent:
     """Return a configured Gemini Pydantic AI agent."""

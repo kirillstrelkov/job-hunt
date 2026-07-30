@@ -3,8 +3,10 @@
 from collections.abc import Sequence
 from typing import Any
 
+import logfire
 from opentelemetry.trace import StatusCode
 from phoenix.otel import SpanAttributes
+from pydantic import BaseModel
 from pydantic_ai import Agent, AgentRunResult
 
 from config.config import DEFAULT_CONFIG
@@ -15,17 +17,21 @@ from .ollama import _get_agent as get_ollama_agent
 
 _TRACER = get_tracer("helpers.llm")
 
+logfire.configure()
+logfire.instrument_system_metrics()
+logfire.instrument_pydantic_ai()
+
 
 def get_agent(
     model_name: str,
-    output_type: Any,
+    output_type: type[BaseModel] | type[str] = str,
     system_prompt: str | Sequence[str] = (),
 ) -> Agent[Any, Any]:
     """Get a configured Pydantic AI agent.
 
     Args:
         model_name: The model name to use.
-        output_type: The expected output class (e.g. BaseModel subclass or str).
+        output_type: The expected output class (subclass of BaseModel or str). Defaults to str.
         system_prompt: Static system prompts to use for this agent.
 
     Returns:
@@ -49,8 +55,8 @@ def get_agent(
 
 def run_model(
     model_name: str,
-    output_type: Any,
     user_prompt: str | Sequence[Any],
+    output_type: type[BaseModel] | type[str] = str,
     message_history: Sequence[Any] | None = None,
     system_prompt: str | Sequence[str] = (),
     tracer_name: str | None = None,
@@ -59,8 +65,8 @@ def run_model(
 
     Args:
         model_name: The model name to use.
-        output_type: The expected output class (e.g. BaseModel subclass or str).
         user_prompt: User input to start/continue the conversation.
+        output_type: The expected output class (subclass of BaseModel or str). Defaults to str.
         message_history: History of the conversation so far.
         system_prompt: Static system prompts to use for this agent.
         tracer_name: Optional custom tracer name.
@@ -78,6 +84,7 @@ def run_model(
     return run_agent(
         agent=agent,
         user_prompt=user_prompt,
+        output_type=output_type,
         message_history=message_history,
         tracer_name=tracer_name,
     )
@@ -86,6 +93,7 @@ def run_model(
 def run_agent(
     agent: Agent[Any, Any],
     user_prompt: str | Sequence[Any],
+    output_type: type[BaseModel] | type[str] = str,
     message_history: Sequence[Any] | None = None,
     tracer_name: str | None = None,
 ) -> AgentRunResult[Any]:
@@ -94,6 +102,7 @@ def run_agent(
     Args:
         agent: The pre-configured Agent instance.
         user_prompt: User input to start/continue the conversation.
+        output_type: The expected output class or type override for this run. Defaults to str.
         message_history: History of the conversation so far.
         tracer_name: Optional custom tracer name.
 
@@ -119,6 +128,7 @@ def run_agent(
         output = agent.run_sync(
             user_prompt=user_prompt,
             message_history=message_history,
+            output_type=output_type,
         )
 
         span.set_attribute(SpanAttributes.OUTPUT_VALUE, str(output.output))
