@@ -119,8 +119,8 @@ def test_parse_footer_example() -> None:
     deg = footer.educations[0]
     assert deg.degree == "Bachelor of Science in Computer Science"
     assert deg.institution == "Technical University of Munich, Germany"
-    assert deg.duration.start_date == "2010"
-    assert deg.duration.end_date == "2014"
+    assert deg.duration.start_date == "Sep 2010"
+    assert deg.duration.end_date == "Jun 2014"
     assert deg.thesis is not None
     assert deg.thesis.name == "Automated web test framework development"
     assert deg.thesis.url == "https://example.com/thesis.pdf"
