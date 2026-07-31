@@ -7,11 +7,11 @@ from pathlib import Path
 from loguru import logger
 from pydantic import BaseModel, Field
 
-from cv.tools.checker import check_and_get_errors
+from cv.tools.check_pdf import check_pdf
 from cv.tools.feedback_loop import fix_with_feedback
 from cv.tools.md2pdf import convert_md_to_pdf
 from cv.tools.prepare_cv import prepare_cv
-from cv.tools.process_cv import fix_file
+from cv.tools.process_cv import check_markdown, fix_file
 from cv.tools.tailor_cv_body import get_eval_model, process_output_of_ollama, run_ollama
 from helpers.llm import run_model
 
@@ -111,7 +111,7 @@ def compose_cv(
 
     for _ in range(2):  # first run is for fixer, second to check for feedback if needed
         content = assembled_cv.read_text(encoding="utf-8")
-        errors = check_and_get_errors(content, is_cv=True)
+        errors = check_markdown(content)
         if not errors:
             logger.info("No errors found during Step 5 check.")
             break
@@ -130,6 +130,11 @@ def compose_cv(
 
     logger.info(f"Step 6: Converting CV to PDF: {pdf_output}")
     convert_md_to_pdf(assembled_cv, pdf_output)
+
+    logger.info(f"Step 7: Checking PDF layout: {pdf_output}")
+    pdf_errors = check_pdf(pdf_output)
+    for err in pdf_errors:
+        logger.error(err)
 
     logger.info("Successfully finished composing CV locally!")
 

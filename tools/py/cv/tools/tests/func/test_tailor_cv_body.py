@@ -2,6 +2,7 @@ from pathlib import Path
 
 import pytest
 
+from cv.tools.combine_resume_parts import combine_resume_part_files
 from cv.tools.tailor_cv_body import run_ollama
 from helpers.tmp_helper import get_tmp_folder
 
@@ -23,10 +24,7 @@ def prepare_llm_prompt_file(test_file_path: str | Path) -> str:
     jd_path = project_root / "job_finder" / "data" / "test" / "tesla_go.txt"
 
     # Combine CV files
-    header_content = header_path.read_text(encoding="utf-8")
-    body_content = body_path.read_text(encoding="utf-8")
-    footer_content = footer_path.read_text(encoding="utf-8")
-    combined_cv = f"{header_content}\n\n{body_content}\n\n{footer_content}"
+    combined_cv = combine_resume_part_files(header_path, body_path, footer_path)
 
     # Read JD and template
     jd_content = jd_path.read_text(encoding="utf-8")

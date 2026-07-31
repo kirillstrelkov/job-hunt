@@ -6,6 +6,7 @@ from pathlib import Path
 from loguru import logger
 
 from config.config import DEFAULT_CV_CONFIG as DEFAULT_CONFIG
+from cv.tools.combine_resume_parts import combine_resume_part_files
 
 
 def prepare_cv(  # noqa: C901
@@ -87,7 +88,7 @@ def prepare_cv(  # noqa: C901
         cv_out = out_folder / f"{body_file.stem.replace('body', 'cv')}.md"
         logger.info(f"Generating {cv_out}")
 
-        cv_out.write_text("\n\n".join([f.read_text() for f in [header, body_file, footer]]))
+        cv_out.write_text(combine_resume_part_files(header, body_file, footer))
 
 
 if __name__ == "__main__":

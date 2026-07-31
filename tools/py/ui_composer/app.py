@@ -21,6 +21,7 @@ sys.path.append(str(Path(__file__).parent.parent))
 from cv.tools import process_cv
 
 importlib.reload(process_cv)
+from cv.tools.combine_resume_parts import combine_resume_parts
 from cv.tools.md2pdf import convert_md_to_pdf
 from helpers.llm_helper import get_model_names as get_gemini_models
 from helpers.llm_helper import run_model as run_gemini_model
@@ -472,7 +473,7 @@ with tabs[0]:
         else:
             header = st.session_state["master_texts"]["header"]
             footer = st.session_state["master_texts"]["footer"]
-            full_cv_md = f"{header}\n\n{tailored_body}\n\n{footer}"
+            full_cv_md = combine_resume_parts(header, tailored_body, footer)
 
         # Apply any pending update from PDF handler (must happen before widget is rendered)
         if "_edited_cv_local_pending" in st.session_state:
@@ -613,7 +614,7 @@ with tabs[0]:
                         st.session_state["edited_notes_local"] = notes_text
                         header = st.session_state["master_texts"]["header"]
                         footer = st.session_state["master_texts"]["footer"]
-                        full_cv_md = f"{header}\n\n{trimmed_text}\n\n{footer}"
+                        full_cv_md = combine_resume_parts(header, trimmed_text, footer)
                         if fix_markdown:
                             full_cv_md = process_cv.fix_markdown(full_cv_md)
                         st.session_state["edited_cv_local"] = full_cv_md
@@ -768,7 +769,7 @@ with tabs[1]:
     else:
         header = st.session_state["master_texts"]["header"]
         footer = st.session_state["master_texts"]["footer"]
-        full_cv_md = f"{header}\n\n{tailored_body}\n\n{footer}"
+        full_cv_md = combine_resume_parts(header, tailored_body, footer)
 
     # Apply any pending update from PDF handler (must happen before widget is rendered)
     if "_edited_cv_manual_pending" in st.session_state:
@@ -884,7 +885,7 @@ with tabs[1]:
 
                 header = st.session_state["master_texts"]["header"]
                 footer = st.session_state["master_texts"]["footer"]
-                full_cv_md = f"{header}\n\n{trimmed_text}\n\n{footer}"
+                full_cv_md = combine_resume_parts(header, trimmed_text, footer)
                 full_cv_md = process_cv.fix_markdown(full_cv_md)
                 st.session_state["edited_cv_manual"] = full_cv_md
                 st.session_state["_persistent_edited_cv_manual"] = full_cv_md

@@ -21,11 +21,11 @@ fix:
     uv run python tools/process_cv.py --fix {{ mastercv }}
 
 combine:
-    cat ./private/parts/header.md > {{ mastercv }}
-    printf "\n" >> {{ mastercv }}
-    cat {{ cvbody }} >> {{ mastercv }}
-    printf "\n" >> {{ mastercv }}
-    cat ./private/parts/footer.md >> {{ mastercv }}
+    uv run python tools/combine_resume_parts.py \
+      --header ./private/parts/header.md \
+      --body {{ cvbody }} \
+      --footer ./private/parts/footer.md \
+      --output {{ mastercv }}
 
 run: check combine
     # fix
@@ -85,6 +85,10 @@ update-pdf folder:
 md2pdf input output options="--check --fix":
     uv run python tools/process_cv.py {{ options }} "{{ input }}"
     uv run python tools/md2pdf.py "{{ input }}" --output "{{ output }}"
+    uv run python tools/check_pdf.py "{{ output }}"
+
+check-pdf pdf:
+    uv run python tools/check_pdf.py "{{ pdf }}"
 
 # Compose CV from folder
 auto-compose-cv folder:

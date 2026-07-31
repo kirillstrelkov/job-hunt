@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
-"""Validation and formatting checker for CV markdown files."""
+"""Validation and formatting checker for CV markdown files.
 
-import argparse
+The canonical CLI/entrypoint for checking a CV file lives in `cv.tools.process_cv`;
+this module is the reusable checking implementation it (and other tools) build on.
+"""
+
 import re
-import sys
 from datetime import UTC, datetime
 from pathlib import Path
 
-from loguru import logger
 from pydantic import BaseModel
 
 from md.models import (
@@ -463,34 +464,3 @@ def check_and_get_errors(markdown: str, *, is_cv: bool = False) -> list[Error]:
     """Check markdown string and return a list of Error objects."""
     sections = split_markdown_into_sections(markdown)
     return check(sections, is_cv=is_cv)
-
-
-def check_file(filepath: str, *, is_cv: bool = False) -> None:
-    """Check a markdown file path for errors."""
-    logger.debug("Checking file {}", filepath)
-    path = Path(filepath)
-    if not path.exists():
-        logger.error("File not found: {}", filepath)
-        sys.exit(1)
-
-    content = path.read_text(encoding="utf-8")
-    errors = check_and_get_errors(content, is_cv=is_cv)
-    if errors:
-        logger.error("Found {} errors", len(errors))
-        for err in errors:
-            logger.error(f"{err.msg}\n{err.filepath}:{err.line_num}: `{err.line}`")
-        sys.exit(1)
-    logger.info("No errors found")
-
-
-def main() -> None:
-    """Command line entrypoint for checking markdown files."""
-    parser = argparse.ArgumentParser(description="Check CV markdown file.")
-    parser.add_argument("file", type=str, help="Path to the markdown file")
-    parser.add_argument("--cv", action="store_true", default=False, help="Run CV-specific required sections check")
-    args = parser.parse_args()
-    check_file(args.file, is_cv=args.cv)
-
-
-if __name__ == "__main__":
-    main()
