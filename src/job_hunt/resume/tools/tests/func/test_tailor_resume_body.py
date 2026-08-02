@@ -2,9 +2,9 @@ from pathlib import Path
 
 import pytest
 
+from job_hunt.core.tmp_helper import get_tmp_folder
 from job_hunt.resume.combine_resume_parts import combine_resume_part_files
 from job_hunt.resume.tailor_resume_body import run_ollama
-from job_hunt.core.tmp_helper import get_tmp_folder
 
 
 def prepare_llm_prompt_file(test_file_path: str | Path) -> str:
@@ -50,7 +50,7 @@ def prepare_llm_prompt_file(test_file_path: str | Path) -> str:
         "gemma4:e2b-ctx16k",
     ],
 )
-def test_run_ollama(model):
+def test_run_ollama(model) -> None:
     """Test that run_ollama runs correctly using prompt generated from combined example Resume and tesla_go JD."""
     prompt_content = prepare_llm_prompt_file(__file__)
 

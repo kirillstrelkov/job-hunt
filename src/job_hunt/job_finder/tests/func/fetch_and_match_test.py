@@ -14,7 +14,7 @@ def test_fetch_and_match() -> None:
 
     testing_limit = 3
 
-    def _get_jobs_with_limit(*urls: str, limit: None | int = None, use_cache: bool = False) -> list[Job]:
+    def _get_jobs_with_limit(*urls: str, limit: int | None = None, use_cache: bool = False) -> list[Job]:
         return get_jobs(*urls, limit=testing_limit, use_cache=use_cache)
 
     with (

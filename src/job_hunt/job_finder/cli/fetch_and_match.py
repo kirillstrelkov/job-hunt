@@ -140,9 +140,11 @@ if __name__ == "__main__":
             elif "urls" in data:
                 urls = data["urls"]
             else:
-                raise ValueError("Could not find list of URLs in the provided YAML file.")
+                msg = "Could not find list of URLs in the provided YAML file."
+                raise ValueError(msg)
         else:
-            raise ValueError("YAML file must contain a list of URLs or a config dictionary.")
+            msg = "YAML file must contain a list of URLs or a config dictionary."
+            raise ValueError(msg)
     else:
         from job_hunt.config.config import DEFAULT_CONFIG
 

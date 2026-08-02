@@ -21,11 +21,11 @@ sys.path.append(str(Path(__file__).parent.parent))
 from job_hunt.resume.tools import process_resume
 
 importlib.reload(process_resume)
-from job_hunt.resume.combine_resume_parts import combine_resume_parts
-from job_hunt.resume.md2pdf import convert_md_to_pdf
 from job_hunt.core.llm_helper import get_model_names as get_gemini_models
 from job_hunt.core.llm_helper import run_model as run_gemini_model
 from job_hunt.core.ollama_helper import run_model as run_ollama_model
+from job_hunt.resume.combine_resume_parts import combine_resume_parts
+from job_hunt.resume.md2pdf import convert_md_to_pdf
 
 # Add required paths
 tools_py_dir = Path(__file__).resolve().parent.parent

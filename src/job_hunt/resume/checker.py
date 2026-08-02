@@ -234,7 +234,7 @@ class DurationCheck(Check):
 
 
 class BraketCheck(Check):
-    """Checks brackets spacing conventions:
+    r"""Checks brackets spacing conventions:
 
     - Only ' (' is correct (exactly one space before open bracket, meaning match of \\s+\\( length is 2)
     - '( ' is not correct (space after open bracket is invalid)

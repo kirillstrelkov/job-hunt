@@ -16,7 +16,7 @@ from job_hunt.core.promptfoo_helper import (
     write_yaml_config,
 )
 from job_hunt.core.tmp_helper import get_tmp_folder
-from job_hunt.job_finder.reviewer.llm import RESUME_PROMPT, JD_PROMPT, SYSTEM_PROMPT_CANDIDATE
+from job_hunt.job_finder.reviewer.llm import JD_PROMPT, RESUME_PROMPT, SYSTEM_PROMPT_CANDIDATE
 
 MODELS = get_top_model_names(check_models=False)
 PRJ_ROOT_DIR = Path(__file__).parent.parent

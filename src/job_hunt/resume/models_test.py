@@ -189,8 +189,8 @@ def test_skills_roundtrip() -> None:
     s = """
 ## Skills
 
-**Languages**: Python, Go  
-**Cloud & DevOps**: AWS, Docker  
+**Languages**: Python, Go
+**Cloud & DevOps**: AWS, Docker
     """
     skills_obj = SkillGroup.from_string(s)
     assert len(skills_obj.groups) == 2
@@ -207,7 +207,7 @@ def test_header_roundtrip() -> None:
     s = """
 # John Doe
 
-Berlin, Germany | <john.doe@example.com> | +49 123 4567890  
+Berlin, Germany | <john.doe@example.com> | +49 123 4567890
 [linkedin.com/in/johndoe](https://www.linkedin.com/in/johndoe/) | [github.com/johndoe](https://github.com/johndoe)
 
 ---

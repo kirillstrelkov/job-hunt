@@ -7,13 +7,13 @@ from pathlib import Path
 from loguru import logger
 from pydantic import BaseModel, Field
 
+from job_hunt.core.llm import run_model
 from job_hunt.resume.check_pdf import check_pdf
 from job_hunt.resume.feedback_loop import fix_with_feedback
 from job_hunt.resume.md2pdf import convert_md_to_pdf
 from job_hunt.resume.prepare_resume import prepare_resume
 from job_hunt.resume.process_resume import check_markdown, fix_file
 from job_hunt.resume.tailor_resume_body import get_eval_model, process_output_of_ollama, run_ollama
-from job_hunt.core.llm import run_model
 
 
 class ThesisDecision(BaseModel):

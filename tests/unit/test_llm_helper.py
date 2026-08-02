@@ -10,13 +10,13 @@ from job_hunt.core.llm_helper import (
 )
 
 
-def test_get_model_names():
+def test_get_model_names() -> None:
     models = get_model_names()
     assert isinstance(models, list)
     assert "gemini-3.5-flash" in models
 
 
-def test_dict_to_model_settings():
+def test_dict_to_model_settings() -> None:
     options = {
         "temperature": 0.5,
         "num_predict": 100,
@@ -30,7 +30,7 @@ def test_dict_to_model_settings():
 
 @patch("job_hunt.core.llm_helper.GoogleModel")
 @patch("job_hunt.core.llm_helper.Agent")
-def test_generate_response(mock_agent_class, mock_gemini_model_class, monkeypatch):
+def test_generate_response(mock_agent_class, mock_gemini_model_class, monkeypatch) -> None:
     monkeypatch.setenv("GEMINI_API_KEY", "fake-key")
 
     mock_agent = MagicMock()
@@ -48,7 +48,7 @@ def test_generate_response(mock_agent_class, mock_gemini_model_class, monkeypatc
 
 @patch("job_hunt.core.llm_helper.GoogleModel")
 @patch("job_hunt.core.llm_helper.Agent")
-def test_run_model(mock_agent_class, mock_gemini_model_class, monkeypatch):
+def test_run_model(mock_agent_class, mock_gemini_model_class, monkeypatch) -> None:
     monkeypatch.setenv("GEMINI_API_KEY", "fake-key")
 
     mock_agent = MagicMock()
@@ -76,7 +76,7 @@ def test_run_model(mock_agent_class, mock_gemini_model_class, monkeypatch):
     mock_gemini_model_class.assert_called_once_with("gemini-2.0-flash")
 
 
-def test_generate_response_missing_api_key(monkeypatch):
+def test_generate_response_missing_api_key(monkeypatch) -> None:
     monkeypatch.delenv("GEMINI_API_KEY", raising=False)
     with pytest.raises(RuntimeError, match="GEMINI_API_KEY"):
         generate_response("gemini-2.0-flash", "Hello")

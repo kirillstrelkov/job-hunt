@@ -89,7 +89,7 @@ Job description:
 """
 
 
-def _create_prompt(system: None | str = None, user: str | None = None) -> dict:
+def _create_prompt(system: str | None = None, user: str | None = None) -> dict:
     if system:
         return {"role": "system", "content": system}
 

@@ -16,7 +16,7 @@ from job_hunt.resume.models import SectionConstant
 from job_hunt.resume.parse import Heading, IndexedLine, Section
 
 
-def test_dot_check():
+def test_dot_check() -> None:
     sec1 = Section(
         heading=Heading(text=SectionConstant.WORK_EXPERIENCE, heading_prefix="##"),
         filepath=Path("dummy.md"),
@@ -39,7 +39,7 @@ def test_dot_check():
     assert len(checker.check(sec2)) == 0
 
 
-def test_two_space_check():
+def test_two_space_check() -> None:
     checker = TwoSpaceCheck()
 
     sec_skills_err = Section(
@@ -69,7 +69,7 @@ def test_two_space_check():
     assert TwoSpaceCheck._ERR_MSG_WRONG_ENDING in errors[0].msg
 
 
-def test_a_space_check():
+def test_a_space_check() -> None:
     checker = ASpaceCheck()
     sec = Section(
         heading=Heading(text=SectionConstant.SUMMARY, heading_prefix="##"),
@@ -93,7 +93,7 @@ def test_a_space_check():
     assert len(checker.check(sec_courses)) == 0
 
 
-def test_bracket_check():
+def test_bracket_check() -> None:
     checker = BraketCheck()
 
     sec = Section(
@@ -114,7 +114,7 @@ def test_bracket_check():
     assert "Space after open bracket" in errors[1].msg
 
 
-def test_chronological_check():
+def test_chronological_check() -> None:
     checker = ChronologicalCheck()
 
     # Work experience chron broken: older listed before newer
@@ -131,7 +131,7 @@ def test_chronological_check():
     assert "Chronological order broken" in errors[0].msg
 
 
-def test_format_check():
+def test_format_check() -> None:
     checker = FormatCheck()
 
     # Work experience format mismatch (missing pipe separator)
@@ -155,7 +155,7 @@ def test_format_check():
     assert "format mismatch" in errors[0].msg
 
 
-def test_required_sections_check():
+def test_required_sections_check() -> None:
     checker = RequiredSectionsCheck()
 
     sections = [
@@ -167,7 +167,7 @@ def test_required_sections_check():
     assert "Missing 'courses and certificates' section" in errors[0].msg
 
 
-def test_make_error():
+def test_make_error() -> None:
     sec = Section(
         heading=Heading(text=SectionConstant.SUMMARY, heading_prefix="##"),
         filepath=Path("test_path.md"),
@@ -181,7 +181,7 @@ def test_make_error():
     assert err.line == "Sample line"
 
 
-def test_duration_check():
+def test_duration_check() -> None:
     checker = DurationCheck()
 
     # Valid scenarios
@@ -222,7 +222,7 @@ def test_duration_check():
     assert errors[4].line_num == 5
 
 
-def test_check_resume_flag():
+def test_check_resume_flag() -> None:
     # A list of sections missing required ones (e.g. 'work experience')
     sections = [
         Section(heading=Heading(text=SectionConstant.SUMMARY, heading_prefix="##"), filepath=Path("dummy.md")),

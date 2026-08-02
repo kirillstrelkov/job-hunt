@@ -5,7 +5,7 @@ def test_do_fix() -> None:
     resume_md = """
 # John Doe
 
-Berlin, Germany | <john.doe@example.com> | +49 123 4567890  
+Berlin, Germany | <john.doe@example.com> | +49 123 4567890
 [linkedin.com/in/johndoe](https://www.linkedin.com/in/johndoe/) | [github.com/johndoe](https://github.com/johndoe)
 
 ---

@@ -6,8 +6,8 @@ from loguru import logger
 from pydantic_ai import Agent
 
 from job_hunt.config.config import DEFAULT_CONFIG
-from job_hunt.resume.process_resume import check_markdown
 from job_hunt.core.llm import get_agent, run_agent
+from job_hunt.resume.process_resume import check_markdown
 
 _MAX_RETRIES = 5
 SYSTEM_INSTRUCTIONS = """# You are an expert Resume Formatter Agent.
@@ -60,8 +60,8 @@ I added '  ' at the end of line 12, 13
 ...
 ## Skills
 
-**Languages**: Python, Go, C++  
-**Databases**: PostgreSQL  
+**Languages**: Python, Go, C++
+**Databases**: PostgreSQL
 ...
 
 ```

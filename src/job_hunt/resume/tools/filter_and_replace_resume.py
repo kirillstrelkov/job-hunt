@@ -43,13 +43,15 @@ def replace_resume_header_footer(content: str, header_content: str, footer_conte
     education_match = re.search(r"^##\s+Education\b", content, re.MULTILINE | re.IGNORECASE)
 
     if not summary_match or not education_match:
-        raise ValueError("Content missing required '## Summary' or '## Education' sections.")
+        msg = "Content missing required '## Summary' or '## Education' sections."
+        raise ValueError(msg)
 
     summary_idx = summary_match.start()
     education_idx = education_match.start()
 
     if summary_idx >= education_idx:
-        raise ValueError("'## Summary' section must appear before '## Education' section.")
+        msg = "'## Summary' section must appear before '## Education' section."
+        raise ValueError(msg)
 
     body_part = content[summary_idx:education_idx].rstrip()
 
@@ -62,11 +64,14 @@ def replace_resume_header_footer(content: str, header_content: str, footer_conte
 def process_files(input_path: Path, output_path: Path, header_path: Path, footer_path: Path) -> list[Path]:
     """Process markdown input file(s) and write output to output_path."""
     if not input_path.exists():
-        raise FileNotFoundError(f"Input path does not exist: {input_path}")
+        msg = f"Input path does not exist: {input_path}"
+        raise FileNotFoundError(msg)
     if not header_path.is_file():
-        raise FileNotFoundError(f"Header file does not exist: {header_path}")
+        msg = f"Header file does not exist: {header_path}"
+        raise FileNotFoundError(msg)
     if not footer_path.is_file():
-        raise FileNotFoundError(f"Footer file does not exist: {footer_path}")
+        msg = f"Footer file does not exist: {footer_path}"
+        raise FileNotFoundError(msg)
 
     header_content = header_path.read_text(encoding="utf-8")
     footer_content = footer_path.read_text(encoding="utf-8")

@@ -120,7 +120,7 @@ class JobBoard:
         retry=retry_if_exception_type(WebDriverException),
         stop=stop_after_attempt(3),
     )
-    def get_all_jobs(self, url: str | None = None, limit: None | int = None) -> list[Job]:
+    def get_all_jobs(self, url: str | None = None, limit: int | None = None) -> list[Job]:
         """Get all jobs from all pages.
 
         This method uses caching and retry logic on WebDriverException.
@@ -139,7 +139,7 @@ class JobBoard:
         return get_cached_value(hs, lambda: self._get_all_jobs_from_all_pages(url, limit))
 
     # implemented by default:
-    def _get_all_jobs_from_all_pages(self, url: str | None = None, limit: None | int = None) -> list[Job]:
+    def _get_all_jobs_from_all_pages(self, url: str | None = None, limit: int | None = None) -> list[Job]:
         """Get all jobs from all pages."""
         base_jobs = self._get_base_jobs_from_all_pages(url, limit)
 
@@ -209,7 +209,7 @@ class JobBoard:
 
         return filtered_jobs
 
-    def _get_base_jobs_from_all_pages(self, url: str | None = None, limit: None | int = None) -> list[BaseJob]:
+    def _get_base_jobs_from_all_pages(self, url: str | None = None, limit: int | None = None) -> list[BaseJob]:
         """Get base jobs from all pages starting with supplied url and going through all pages."""
         if url:
             self.open(url)

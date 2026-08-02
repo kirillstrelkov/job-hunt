@@ -59,7 +59,7 @@ def run_ollama(prompt_content: str, model: str) -> dict:
     gen_tokens = usage.output_tokens or 0
     tokens_per_sec = gen_tokens / elapsed if elapsed > 0.001 else 0.0  # noqa: PLR2004
 
-    resp = {
+    return {
         "model": model,
         "total_time": elapsed,
         "load_time": 0.0,
@@ -72,8 +72,6 @@ def run_ollama(prompt_content: str, model: str) -> dict:
         "gpu_info": None,
         "response": response_text,
     }
-
-    return resp
 
 
 def process_output_of_ollama(result: dict, output_file: Path) -> None:

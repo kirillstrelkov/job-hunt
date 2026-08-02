@@ -14,11 +14,11 @@ from deepeval.metrics import GEval
 from deepeval.models import OllamaModel
 from deepeval.test_case import LLMTestCase, SingleTurnParams
 from loguru import logger
+from tailor_resume_eval.tools.models_cmp.deepeval.conftest import EVALUATION_RESULTS
 
 from job_hunt.config.config import DEFAULT_CONFIG
 from job_hunt.core.ollama_helper import get_eval_model, get_model_names, get_model_output
 from job_hunt.core.tmp_helper import get_tmp_output_dir
-from tailor_resume_eval.tools.models_cmp.deepeval.conftest import EVALUATION_RESULTS
 
 
 def run_assessment(prompt_content: str, actual_output: str, expected_output: str) -> tuple[float, str, bool]:

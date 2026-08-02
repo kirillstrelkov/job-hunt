@@ -1,5 +1,5 @@
-from job_hunt.resume.process_resume import fix_markdown
 from job_hunt.resume.format import format
+from job_hunt.resume.process_resume import fix_markdown
 
 
 def test_format_courses_equivalence() -> None:

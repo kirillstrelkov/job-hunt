@@ -273,7 +273,8 @@ class Degree(BaseModel):
     def from_string(cls, s: str) -> "Degree":
         lines = s.strip().splitlines()
         if not lines:
-            raise ValueError("Empty string for Degree")
+            msg = "Empty string for Degree"
+            raise ValueError(msg)
 
         header_line = lines[0]
         parts = header_line.split(TextConstant.PIPE)
@@ -372,7 +373,8 @@ class WorkExperienceEntry(BaseModel):
     def from_string(cls, s: str) -> "WorkExperienceEntry":
         lines = s.strip().splitlines()
         if not lines:
-            raise ValueError("Empty string for WorkExperienceEntry")
+            msg = "Empty string for WorkExperienceEntry"
+            raise ValueError(msg)
 
         header_line = lines[0]
         parts = header_line.split(TextConstant.PIPE)
@@ -504,7 +506,8 @@ class PersonalProjectsEntry(BaseModel):
     def from_string(cls, s: str) -> "PersonalProjectsEntry":
         lines = s.splitlines()
         if not lines:
-            raise ValueError("Empty string for PersonalProjectsEntry")
+            msg = "Empty string for PersonalProjectsEntry"
+            raise ValueError(msg)
 
         header_line = lines[0]
         if TextConstant.PIPE in header_line:

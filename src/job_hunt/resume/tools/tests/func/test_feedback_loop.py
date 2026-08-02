@@ -12,10 +12,10 @@ from job_hunt.resume.process_resume import check_markdown
         # "gemma4:e2b-it-qat-ctx65k", Performs worse then others
     ],
 )
-def test_fix_with_feedback_real_gemma(model: str):
+def test_fix_with_feedback_real_gemma(model: str) -> None:
     md = """# John Doe
 
-Berlin, Germany | <john.doe@example.com> | +49 123 4567890  
+Berlin, Germany | <john.doe@example.com> | +49 123 4567890
 [linkedin.com/in/johndoe](https://www.linkedin.com/in/johndoe/) | [github.com/johndoe](https://github.com/johndoe)
 
 ## Summary

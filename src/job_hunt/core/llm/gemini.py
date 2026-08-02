@@ -21,10 +21,9 @@ def _get_agent(
     settings = dict_to_model_settings(options)
     model = GoogleModel(model_name)
 
-    agent = Agent(
+    return Agent(
         model,
         output_type=output_type,
         system_prompt=system_prompt,
         model_settings=settings,
     )
-    return agent

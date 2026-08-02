@@ -44,10 +44,9 @@ def _get_agent(
         ),
     )
 
-    agent = Agent(
+    return Agent(
         model,
         output_type=output_type,
         system_prompt=system_prompt,
         model_settings=settings,
     )
-    return agent

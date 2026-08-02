@@ -1,5 +1,4 @@
 from pathlib import Path
-import pytest
 
 from job_hunt.resume.filter_and_replace_resume import (
     is_full_resume,

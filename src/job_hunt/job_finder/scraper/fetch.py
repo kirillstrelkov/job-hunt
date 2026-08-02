@@ -58,7 +58,7 @@ def _filter_jobs(jobs: list[Job]) -> list[Job]:
     return uniq_jobs
 
 
-def get_jobs(*urls: str, limit: None | int = None, use_cache: bool = False) -> list[Job]:
+def get_jobs(*urls: str, limit: int | None = None, use_cache: bool = False) -> list[Job]:
     """Retrieve job descriptions from a list of URLs using respective scrapers.
 
     Args:

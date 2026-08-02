@@ -9,9 +9,9 @@ from job_hunt.resume.fixer import (
     TrailingDotFix,
     fix_last_pipe,
 )
-from job_hunt.resume.process_resume import do_fix
-from job_hunt.resume.models import Resume, PersonalProjects
+from job_hunt.resume.models import PersonalProjects, Resume
 from job_hunt.resume.parse import Section, split_markdown_into_sections
+from job_hunt.resume.process_resume import do_fix
 
 
 def parse_section(text: str) -> Section:
@@ -23,16 +23,16 @@ def parse_section(text: str) -> Section:
     return sec_class.from_string(text, filepath=sec.filepath, indexed_lines=sec.indexed_lines)
 
 
-def test_skills_fix():
+def test_skills_fix() -> None:
     sec = parse_section("""
 
 ## Skills
 
-**Programming Languages:** Python, Go, C++, Java, Ruby, JavaScript, SQL, Bash  
-**ML/AI & Scientific Computing:** TensorFlow, NumPy, Pandas, Scikit-learn, PyTorch, LLMs (OpenAI, Gemini), RAG Pipelines  
-**Cloud & DevOps:** Docker, Kubernetes, GitHub Actions, CI/CD, Ansible, Prometheus, Grafana, HashiCorp Vault, Terraform, AWS (Foundations)  
-**Databases & Storage:** PostgreSQL, MongoDB, Redis, Artifactory  
-**Frameworks & Tools:** FastAPI, React, Django, Spring Boot, Git, Jenkins, SLurm, Selenium WebDriver, Bazel, Scikit-learn  
+**Programming Languages:** Python, Go, C++, Java, Ruby, JavaScript, SQL, Bash
+**ML/AI & Scientific Computing:** TensorFlow, NumPy, Pandas, Scikit-learn, PyTorch, LLMs (OpenAI, Gemini), RAG Pipelines
+**Cloud & DevOps:** Docker, Kubernetes, GitHub Actions, CI/CD, Ansible, Prometheus, Grafana, HashiCorp Vault, Terraform, AWS (Foundations)
+**Databases & Storage:** PostgreSQL, MongoDB, Redis, Artifactory
+**Frameworks & Tools:** FastAPI, React, Django, Spring Boot, Git, Jenkins, SLurm, Selenium WebDriver, Bazel, Scikit-learn
 
     """)
     sec = SkillsFix().fix(sec)
@@ -40,7 +40,7 @@ def test_skills_fix():
     assert len(sec.indexed_lines) > 5
 
 
-def test_thesis_fix():
+def test_thesis_fix() -> None:
     sec = parse_section("""
 ## Work experience
 **Developer** | _Company_ | Jan 2024
@@ -56,7 +56,7 @@ def test_thesis_fix():
     assert sec.indexed_lines[1].line == "**Developer** | _Company_ | Jan 2024"
 
 
-def test_month_shortener_fix():
+def test_month_shortener_fix() -> None:
     sec = parse_section("""
 ## Summary
 Working from January 2024 to December 2024
@@ -65,23 +65,23 @@ Working from January 2024 to December 2024
     assert sec.indexed_lines[1].line == "Working from Jan 2024 to Dec 2024"
 
 
-def test_trailing_dot_fix():
+def test_trailing_dot_fix() -> None:
     sec = parse_section("""
 ## Work experience
 **Developer** | _Company_ | Jan 2024
 - Testing software.
-- Developing software.   
+- Developing software.
     """)
     sec = TrailingDotFix().fix(sec)
     assert sec.indexed_lines[2].line == "- Testing software"
     assert sec.indexed_lines[3].line == "- Developing software"
 
 
-def test_last_pipe_fix():
+def test_last_pipe_fix() -> None:
     md = """
 # John Doe
 
-Berlin, Germany | <john.doe@example.com> | +49 123 4567890  
+Berlin, Germany | <john.doe@example.com> | +49 123 4567890
 [linkedin.com/in/johndoe](https://www.linkedin.com/in/johndoe/) | [github.com/johndoe](https://github.com/johndoe)
 
 ## Work experience
@@ -92,7 +92,7 @@ Berlin, Germany | <john.doe@example.com> | +49 123 4567890
     assert r"_ASM_ \hfill Jun 2007" in fixed_md
 
 
-def test_chronological_sorting_fix_personal_projects():
+def test_chronological_sorting_fix_personal_projects() -> None:
     sec = PersonalProjects.from_string(
         """
 ## Personal projects
@@ -111,11 +111,11 @@ def test_chronological_sorting_fix_personal_projects():
     assert new_text.index("Proj B") < new_text.index("Proj A"), f"proj B should be before proj A: {new_text}"
 
 
-def test_do_fix_resume_integration():
+def test_do_fix_resume_integration() -> None:
     resume = Resume.from_string("""
 # John Doe
 
-Berlin, Germany | <john.doe@example.com> | +49 123 4567890  
+Berlin, Germany | <john.doe@example.com> | +49 123 4567890
 [linkedin.com/in/johndoe](https://www.linkedin.com/in/johndoe/) | [github.com/johndoe](https://github.com/johndoe)
 
 ## Summary

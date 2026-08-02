@@ -7,12 +7,12 @@ from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
+from config import config as cfg
 from loguru import logger
 from tqdm import tqdm
 
-from config import config as cfg
-from job_hunt.resume.tools import prepare_resume
 from job_hunt.resume.compose_resume import compose_resume
+from job_hunt.resume.tools import prepare_resume
 
 WORD_PATTERN = re.compile(r"\w{2,}")
 
