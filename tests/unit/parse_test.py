@@ -56,7 +56,7 @@ Content of another sub section
 
 
 def test_parse_header_example() -> None:
-    filepath = Path("data/example_cv/header.md")
+    filepath = Path("data/example_resume/header.md")
     content = filepath.read_text(encoding="utf-8")
 
     header = Header.from_string(content)
@@ -72,7 +72,7 @@ def test_parse_header_example() -> None:
 
 
 def test_parse_body_example() -> None:
-    filepath = Path("data/example_cv/body.md")
+    filepath = Path("data/example_resume/body.md")
     content = filepath.read_text(encoding="utf-8")
 
     body = Body.from_string(content)
@@ -109,7 +109,7 @@ def test_parse_body_example() -> None:
 
 
 def test_parse_footer_example() -> None:
-    filepath = Path("data/example_cv/footer.md")
+    filepath = Path("data/example_resume/footer.md")
     content = filepath.read_text(encoding="utf-8")
 
     footer = Footer.from_string(content)
@@ -140,9 +140,9 @@ def test_parse_footer_example() -> None:
 
 
 def test_parse_full_resume() -> None:
-    header_text = Path("data/example_cv/header.md").read_text(encoding="utf-8")
-    body_text = Path("data/example_cv/body.md").read_text(encoding="utf-8")
-    footer_text = Path("data/example_cv/footer.md").read_text(encoding="utf-8")
+    header_text = Path("data/example_resume/header.md").read_text(encoding="utf-8")
+    body_text = Path("data/example_resume/body.md").read_text(encoding="utf-8")
+    footer_text = Path("data/example_resume/footer.md").read_text(encoding="utf-8")
 
     full_resume_text = f"{header_text}\n\n{body_text}\n\n{footer_text}"
     resume_obj = parse(full_resume_text)

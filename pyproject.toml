@@ -1,7 +1,7 @@
 [project]
 name = "job-hunt"
 version = "0.1.0"
-description = "Job Hunt & CV Tailoring Workspace"
+description = "Job Hunt & Resume Tailoring Workspace"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [

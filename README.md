@@ -1,8 +1,8 @@
-# Job Hunt & CV Tailoring Workspace
+# Job Hunt & Resume Tailoring Workspace
 
-Welcome to the **Job Hunt & CV Tailoring Workspace**, an integrated Python ecosystem designed to automate, optimize, and benchmark your job application lifecycle.
+Welcome to the **Job Hunt & Resume Tailoring Workspace**, an integrated Python ecosystem designed to automate, optimize, and benchmark your job application lifecycle.
 
-This repository provides tools to scrape job listings, evaluate role compatibility with local/cloud LLMs, parse and validate Markdown CV schemas, tailor resumes for ATS platforms, and benchmark LLM outputs.
+This repository provides tools to scrape job listings, evaluate role compatibility with local/cloud LLMs, parse and validate Markdown Resume schemas, tailor resumes for ATS platforms, and benchmark LLM outputs.
 
 ---
 
@@ -19,7 +19,7 @@ job-hunt/
 │       ├── cli.py               # Main CLI application router (`job-hunt`)
 │       ├── config/              # Centralized YAML configuration manager
 │       ├── core/                # LLM clients (Ollama/Gemini/Pydantic AI), telemetry
-│       ├── resume/              # CV parser, tailoring logic, PDF renderer
+│       ├── resume/              # Resume parser, tailoring logic, PDF renderer
 │       ├── job_finder/          # Indeed/LinkedIn/Stepstone scrapers & match reviewer
 │       ├── eval/                # Benchmark & evaluation framework engines
 │       └── ui/                  # Streamlit web composer interface
@@ -50,7 +50,7 @@ Once installed, `job-hunt` is available globally in your environment PATH:
 # Executing from /tmp (or any directory)
 cd /tmp
 job-hunt resume check ./draft_cv.md
-job-hunt resume tailor --cv ~/master_cv.md --jd ./jd_tesla.txt --output ./tailored_cv.pdf
+job-hunt resume tailor --resume ~/master_resume.md --jd ./jd_tesla.txt --output ./tailored_resume.pdf
 job-hunt finder review --jd ./jd_tesla.txt
 ```
 
@@ -61,7 +61,7 @@ If you prefer not to install the CLI to global PATH, execute via `uv run`:
 # Executing from /tmp via uv run
 cd /tmp
 uv run --directory /path/to/job-hunt job-hunt resume check ./draft_cv.md
-uv run --directory /path/to/job-hunt job-hunt resume tailor --cv ~/master_cv.md --jd ./jd_tesla.txt --output ./tailored_cv.pdf
+uv run --directory /path/to/job-hunt job-hunt resume tailor --resume ~/master_resume.md --jd ./jd_tesla.txt --output ./tailored_resume.pdf
 ```
 
 ---
@@ -75,8 +75,8 @@ All development tasks can be run directly from the repository root using `just`:
 just install
 
 # Run any CLI subcommand with arbitrary arguments
-just run resume check data/example_cv/body.md
-just run resume tailor --cv data/example_cv/body.md --jd data/job_tesla.txt -o workspace/outputs/tailored.md
+just run resume check data/example_resume/body.md
+just run resume tailor --resume data/example_resume/body.md --jd data/job_tesla.txt -o workspace/outputs/tailored.md
 just run finder fetch
 just run ui
 
@@ -98,7 +98,7 @@ just lint
 flowchart TD
     subgraph Inputs ["Inputs"]
         JD["Job Description"]
-        CV_Body["Master CV Body"]
+        CV_Body["Master Resume Body"]
         Header["Header.md"]
         Footer["Footer.md"]
     end
@@ -113,12 +113,12 @@ flowchart TD
         Gemini["Google Gemini"]
     end
 
-    subgraph Generation ["3. Tailored CV Generation"]
-        Tailored_Body["Tailored CV Body"]
+    subgraph Generation ["3. Tailored Resume Generation"]
+        Tailored_Body["Tailored Resume Body"]
     end
 
     subgraph PostAssembly ["4. Document Assembly"]
-        Tailored_CV["Tailored CV (Header + Body + Footer)"]
+        Tailored_CV["Tailored Resume (Header + Body + Footer)"]
     end
 
     subgraph Compile ["5. PDF Rendering"]

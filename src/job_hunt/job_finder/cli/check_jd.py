@@ -8,7 +8,7 @@ from pprint import pformat
 from loguru import logger
 from reviewer.llm import MODEL, analyze_resume, get_match_percentage
 
-_RESUME_TEXT = (Path(__file__).resolve().parent.parent / "data/private/cv.txt").read_text(encoding="utf-8")
+_RESUME_TEXT = (Path(__file__).resolve().parent.parent / "data/private/resume.txt").read_text(encoding="utf-8")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Analyze a single job description from standard input.")

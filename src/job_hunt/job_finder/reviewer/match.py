@@ -9,7 +9,7 @@ from job_hunt.job_finder.reviewer.llm import analyze_resume, get_checked_passed,
 from job_hunt.job_finder.utils.caching_utils import get_cached_value, get_hashsum
 from job_hunt.job_finder.utils.models import Job, JobMatch
 
-_RESUME_TEXT = (Path(__file__).resolve().parent.parent / "data/private/cv.txt").read_text(encoding="utf-8")
+_RESUME_TEXT = (Path(__file__).resolve().parent.parent / "data/private/resume.txt").read_text(encoding="utf-8")
 
 
 def _match_resume_and_job_desc(job_desc: Job) -> JobMatch:
