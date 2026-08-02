@@ -1,88 +1,47 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance when working with code in this repository.
 
-## Repository overview
+## Repository Overview
 
-Three independent tools for AI-assisted CV tailoring, each solving the same problem in a different stack. No shared code between them.
+`job-hunt` is a Python workspace for the job-application pipeline: parsing/validating Markdown CV schemas, tailoring master CVs against job descriptions using local (Ollama) or cloud (Gemini) LLMs, scraping job listings from job boards (Indeed, LinkedIn, Stepstone), evaluating role compatibility, and benchmarking LLM output quality.
 
-| Tool                     | Stack                | Entry point                                     |
-| ------------------------ | -------------------- | ----------------------------------------------- |
-| `tools/prep_for_cv_tail` | Rust + Tauri         | Template renderer + Markdown/PDF desktop editor |
-| `tools/tailor_cv_py`     | Python + Streamlit   | CLI + Streamlit UI, Ollama/Gemini               |
-| `tools/tailor_cv_ts`     | TypeScript + Next.js | CLI + full web UI, Ollama/Claude/Gemini         |
+The Python package lives under `src/job_hunt/`.
 
-Each tool has its own `CLAUDE.md` with detailed per-tool guidance.
-
-## Quick commands
-
-### prep_for_cv_tail (Rust)
+## Developer Quick Commands
 
 ```bash
-cd tools/prep_for_cv_tail
-cargo build                     # both binaries
-cargo test --lib                # unit tests
-cargo run --bin prep_for_tail -- --cv cv.md --prompt prompt.txt --jd jd.txt -o out.md
-cargo run --bin prep_for_tail_ui   # Tauri desktop app
+uv sync                                    # install deps managed with uv
+just install                               # install deps and package in editable mode
+just test                                  # run fast unit tests (`tests/unit/`)
+just test-integration                      # run integration & browser tests (`tests/integration/`)
+just run resume check data/example_cv/body.md  # validate markdown CV
+just run resume tailor -c <cv.md> -j <jd.txt> -o <out.md> # tailor CV
+just run ui                                # launch Streamlit web app
+just lint                                  # ruff format + check --fix
 ```
 
-### tailor_cv_py (Python)
+## Running CLI from Any Directory (e.g. `/tmp`)
 
 ```bash
-cd tools/tailor_cv_py
-uv sync                         # install deps
-uv run pytest                   # all tests
-uv run pytest tests/test_pdf.py # single test file
-uv run tailor_cv -i cv.txt -j jd.txt -o out.pdf
-just ui                         # Streamlit UI
+# Option 1: Editable package install
+uv pip install -e .
+cd /tmp && job-hunt resume check ./draft_cv.md
+
+# Option 2: via uv run --directory
+cd /tmp && uv run --directory /path/to/job-hunt job-hunt resume check ./draft_cv.md
 ```
 
-### tailor_cv_ts (TypeScript)
+## Architecture
 
-```bash
-cd tools/tailor_cv_ts
-npm install
-npm run dev                     # dev server at localhost:3000
-npx tsc --noEmit                # type-check
-npm run cli -- -i cv.txt -j jd.txt -o out.pdf
-```
+- **`src/job_hunt/config/`**: Centralized configuration (`config.py`, `config.yaml`). ConfigManager loads paths and resolves placeholders relative to the repository root.
+- **`src/job_hunt/core/`**: Lower-level helpers (`llm_helper.py`, `ollama_helper.py`) and Pydantic AI (`pydantic_ai.Agent`) wrappers (`core/llm/`), OpenTelemetry / Logfire / Arize Phoenix tracing (`core/telemetry.py`).
+- **`src/job_hunt/resume/`**: Pydantic models for Markdown CV parsing/validation (`parser.py`), resume tailoring logic (`tailor.py`), and PDF rendering (`renderer.py`).
+- **`src/job_hunt/job_finder/`**: Selenium/`easelenium` scrapers per site (`scraper/`), match reviewer (`reviewer/`), and listing filters.
+- **`src/job_hunt/eval/`**: Benchmark framework comparing output quality across DeepEval, Promptfoo, LlamaIndex, Ragas, TruLens, Giskard, etc.
+- **`src/job_hunt/ui/`**: Streamlit composer interface (`ui/app.py`).
 
-## Shared architecture
+## Testing Conventions
 
-All three tools follow the same data flow:
-
-1. Read master CV + job description from files (or UI state)
-2. Convert job description to plain text (strip Markdown/HTML)
-3. Format `{cv}` + `{job_description}` into a user prompt template
-4. Call LLM with a fixed system prompt → 4-section Markdown output
-5. Prepend `default_header.md`, append `default_footer.md`
-6. Optionally convert to PDF via `pandoc`
-
-### Prompt system
-
-Six prompt files live under each tool's `prompts/` directory (same content across tools):
-
-- `cv_system.txt` / `cv_user.txt` — CV tailoring
-- `cover_letter_system.txt` / `cover_letter_user.txt` — cover letter
-- `default_header.md` / `default_footer.md` — static prefix/suffix
-
-The CV system prompt enforces exactly 4 output sections: `## Summary`, `## Technical Skills`, `## Work Experience`, `## Previous Experience`. Date right-alignment uses `\hfill` (LaTeX embedded in Markdown — works through pandoc, breaks plain renderers).
-
-### LLM routing
-
-Model selection is prefix-based: names starting with `gemini` route to Gemini API, `claude`/`anthropic` route to Claude (TypeScript only), anything else goes to local Ollama. Default model is `gemma4:e2b`.
-
-### PDF generation
-
-All tools shell out to `pandoc` for Markdown → PDF. `prep_for_cv_tail` falls back to `wkhtmltopdf`. Pandoc must be on `$PATH` — desktop/GUI-launched processes may not inherit shell PATH; the Tauri UI explicitly prepends `/usr/local/bin:/usr/bin:/bin`.
-
-## System dependencies
-
-- **pandoc** — required for PDF output in all tools
-- **Ollama** running locally — `ollama pull gemma4:e2b` for default model
-- **LaTeX** (pdflatex/xelatex) — required by pandoc for PDF rendering
-- Tauri Linux deps: `libwebkit2gtk-4.1-dev libwayland-dev libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev`
-
-## Tool / Assistant Rules
-
-- **Ignored Files**: Never read, write, or modify files matched by `.antigravityignore` without asking for explicit user confirmation first, even if directly requested.
+- **Unit tests** (`tests/unit/`): Fast unit tests without network or browser dependencies.
+- **Integration tests** (`tests/integration/`): Tests that interact with live LLMs, external scrapers, or browser drivers.

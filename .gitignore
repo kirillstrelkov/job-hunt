@@ -34,3 +34,4 @@ target/
 tsconfig.tsbuildinfo
 
 .agent/
+*.egg-info

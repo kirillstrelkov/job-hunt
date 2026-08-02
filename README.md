@@ -1,27 +1,98 @@
 # Job Hunt & CV Tailoring Workspace
 
-Welcome to the **Job Hunt & CV Tailoring Workspace**, a comprehensive, multi-stack ecosystem designed to automate, optimize, and benchmark your job application lifecycle.
+Welcome to the **Job Hunt & CV Tailoring Workspace**, an integrated Python ecosystem designed to automate, optimize, and benchmark your job application lifecycle.
 
-This repository contains independent tools built in **Python**, **TypeScript**, and **Rust** to scrape job listings, evaluate role compatibility with local LLMs, parse/validate Markdown CV schemas, tailor resumes for ATS platforms, and benchmark LLM outputs.
-
----
-
-## Workspace Directory Overview
-
-The project is organized into independent, modular tools residing in the `tools/` directory. There is no shared code between them, allowing you to run whichever stack fits your preference.
-
-| Module                                                                               | Stack                | Primary Interfaces  | Description                                                                                                              |
-| :----------------------------------------------------------------------------------- | :------------------- | :------------------ | :----------------------------------------------------------------------------------------------------------------------- |
-| **[`prep_for_cv_tail`](file:///home/kirill/prj/gh/job-hunt/tools/prep_for_cv_tail)** | Rust + Tauri         | Desktop GUI & CLI   | Desktop editor and prompt compiler using pure-Rust Typst PDF generation (no external LaTeX/pandoc requirements).         |
-| **[`tailor_cv_py`](file:///home/kirill/prj/gh/job-hunt/tools/tailor_cv_py)**         | Python + Streamlit   | CLI & Web UI        | Streamlit dashboard and lightweight CLI leveraging Ollama/Gemini for tailoring. Renders PDF via Pandoc.                  |
-| **[`tailor_cv_ts`](file:///home/kirill/prj/gh/job-hunt/tools/tailor_cv_ts)**         | TypeScript + Next.js | CLI & Next.js UI    | Single-page web app and Node.js CLI supporting Ollama, Gemini, and Claude (with prompt caching). Renders PDF via Pandoc. |
-| **[`py`](file:///home/kirill/prj/gh/job-hunt/tools/py)**                             | Python (Advanced)    | CLI, Web UI & Evals | A comprehensive suite for scraping listings, validating CV schemas via Pydantic, and executing benchmark evaluations.    |
+This repository provides tools to scrape job listings, evaluate role compatibility with local/cloud LLMs, parse and validate Markdown CV schemas, tailor resumes for ATS platforms, and benchmark LLM outputs.
 
 ---
 
-## Shared Data Flow & Architecture
+## Repository Structure Overview
 
-All tailoring tools in this workspace implement a unified approach to ATS resume optimization:
+The project follows a standard Python package layout under `src/job_hunt/` with isolated unit and integration test suites:
+
+```
+job-hunt/
+├── pyproject.toml               # Package definition & job-hunt CLI entry point
+├── justfile                     # Centralized workspace command runner
+├── src/
+│   └── job_hunt/                # Core Python package namespace
+│       ├── cli.py               # Main CLI application router (`job-hunt`)
+│       ├── config/              # Centralized YAML configuration manager
+│       ├── core/                # LLM clients (Ollama/Gemini/Pydantic AI), telemetry
+│       ├── resume/              # CV parser, tailoring logic, PDF renderer
+│       ├── job_finder/          # Indeed/LinkedIn/Stepstone scrapers & match reviewer
+│       ├── eval/                # Benchmark & evaluation framework engines
+│       └── ui/                  # Streamlit web composer interface
+├── tests/
+│   ├── unit/                    # Fast unit test suite
+│   └── integration/             # Browser & live LLM integration tests
+├── data/                        # Sample CV templates & sample inputs
+└── workspace/                   # Gitignored working directory for generated outputs
+```
+
+---
+
+## Running Commands from Outside the Repository (e.g. from `/tmp`)
+
+You can run the `job-hunt` CLI from any directory on your system (e.g., inside `/tmp` or another project workspace):
+
+### Option 1: Installed Package Entrypoint (Recommended for CLI use)
+Install the package in editable mode:
+
+```bash
+# Inside repository root
+uv pip install -e .
+```
+
+Once installed, `job-hunt` is available globally in your environment PATH:
+
+```bash
+# Executing from /tmp (or any directory)
+cd /tmp
+job-hunt resume check ./draft_cv.md
+job-hunt resume tailor --cv ~/master_cv.md --jd ./jd_tesla.txt --output ./tailored_cv.pdf
+job-hunt finder review --jd ./jd_tesla.txt
+```
+
+### Option 2: `uv run` with `--directory`
+If you prefer not to install the CLI to global PATH, execute via `uv run`:
+
+```bash
+# Executing from /tmp via uv run
+cd /tmp
+uv run --directory /path/to/job-hunt job-hunt resume check ./draft_cv.md
+uv run --directory /path/to/job-hunt job-hunt resume tailor --cv ~/master_cv.md --jd ./jd_tesla.txt --output ./tailored_cv.pdf
+```
+
+---
+
+## Workspace Quick Commands (via `just`)
+
+All development tasks can be run directly from the repository root using `just`:
+
+```bash
+# Install dependencies and package in editable mode
+just install
+
+# Run any CLI subcommand with arbitrary arguments
+just run resume check data/example_cv/body.md
+just run resume tailor --cv data/example_cv/body.md --jd data/job_tesla.txt -o workspace/outputs/tailored.md
+just run finder fetch
+just run ui
+
+# Run unit tests
+just test
+
+# Run integration tests
+just test-integration
+
+# Code quality and formatting
+just lint
+```
+
+---
+
+## Architecture & Data Flow
 
 ```mermaid
 flowchart TD
@@ -32,8 +103,8 @@ flowchart TD
         Footer["Footer.md"]
     end
 
-    subgraph Assembly ["1. Prompt Assembly"]
-        Prompt["Aggregated Prompt Template\n(Inlines CV Body & Job Description)"]
+    subgraph CLI ["1. CLI Command / UI"]
+        Cmd["job-hunt resume tailor"]
     end
 
     subgraph Routing ["2. LLM Routing"]
@@ -42,184 +113,22 @@ flowchart TD
         Gemini["Google Gemini"]
     end
 
-    subgraph Generation ["3. LLM model processing"]
+    subgraph Generation ["3. Tailored CV Generation"]
         Tailored_Body["Tailored CV Body"]
     end
 
-    subgraph PostAssembly ["4. Post Assembly"]
-        Tailored_CV["Tailored CV"]
+    subgraph PostAssembly ["4. Document Assembly"]
+        Tailored_CV["Tailored CV (Header + Body + Footer)"]
     end
 
-    subgraph Processing ["5. Tailored CV Processing"]
-        Processed_CV["Check for errors, fix formatting and style"]
+    subgraph Compile ["5. PDF Rendering"]
+        PDF["PDF Output (via Pandoc / XeLaTeX)"]
     end
 
-    subgraph Compile ["6. PDF Generation"]
-        PDF["PDF Output\n(via Rust Typst or Pandoc + XeLaTeX)"]
-    end
-
-    JD --> Prompt
-    CV_Body --> Prompt
-    Prompt --> Router
-    Router --> Ollama
-    Router --> Gemini
+    JD & CV_Body --> Cmd
+    Cmd --> Router
+    Router --> Ollama & Gemini
     Ollama & Gemini --> Tailored_Body
-
-    Header --> Tailored_CV
-    Tailored_Body --> Tailored_CV
-    Footer --> Tailored_CV
-
-    Tailored_CV --> Processed_CV
-    Processed_CV --> PDF
+    Header & Tailored_Body & Footer --> Tailored_CV
+    Tailored_CV --> PDF
 ```
-
-1. **Prompt Assembly**: Combines the Master CV Body and Job Description into the LLM prompt template.
-2. **LLM Routing**: Routes the prompt depending on the model name prefix to either local Ollama or Google Gemini.
-3. **Conversion**: Feeds the prompt into the chosen LLM, converting the Master CV Body into an ATS-optimized Tailored CV Body (enforcing exactly 4 sections: Summary, Technical Skills, Work Experience, and Previous Experience).
-4. **Post Assembly**: Combines `header.md`, the Tailored CV Body, and `footer.md` together to produce the complete Tailored CV document.
-5. **Tailored CV Processing**: Validates formatting schemas, checks for syntax and rendering errors, and automatically cleans up style layouts.
-6. **PDF Generation**: Compiles the final document into a high-fidelity PDF utilizing pure-Rust Typst, or `pandoc` + `XeLaTeX`/`pdflatex` (with embedded LaTeX `\hfill` layout alignments).
-
----
-
-## Getting Started & Prerequisites
-
-### System Prerequisites
-
-To run the tools in this workspace, you will need the following dependencies installed on your system:
-
-#### 1. PDF Compilation Engine (Required for PDF outputs)
-
-- **Linux (Debian/Ubuntu)**:
-  ```bash
-  sudo apt-get install pandoc texlive-latex-extra texlive-xetex
-  ```
-- **macOS**:
-  ```bash
-  brew install pandoc BasicTeX
-  ```
-
-#### 2. Local LLM Runner (Required for local offline tailoring/matching)
-
-Install [Ollama](https://ollama.com) and pull the recommended models:
-
-```bash
-ollama pull gemma4:e2b
-ollama pull llama3.1:8b
-```
-
-#### 3. Tauri Compilation Deps (Required only for building the Rust Tauri app on Linux)
-
-```bash
-sudo apt-get install -y libwebkit2gtk-4.1-dev libwayland-dev libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
-```
-
-### Environment Configuration
-
-Many tools expect a global `.env` file at the root. Copy the template or create it manually:
-
-```bash
-# In repository root
-cp .env.example .env # If available, otherwise create .env
-```
-
-Ensure your `.env` contains the required keys:
-
-```bash
-# Global variables example
-MASTERCV_PATH="/absolute/path/to/mastercv.md"
-GOOGLE_API_KEY="your-gemini-api-key"
-
-# job_finder crawler credentials (optional)
-EMAIL="your-email"
-LINKEDIN_PASSWORD="your-password"
-STEPSTONE_PASSWORD="your-password"
-```
-
----
-
-## Component Quick Commands
-
-### Rust Desktop Editor (`tools/prep_for_cv_tail`)
-
-A desktop-first Tauri utility that uses a pure-Rust PDF layout engine (Typst). No external pandoc/LaTeX toolchain is needed.
-
-```bash
-cd tools/prep_for_cv_tail
-
-# Compile and run unit tests
-cargo test --lib
-
-# Launch the Tauri desktop GUI app
-cargo run --bin prep_for_tail_ui
-
-# Or use the CLI version to output Markdown prompts
-cargo run --bin prep_for_tail -- --cv master_cv.md --prompt prompt.txt --jd jd.txt -o output.md
-```
-
-### Python Streamlit & CLI (`tools/tailor_cv_py`)
-
-A fast Python script powered by `uv` and Streamlit.
-
-```bash
-cd tools/tailor_cv_py
-
-# Sync virtualenv and dependencies
-uv sync
-
-# Tailor a CV via CLI (outputting a PDF)
-uv run tailor_cv -i master_cv.txt -j job_description.txt -o tailored_cv.pdf
-
-# Run the Streamlit web app
-just ui # or: uv run streamlit run ui/app.py
-```
-
-### TypeScript Next.js & CLI (`tools/tailor_cv_ts`)
-
-A Node.js/Next.js single-page application with split preview screens and custom prompts editing.
-
-```bash
-cd tools/tailor_cv_ts
-
-# Install packages
-npm install
-
-# Start Next.js development server (localhost:3000)
-just dev # or: npm run dev
-
-# Run TypeScript typechecks
-npx tsc --noEmit
-
-# Run the CLI version
-npm run cli -- -i cv.txt -j jd.txt -o out.pdf
-```
-
-### Advanced Python Workspace (`tools/py`)
-
-Houses advanced features like automated web scraping for job listing portals, syntax validation parsing, and LLM benchmarking.
-
-```bash
-cd tools/py
-
-# Sync virtualenv and dependencies
-uv sync
-
-# Start the interactive Streamlit tailoring board
-uv run streamlit run tailor_ui/app.py
-
-# Scrape job boards (Indeed, LinkedIn, Stepstone) and filter with LLM matching
-uv run python job_finder/cli/fetch_and_match.py
-
-# Check a markdown CV for syntax & ATS parsing alignment using Pydantic parser
-uv run python md_parser/cli.py cv/example/body.md
-
-# Run test suites and format validation
-uv run pytest md_parser/models_test.py
-uv run ruff check .
-```
-
----
-
-## Contributing & Guidelines
-
-When working inside this repository, please check the local `CLAUDE.md` present inside the root directory as well as each tool subfolder for specific coding guidelines, runtime limitations, and quick commands.

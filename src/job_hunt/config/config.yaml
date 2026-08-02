@@ -1,0 +1,145 @@
+# Resume Composer Configuration
+
+composer:
+  header: "{root_dir}/data/example_cv/header.md"
+  body: "{root_dir}/data/example_cv/body.md"
+  footer: "{root_dir}/data/example_cv/footer.md"
+
+tailor:
+  prompt: "{root_dir}/src/job_hunt/resume/prompts/tailor_for_description.md"
+
+# LLM / Ollama Configuration
+llm:
+  eval_model: gemma4:e2b-ctx65k
+  fix_model: gemma4:e4b-it-qat-ctx65k
+  embeddings_model: qwen3-embedding:4b
+  model_default_options:
+    num_ctx: 32768
+    num_predict: -1
+    seed: 42
+    keep_alive: 0
+    temperature: 0.1
+    repeat_penalty: 1.1
+    timeout: 300
+
+  top_models:
+    - "gemma4:e2b"
+    - "gemma4:e2b-ctx65k"
+    - "gemma4:e2b-it-qat-ctx65k"
+    - "gemma4:e4b-it-qat-ctx65k"
+    - "gemma4:e2b-it-qat"
+    - "deepseek-r1:1.5b"
+    - "gemma4:e4b-it-qat"
+    - "qwen2.5-coder:3b"
+    - "qwen3.5:4b-q4_K_M"
+    - "nemotron-mini:4b-instruct-q8_0"
+    - "nemotron-3-nano:4b-q8_0"
+    - "qwen2.5:3b-instruct-q8_0"
+    - "deepseek-r1:7b"
+    - "qwen2.5-coder:7b"
+    - "qwen2.5:7b"
+    # gemini models
+    - "gemini-3.1-flash-lite"
+    - "gemini-3.5-flash"
+    - "gemma-4-26b-a4b-it"
+    - "gemma-4-31b-it"
+
+  ollama:
+    models:
+      - name: "codegemma:7b-code"
+      - name: "deepseek-r1:1.5b"
+      - name: "deepseek-r1:7b"
+      - name: "falcon3:7b"
+      - name: "gemma2:9b-instruct-q5_K_M"
+      - name: "gemma4:12b-it-qat"
+      - name: "gemma4:e2b-it-qat-ctx65k"
+      - name: "gemma4:e2b-it-qat"
+      - name: "gemma4:e2b-ctx65k"
+      - name: "gemma4:e2b"
+      - name: "gemma4:e4b-it-qat-ctx65k"
+      - name: "gemma4:e4b-it-qat"
+      - name: "llama3.1:8b-instruct-q6_K"
+      - name: "llama3.1:8b-text-q4_K_M"
+      - name: "llama3.1:8b"
+      - name: "llama3.2:3b-instruct-q8_0"
+      - name: "mistral:7b-instruct-v0.3-q4_K_M"
+      - name: "nemotron-3-nano:4b-q8_0"
+      - name: "nemotron-mini:4b-instruct-q8_0"
+      - name: "phi4-mini:3.8b-q8_0"
+      - name: "qwen2.5-coder:3b"
+      - name: "qwen2.5-coder:7b"
+      - name: "qwen2.5:3b-instruct-q8_0"
+      - name: "qwen2.5:7b-instruct-q4_K_M"
+      - name: "qwen2.5:7b"
+      - name: "qwen3.5:4b-q4_K_M"
+      - name: "qwen3.5:4b-q8_0"
+      - name: "qwen3.5:9b-q4_K_M"
+
+  gemini:
+    models:
+      - name: "gemini-3.1-flash-lite"
+        options:
+          num_ctx: 1048576
+          use_default: False
+          temperature: 0.1
+          maxRetries: 3
+      - name: "gemini-3.5-flash"
+        options:
+          num_ctx: 1048576
+          use_default: False
+          temperature: 0.1
+          maxRetries: 3
+      - name: "gemma-4-26b-a4b-it"
+        options:
+          num_ctx: 256000
+          use_default: False
+          temperature: 0.1
+          maxRetries: 3
+      - name: "gemma-4-31b-it"
+        options:
+          num_ctx: 256000
+          use_default: False
+          temperature: 0.1
+          maxRetries: 3
+
+paths:
+  root_dir: "../../.."
+  tmp_output_dir: "{root_dir}/workspace/outputs"
+  tmp_input_dir: "{root_dir}/workspace/inputs"
+  trulens_db_url: "sqlite:///{root_dir}/workspace/outputs/truelens/default.sqlite"
+  env_file: "{root_dir}/.env"
+
+data:
+  jobs:
+    - name: "job_tesla"
+      ground_truth: "{tmp_input_dir}/job_tesla_gt.md"
+      description: "{root_dir}/data/job_tesla.txt"
+      llm_prompt: "{tmp_output_dir}/job_tesla/llm_prompt.md"
+
+scraper:
+  jobs_path: "{root_dir}/workspace/outputs/jobs.csv"
+  job_matches_path: "{root_dir}/workspace/outputs/job_matches.csv"
+  excluded_companies:
+    - mindrift
+    - turing
+  excluded_title_keywords:
+    - intern
+    - student
+    - manager
+    - marketing
+    - chief
+    - founding
+    - consultant
+    - relocation to
+    - forward
+    - architect
+    - lead
+    - associate
+    - research
+    - principal
+    - scientist
+    - director
+    - postdoctoral
+    - freelance
+  urls:
+    - "https://de.indeed.com/jobs?q=python&l=Potsdam%2C+Brandenburg&fromage=14&lang=en&radius=50&from=searchOnDesktopSerp&vjk=c9b60105ee977490"
