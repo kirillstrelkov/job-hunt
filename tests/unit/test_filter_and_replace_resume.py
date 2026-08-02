@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from job_hunt.resume.filter_and_replace_resume import (
+from job_hunt.resume.substitute_resume import (
     is_full_resume,
     process_files,
     replace_resume_header_footer,

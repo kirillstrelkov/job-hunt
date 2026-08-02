@@ -221,7 +221,7 @@ def resume_build_pdfs(
     build_pdfs_main(folder)
 
 
-@resume_app.command("filter")
+@resume_app.command("substitute")
 def resume_filter(
     input_path: Path = typer.Argument(..., help="Input directory or markdown file path"),
     output_path: Path = typer.Argument(..., help="Output directory or file path"),
@@ -229,7 +229,7 @@ def resume_filter(
     footer: Path = typer.Option(..., "--footer", help="Path to footer markdown file"),
 ):
     """Scan markdown file(s), filter for full resumes, and replace header/footer sections."""
-    from job_hunt.resume.filter_and_replace_resume import main as filter_main
+    from job_hunt.resume.substitute_resume import main as filter_main
 
     filter_main(src=input_path, output=output_path, header=header, footer=footer)
     typer.secho("Filtering complete.", fg=typer.colors.GREEN)

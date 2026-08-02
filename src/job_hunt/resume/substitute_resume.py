@@ -8,7 +8,7 @@ Replaces everything before `## Summary` with `--header` content,
 and everything from/including `## Education` with `--footer` content.
 
 Usage:
-  python filter_and_replace_resume.py <input> <output> --header <header_path> --footer <footer_path>
+  python substitute_resume.py <input> <output> --header <header_path> --footer <footer_path>
 """
 
 import re
