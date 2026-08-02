@@ -1,4 +1,4 @@
-"""Helpers package for CV and Job matching tools."""
+"""Helpers package for Resume and Job matching tools."""
 
 from helpers.models import (
     AdditionalOptions,
@@ -7,7 +7,7 @@ from helpers.models import (
     JustificationReport,
     Project,
     Skills,
-    TailoredCVBody,
+    TailoredResumeBody,
     WorkExperience,
     WorkExperienceOverflow,
 )
@@ -19,7 +19,7 @@ __all__ = [
     "JustificationReport",
     "Project",
     "Skills",
-    "TailoredCVBody",
+    "TailoredResumeBody",
     "WorkExperience",
     "WorkExperienceOverflow",
 ]

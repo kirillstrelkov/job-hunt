@@ -75,7 +75,7 @@ def make_job(
 
 
 class JobMatch(Job):
-    """Pydantic model holding the results of a CV-to-job match assessment."""
+    """Pydantic model holding the results of a Resume-to-job match assessment."""
 
     match_percentage: int = -1
     llm_text: str = ""

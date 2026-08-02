@@ -1,4 +1,4 @@
-"""Main command-line interface for running the CV-job matching pipeline."""
+"""Main command-line interface for running the Resume-job matching pipeline."""
 
 import argparse
 import sys
@@ -38,7 +38,7 @@ def _get_from_csv(path: Path, klass: type[Job] | type[JobMatch]) -> list[Job]:
     """Load jobs from a CSV file."""
     if not path.exists():
         return []
-    logger.info(f"Loading {klass}s from {path}")
+    logger.info(f"Loading {klass.__name__}s from {path}")
     df = pd.read_csv(path).fillna("")
     return [klass(**row) for row in df.to_dict(orient="records")]
 
@@ -62,7 +62,7 @@ def create_jobs_csv(urls: list[str], jobs_file: Path, *, use_cache: bool = True)
 
 
 def create_job_matches_csv(jobs: list[Job], matches_file: Path) -> list[JobMatch]:
-    """Evaluate jobs against the CV, save matches to a CSV file, and return the list of JobMatches."""
+    """Evaluate jobs against the Resume, save matches to a CSV file, and return the list of JobMatches."""
     existing_matches = _get_from_csv(matches_file, JobMatch)
 
     logger.info("Analyzing matches...")

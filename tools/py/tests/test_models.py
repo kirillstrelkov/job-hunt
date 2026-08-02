@@ -1,15 +1,15 @@
-"""Tests for CV tailoring Pydantic models."""
+"""Tests for Resume tailoring Pydantic models."""
 
 from pydantic_ai import Agent
 
 from helpers.llm.gemini import _get_agent as get_gemini_agent
 from helpers.llm.ollama import _get_agent as get_ollama_agent
-from helpers.models import TailoredCVBody
+from helpers.models import TailoredResumeBody
 
 
-def test_tailored_cv_parsing() -> None:
-    """Test that a complete tailored CV parses successfully into Pydantic models."""
-    sample_cv_data = {
+def test_tailored_resume_parsing() -> None:
+    """Test that a complete tailored Resume parses successfully into Pydantic models."""
+    sample_resume_data = {
         "summary": (
             "Highly motivated Software Engineer with robust experience architecting scalable, "
             "fault-tolerant infrastructure and enterprise tooling using C/C++, Rust, and Python."
@@ -93,27 +93,27 @@ def test_tailored_cv_parsing() -> None:
     }
 
     # Verify parsing works without exceptions
-    cv = TailoredCVBody(**sample_cv_data)
+    resume = TailoredResumeBody(**sample_resume_data)
 
     # Asset fields match
-    assert cv.summary.startswith("Highly motivated Software Engineer")
-    assert "Golang" in cv.skills.languages
-    assert cv.work_experience[0].company == "CARIAD SE"
-    assert cv.projects[0].name.startswith("University of Helsinki DevOps Labs")
-    assert cv.courses_and_certificates[0].provider == "Confluent"
-    assert len(cv.justification_report.reductions_and_omissions) == 1
-    assert cv.additional_options.courses_and_certificates_overflow[0].name == "Apache Flink Fundamentals"
+    assert resume.summary.startswith("Highly motivated Software Engineer")
+    assert "Golang" in resume.skills.languages
+    assert resume.work_experience[0].company == "CARIAD SE"
+    assert resume.projects[0].name.startswith("University of Helsinki DevOps Labs")
+    assert resume.courses_and_certificates[0].provider == "Confluent"
+    assert len(resume.justification_report.reductions_and_omissions) == 1
+    assert resume.additional_options.courses_and_certificates_overflow[0].name == "Apache Flink Fundamentals"
 
 
 def test_get_agent_gemini() -> None:
     """Test that get_agent for Gemini returns a valid Agent."""
-    agent = get_gemini_agent("gemini-2.5-flash", TailoredCVBody, "test system prompt")
+    agent = get_gemini_agent("gemini-2.5-flash", TailoredResumeBody, "test system prompt")
     assert isinstance(agent, Agent)
-    assert agent.output_type == TailoredCVBody
+    assert agent.output_type == TailoredResumeBody
 
 
 def test_get_agent_ollama() -> None:
     """Test that get_agent for Ollama returns a valid Agent."""
-    agent = get_ollama_agent("gemma4:e2b", TailoredCVBody, "test system prompt")
+    agent = get_ollama_agent("gemma4:e2b", TailoredResumeBody, "test system prompt")
     assert isinstance(agent, Agent)
-    assert agent.output_type == TailoredCVBody
+    assert agent.output_type == TailoredResumeBody

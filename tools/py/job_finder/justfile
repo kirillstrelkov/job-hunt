@@ -4,7 +4,7 @@ set dotenv-required := true
 default:
     @just -l
 
-# Get jobs from URL list and match based on CV
+# Get jobs from URL list and match based on Resume
 fetch-match:
     uv run python cli/fetch_and_match.py --log-level DEBUG
 

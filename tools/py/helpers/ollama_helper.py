@@ -249,7 +249,7 @@ def generate_response(model: str, prompt: str, options: dict | None = None) -> s
 
 
 def get_model_output(model: str, prompt_content: str, output_file: Path, options: dict | None = None) -> str:
-    """Get the generated CV from a cached file or generate it using Ollama if not present."""
+    """Get the generated Resume from a cached file or generate it using Ollama if not present."""
     if output_file.exists():
         return output_file.read_text(encoding="utf-8")
 

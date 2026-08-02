@@ -1,4 +1,4 @@
-from cv.tools.process_cv import fix_markdown
+from resume.tools.process_resume import fix_markdown
 from md.format import format
 
 

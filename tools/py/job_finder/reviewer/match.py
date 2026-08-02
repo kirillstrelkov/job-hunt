@@ -1,19 +1,19 @@
-"""Reviewer module to evaluate job descriptions against candidate CV."""
+"""Reviewer module to evaluate job descriptions against candidate Resume."""
 
 from pathlib import Path
 
 from loguru import logger
 from tqdm import tqdm
 
-from job_finder.reviewer.llm import analyze_cv, get_checked_passed, get_match_percentage
+from job_finder.reviewer.llm import analyze_resume, get_checked_passed, get_match_percentage
 from job_finder.utils.caching_utils import get_cached_value, get_hashsum
 from job_finder.utils.models import Job, JobMatch
 
-_CV_TEXT = (Path(__file__).resolve().parent.parent / "data/private/cv.txt").read_text(encoding="utf-8")
+_RESUME_TEXT = (Path(__file__).resolve().parent.parent / "data/private/cv.txt").read_text(encoding="utf-8")
 
 
-def _match_cv_and_job_desc(job_desc: Job) -> JobMatch:
-    """Evaluate a single job description against the candidate's CV.
+def _match_resume_and_job_desc(job_desc: Job) -> JobMatch:
+    """Evaluate a single job description against the candidate's Resume.
 
     Args:
         job_desc: The job description model to evaluate.
@@ -24,8 +24,8 @@ def _match_cv_and_job_desc(job_desc: Job) -> JobMatch:
     """
 
     def _get() -> JobMatch:
-        """Call the LLM to get the CV evaluation."""
-        res = analyze_cv(_CV_TEXT, job_desc.description)
+        """Call the LLM to get the Resume evaluation."""
+        res = analyze_resume(_RESUME_TEXT, job_desc.description)
         match = get_match_percentage(res)
         check_passed = get_checked_passed(res)
 
@@ -45,7 +45,7 @@ def _match_cv_and_job_desc(job_desc: Job) -> JobMatch:
     try:
         return get_cached_value(hs, _get)
     except Exception as e:
-        logger.error(f"Error matching CV and job description from {job_desc.url}: {e}")
+        logger.error(f"Error matching Resume and job description from {job_desc.url}: {e}")
         return JobMatch(
             title=job_desc.title,
             company=job_desc.company,
@@ -69,4 +69,4 @@ def get_job_matches(jobs: list[Job]) -> list[JobMatch]:
         List of match assessments.
 
     """
-    return [_match_cv_and_job_desc(jd) for jd in tqdm(jobs)]
+    return [_match_resume_and_job_desc(jd) for jd in tqdm(jobs)]

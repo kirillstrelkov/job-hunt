@@ -44,7 +44,9 @@ class IndeedBoard(JobBoard):
 
     def __signin_loop(self) -> bool:
         """Perform the login credentials input and wait for login completion."""
-        self._browser.type(by_css='input[type="email"]', text=self._credentials.username + "\n")
+        css_email = 'input[type="email"]'
+        self._browser.wait_for_visible(by_css=css_email)
+        self._browser.type(by_css=css_email, text=self._credentials.username + "\n")
 
         self._browser.wait_for_visible(by_css=self._BOARD_CSS_SELECTORS.profile, timeout=self._SINGIN_TIMEOUT)
         return True

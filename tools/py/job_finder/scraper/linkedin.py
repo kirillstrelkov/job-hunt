@@ -23,6 +23,8 @@ def _find_first_visible(browser: Browser, **kwargs: object) -> WebElement:
     """
     _ = kwargs.pop("times", 0)
 
+    # TODO: wait untill at least one is present
+
     for e in browser.find_elements(**kwargs):
         if browser.is_visible(element=e):
             return e
@@ -60,11 +62,17 @@ class LinkedinBoard(JobBoard):
             return True
 
         self._browser.type(
-            _find_first_visible(self._browser, by_xpath='//input[@type="email"]'),
+            _find_first_visible(
+                self._browser,
+                by_css='input[type="email"]',
+            ),
             text=self._credentials.username,
         )
         self._browser.type(
-            _find_first_visible(self._browser, by_xpath='//input[@type="password"]'),
+            _find_first_visible(
+                self._browser,
+                by_css='input[type="password"]',
+            ),
             text=self._credentials.password + "\n",
         )
         self.__wait_for_logged_in()

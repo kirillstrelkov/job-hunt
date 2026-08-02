@@ -69,7 +69,7 @@ qwen3.5:9b-q4_K_M                  6488c96fa5fa    6.6 GB    3 days ago
 
 ## Ollama models that won't fit into GPU
 
-Check [result_analysis.ipynb](./tailor_cv_eval/tools/eval_performance/result_analysis.ipynb) and [eval_performance](./tailor_cv_eval/tools/eval_performance) for more information
+Check [result_analysis.ipynb](./tailor_resume_eval/tools/eval_performance/result_analysis.ipynb) and [eval_performance](./tailor_resume_eval/tools/eval_performance) for more information
 
 | N   | Model                           | GPU Usage | GPU Info           | Options                         | Run Name                   |
 | --- | ------------------------------- | --------- | ------------------ | ------------------------------- | -------------------------- |
@@ -109,7 +109,7 @@ Check [result_analysis.ipynb](./tailor_cv_eval/tools/eval_performance/result_ana
 
 ## Evaluation of models again ground truth
 
-[result_analysis.ipynb](./tailor_cv_eval/tools/eval_quality_with_gt/result_analysis.ipynb)
+[result_analysis.ipynb](./tailor_resume_eval/tools/eval_quality_with_gt/result_analysis.ipynb)
 
 | N   | Provider Label                                               | Prompt Label  | Success | Score    | Passed | Failed | Latency (s) | Completion Tokens | Failure Reason                                                                                                            |
 | --- | ------------------------------------------------------------ | ------------- | ------- | -------- | ------ | ------ | ----------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------- |

@@ -1,1 +1,1 @@
-"""Configuration package for CV composer and helper settings."""
+"""Configuration package for Resume composer and helper settings."""

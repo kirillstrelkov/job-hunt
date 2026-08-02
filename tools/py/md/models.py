@@ -1,4 +1,4 @@
-"""Pydantic models representing structured sections and elements of a CV.
+"""Pydantic models representing structured sections and elements of a Resume.
 
 NOTE: This models are pure Markdown based and do not use any LaTeX or other formatting.
 
@@ -24,7 +24,7 @@ class TextConstant:
 
 
 class SectionConstant:
-    """Constants for section names in a CV."""
+    """Constants for section names in a Resume."""
 
     SUMMARY = "Summary"
     SKILLS = "Skills"
@@ -780,7 +780,7 @@ class Info(Section):
 
 
 class Header(BaseModel):
-    """Pydantic model representing the CV header containing contact information."""
+    """Pydantic model representing the Resume header containing contact information."""
 
     info_sec: Info = Field(alias="info")
 
@@ -792,7 +792,7 @@ class Header(BaseModel):
     def from_string(
         cls, s: str, filepath: Path | None = None, indexed_lines: list[IndexedLine] | None = None
     ) -> "Header":
-        """Parse CV header from a markdown string."""
+        """Parse Resume header from a markdown string."""
         lines = s.splitlines()
         info = Info.from_string("\n".join(lines), filepath=filepath, indexed_lines=indexed_lines)
         return cls(info=info)
@@ -826,7 +826,7 @@ class Header(BaseModel):
 
 
 class Footer(BaseModel):
-    """Pydantic model representing the CV footer containing education and languages."""
+    """Pydantic model representing the Resume footer containing education and languages."""
 
     education_sec: Education = Field(default_factory=Education, alias="education")
     language_sec: Language = Field(default_factory=Language, alias="language")
@@ -839,7 +839,7 @@ class Footer(BaseModel):
     def from_string(
         cls, s: str, filepath: Path | None = None, indexed_lines: list[IndexedLine] | None = None
     ) -> "Footer":
-        """Parse CV footer from a markdown string."""
+        """Parse Resume footer from a markdown string."""
         sections = split_markdown_into_sections(s, filepath=filepath)
         assert len(sections) == 2, f"Only two sections supported in footer. Found: {len(sections)}"
         edu_sec, lang_sec = sections
@@ -866,7 +866,7 @@ class Footer(BaseModel):
 
 
 class Body(BaseModel):
-    """Pydantic model representing the CV body containing work history, projects, and courses."""
+    """Pydantic model representing the Resume body containing work history, projects, and courses."""
 
     work_experience_sec: WorkExperience = Field(
         default_factory=WorkExperience,
@@ -889,7 +889,7 @@ class Body(BaseModel):
     def from_string(
         cls, s: str, filepath: Path | None = None, indexed_lines: list[IndexedLine] | None = None
     ) -> "Body":
-        """Parse CV body from a markdown string."""
+        """Parse Resume body from a markdown string."""
         sections = split_markdown_into_sections(s)
         we = WorkExperience(filepath=filepath, indexed_lines=indexed_lines)
         pp = PersonalProjects(filepath=filepath, indexed_lines=indexed_lines)
@@ -930,8 +930,8 @@ class Body(BaseModel):
         return self.courses_and_certificates_sec.entries
 
 
-class CV(BaseModel):
-    """Pydantic model representing the entire CV structure."""
+class Resume(BaseModel):
+    """Pydantic model representing the entire Resume structure."""
 
     header: Header | None = None
     summary: Summary | None = None
@@ -940,8 +940,10 @@ class CV(BaseModel):
     footer: Footer | None = None
 
     @classmethod
-    def from_string(cls, s: str, filepath: Path | None = None, indexed_lines: list[IndexedLine] | None = None) -> "CV":
-        """Parse entire CV from a markdown string."""
+    def from_string(
+        cls, s: str, filepath: Path | None = None, indexed_lines: list[IndexedLine] | None = None
+    ) -> "Resume":
+        """Parse entire Resume from a markdown string."""
         sections = split_markdown_into_sections(s)
 
         info = None
@@ -997,14 +999,14 @@ class CV(BaseModel):
         return "\n\n".join(parts) + "\n"
 
 
-def parse(text: str) -> CV:
-    """Parse CV markdown text into a CV Pydantic model.
+def parse(text: str) -> Resume:
+    """Parse Resume markdown text into a Resume Pydantic model.
 
     Args:
-        text: The raw markdown content of the CV.
+        text: The raw markdown content of the Resume.
 
     Returns:
-        CV: The parsed CV Pydantic model.
+        Resume: The parsed Resume Pydantic model.
 
     """
-    return CV.from_string(text)
+    return Resume.from_string(text)

@@ -51,7 +51,7 @@ dependencies = [
 dev = ["ruff"]
 
 [tool.setuptools]
-py-modules = ["process_cv"]
+py-modules = ["process_resume"]
 
 [tool.ruff]
 line-length = 120

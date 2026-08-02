@@ -1,4 +1,4 @@
-# CV Composer Configuration
+# Resume Composer Configuration
 
 composer:
   header: /home/kirill/prj/gl/job-hunt/cv/private/parts/header.md
@@ -6,7 +6,7 @@ composer:
   footer: /home/kirill/prj/gl/job-hunt/cv/private/parts/footer.md
 
 tailor:
-  prompt: /home/kirill/prj/gh/job-hunt/tools/py/cv/prompts/tailor_for_description.md
+  prompt: /home/kirill/prj/gh/job-hunt/tools/py/resume/prompts/tailor_for_description.md
 
 # LLM / Ollama Configuration
 llm:
@@ -107,7 +107,7 @@ paths:
   tmp_output_dir: "{root_dir}/tmp/outputs"
   tmp_input_dir: "{root_dir}/tmp/inputs"
   trulens_db_url: "sqlite:///{root_dir}/tmp/outputs/truelens/default.sqlite"
-  prepare_llm_prompt_script: "{root_dir}/tools/py/cv/tools/prepare_llm_prompt.py"
+  prepare_llm_prompt_script: "{root_dir}/tools/py/resume/tools/prepare_llm_prompt.py"
   env_file: "{root_dir}/tools/py/private/.env"
 
 data:

@@ -1,4 +1,4 @@
-"""LLM integration for CV and job description screening and analysis."""
+"""LLM integration for Resume and job description screening and analysis."""
 
 import json
 import os
@@ -63,7 +63,7 @@ Populate "gate_failed_reasons" with the names of any flags that are true
 SYSTEM_PROMPT_CANDIDATE = f"""
 {HEADER_PROMPT}
 
-Analyze the CV against the job description.
+Analyze the Resume against the job description.
 
 All percentages are integers 0-100. Every field must be populated — use null only if the
 information is genuinely absent. Base every judgment strictly on the provided documents.
@@ -75,11 +75,11 @@ The final JSON output must be:
 ```
 """
 
-CV_PROMPT = """
-CV:
-<cv>
-{cv}
-</cv>
+RESUME_PROMPT = """
+Resume:
+<resume>
+{resume}
+</resume>
 """
 JD_PROMPT = """
 Job description:
@@ -146,10 +146,10 @@ def _get_screening(job_description: str, model: str = MODEL) -> Screening:
     return Screening.model_validate_json(raw)
 
 
-def _get_analysis(cv: str, job_description: str, model: str = MODEL) -> Analysis:
+def _get_analysis(resume: str, job_description: str, model: str = MODEL) -> Analysis:
     prompts = [
         _create_prompt(system=SYSTEM_PROMPT_CANDIDATE),
-        _create_prompt(user=CV_PROMPT.format(cv=cv.strip())),
+        _create_prompt(user=RESUME_PROMPT.format(resume=resume.strip())),
         _create_prompt(user=JD_PROMPT.format(job_description=job_description.strip())),
     ]
     raw = llm_send(*prompts, model=model)
@@ -157,11 +157,11 @@ def _get_analysis(cv: str, job_description: str, model: str = MODEL) -> Analysis
     return Analysis.model_validate_json(raw)
 
 
-def analyze_cv(cv: str, job_description: str, model: str = MODEL) -> JobMatchResult:
-    """Analyze a CV against a job description using LLM.
+def analyze_resume(resume: str, job_description: str, model: str = MODEL) -> JobMatchResult:
+    """Analyze a Resume against a job description using LLM.
 
     Args:
-        cv: Full CV text
+        resume: Full Resume text
         job_description: Full job description text
         model: Optional model override
 
@@ -176,7 +176,7 @@ def analyze_cv(cv: str, job_description: str, model: str = MODEL) -> JobMatchRes
 
     if screening.gate_passed:
         try:
-            analysis = _get_analysis(cv, job_description, model=model)
+            analysis = _get_analysis(resume, job_description, model=model)
         except Exception as e:
             return JobMatchResult(error=str(e))
     else:

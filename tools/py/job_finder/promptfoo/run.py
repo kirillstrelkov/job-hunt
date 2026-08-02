@@ -16,7 +16,7 @@ from helpers.promptfoo_helper import (
     write_yaml_config,
 )
 from helpers.tmp_helper import get_tmp_folder
-from job_finder.reviewer.llm import CV_PROMPT, JD_PROMPT, SYSTEM_PROMPT_CANDIDATE
+from job_finder.reviewer.llm import RESUME_PROMPT, JD_PROMPT, SYSTEM_PROMPT_CANDIDATE
 
 MODELS = get_top_model_names(check_models=False)
 PRJ_ROOT_DIR = Path(__file__).parent.parent
@@ -42,16 +42,16 @@ def generate_config(models: list[str], tests: list[dict], output_file: Path) -> 
 
 
 def load_data() -> tuple[str, list[Path]]:
-    """Load CV text and test Job Descriptions."""
-    cv_path = PRJ_ROOT_DIR / "data" / "private" / "cv.txt"
-    if not cv_path.exists():
-        logger.error(f"CV file not found at: {cv_path}")
+    """Load Resume text and test Job Descriptions."""
+    resume_path = PRJ_ROOT_DIR / "data" / "private" / "cv.txt"
+    if not resume_path.exists():
+        logger.error(f"Resume file not found at: {resume_path}")
         sys.exit(1)
 
     try:
-        cv_text = cv_path.read_text(encoding="utf-8")
+        resume_text = resume_path.read_text(encoding="utf-8")
     except OSError as e:
-        logger.error(f"Failed to read CV file: {e}")
+        logger.error(f"Failed to read Resume file: {e}")
         sys.exit(1)
 
     test_jds = list((PRJ_ROOT_DIR / "data" / "test").glob("*.txt"))
@@ -59,11 +59,11 @@ def load_data() -> tuple[str, list[Path]]:
         logger.error("No test JDs found in data/test/*.txt")
         sys.exit(1)
 
-    return cv_text, test_jds
+    return resume_text, test_jds
 
 
-def generate_prompts_and_test_cases(cv_text: str, jd_files: list[Path], tmp_dir: Path) -> list[dict]:
-    """Combine system, CV, and JD prompts, save them under tmp_dir, and construct test cases list."""
+def generate_prompts_and_test_cases(resume_text: str, jd_files: list[Path], tmp_dir: Path) -> list[dict]:
+    """Combine system, Resume, and JD prompts, save them under tmp_dir, and construct test cases list."""
     tests = []
 
     # Map each JD to its corresponding expected screening gate or match percentage
@@ -81,11 +81,11 @@ def generate_prompts_and_test_cases(cv_text: str, jd_files: list[Path], tmp_dir:
     for jd_file in jd_files:
         jd_text = jd_file.read_text(encoding="utf-8")
 
-        # Combine system prompt, cv, and job description
-        cv_content = CV_PROMPT.format(cv=cv_text.strip())
+        # Combine system prompt, resume, and job description
+        resume_content = RESUME_PROMPT.format(resume=resume_text.strip())
         jd_content = JD_PROMPT.format(job_description=jd_text.strip())
         system_content = SYSTEM_PROMPT_CANDIDATE
-        combined_prompt = f"{system_content.strip()}\n\n{cv_content.strip()}\n\n{jd_content.strip()}"
+        combined_prompt = f"{system_content.strip()}\n\n{resume_content.strip()}\n\n{jd_content.strip()}"
 
         # Save prompt under tmp/promptfoo/
         prompt_out_file = tmp_dir / f"{jd_file.stem}_prompt.txt"
@@ -138,8 +138,8 @@ def main() -> None:
 
     TMP_DIR.mkdir(parents=True, exist_ok=True)
 
-    cv_text, test_jds = load_data()
-    tests = generate_prompts_and_test_cases(cv_text, test_jds, TMP_DIR)
+    resume_text, test_jds = load_data()
+    tests = generate_prompts_and_test_cases(resume_text, test_jds, TMP_DIR)
 
     config_file = TMP_DIR / "promptfoo_config.yaml"
     generate_config(MODELS, tests, config_file)

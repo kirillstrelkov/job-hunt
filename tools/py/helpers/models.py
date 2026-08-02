@@ -1,4 +1,4 @@
-"""Pydantic models representing tailored CV structure for LLM requests."""
+"""Pydantic models representing tailored Resume structure for LLM requests."""
 
 from pydantic import BaseModel, Field
 
@@ -129,7 +129,7 @@ class CourseCertificateOverflow(BaseModel):
 
 
 class AdditionalOptions(BaseModel):
-    """Additional tailored choices not fitting into the main CV layout."""
+    """Additional tailored choices not fitting into the main Resume layout."""
 
     work_experience_overflow: list[WorkExperienceOverflow] = Field(
         default_factory=list,
@@ -149,8 +149,8 @@ class AdditionalOptions(BaseModel):
     }
 
 
-class TailoredCVBody(BaseModel):
-    """The root model representing the complete tailored CV output of LLM request."""
+class TailoredResumeBody(BaseModel):
+    """The root model representing the complete tailored Resume output of LLM request."""
 
     summary: str = Field(
         ...,

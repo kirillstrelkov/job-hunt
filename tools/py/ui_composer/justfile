@@ -8,6 +8,6 @@ default:
 gen-config path="":
     uv run python app.py --generate-config {{ if path == "" { "" } else { path } }}
 
-# Run the Tailored CV Streamlit UI. Example: just ui
+# Run the Tailored Resume Streamlit UI. Example: just ui
 ui:
     uv run streamlit run app.py

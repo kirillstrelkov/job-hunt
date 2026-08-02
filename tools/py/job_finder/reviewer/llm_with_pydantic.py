@@ -1,4 +1,4 @@
-"""LLM integration for CV and job description screening and analysis."""
+"""LLM integration for Resume and job description screening and analysis."""
 
 from typing import Any
 
@@ -38,17 +38,17 @@ Evaluate the following:
 SYSTEM_PROMPT_CANDIDATE = f"""
 {HEADER_PROMPT}
 
-Analyze the CV against the job description.
+Analyze the Resume against the job description.
 
 All percentages are integers 0-100. Every field must be populated — use null only if the
 information is genuinely absent. Base every judgment strictly on the provided documents.
 """
 
-CV_PROMPT = """
-CV:
-<cv>
-{cv}
-</cv>
+RESUME_PROMPT = """
+Resume:
+<resume>
+{resume}
+</resume>
 """
 JD_PROMPT = """
 Job description:
@@ -95,13 +95,13 @@ class Screening(BaseModel):
 
 
 class Analysis(BaseModel):
-    """Pydantic model holding the CV-to-JD fit analysis details."""
+    """Pydantic model holding the Resume-to-JD fit analysis details."""
 
     match_percentage: int = Field(description="Candidate match percentage (0-100).")
     fit_label: str = Field(description="Excellent | Strong | Moderate | Weak | Poor.")
     summary: str = Field(description="2-3 sentence explanation of candidate fit.")
-    matched_skills: list[str] = Field(description="Skills requested in JD that are matched in the CV.")
-    missing_skills: list[str] = Field(description="Skills requested in JD but missing in the CV.")
+    matched_skills: list[str] = Field(description="Skills requested in JD that are matched in the Resume.")
+    missing_skills: list[str] = Field(description="Skills requested in JD but missing in the Resume.")
     strengths: list[str] = Field(description="Candidate's strengths for the role.")
     gaps: list[str] = Field(description="Candidate's gaps for the role.")
 
@@ -132,8 +132,10 @@ def _get_screening(job_description: str, model: str = MODEL) -> Screening:
     return result.output
 
 
-def _get_analysis(cv: str, job_description: str, model: str = MODEL) -> Analysis:
-    user_prompt = f"{CV_PROMPT.format(cv=cv.strip())}\n{JD_PROMPT.format(job_description=job_description.strip())}"
+def _get_analysis(resume: str, job_description: str, model: str = MODEL) -> Analysis:
+    user_prompt = (
+        f"{RESUME_PROMPT.format(resume=resume.strip())}\n{JD_PROMPT.format(job_description=job_description.strip())}"
+    )
     result = run_model(
         model_name=model,
         output_type=Analysis,
@@ -143,11 +145,11 @@ def _get_analysis(cv: str, job_description: str, model: str = MODEL) -> Analysis
     return result.output
 
 
-def analyze_cv(cv: str, job_description: str, model: str = MODEL) -> JobMatchResult:
-    """Analyze a CV against a job description using LLM.
+def analyze_resume(resume: str, job_description: str, model: str = MODEL) -> JobMatchResult:
+    """Analyze a Resume against a job description using LLM.
 
     Args:
-        cv: Full CV text
+        resume: Full Resume text
         job_description: Full job description text
         model: Optional model override
 
@@ -162,7 +164,7 @@ def analyze_cv(cv: str, job_description: str, model: str = MODEL) -> JobMatchRes
 
     if screening.gate_passed:
         try:
-            analysis = _get_analysis(cv, job_description, model=model)
+            analysis = _get_analysis(resume, job_description, model=model)
         except Exception as e:
             return JobMatchResult(error=str(e))
     else:

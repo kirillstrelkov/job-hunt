@@ -1,4 +1,4 @@
-"""Unified configuration helper utilities for resolving paths, substitutions and CV parts."""
+"""Unified configuration helper utilities for resolving paths, substitutions and Resume parts."""
 
 import argparse
 import re
@@ -15,7 +15,7 @@ CONFIG_DIR = Path(__file__).resolve().parent
 
 @dataclass
 class Config:
-    """Dataclass holding resolved CV file paths."""
+    """Dataclass holding resolved Resume file paths."""
 
     header: Path
     body: Path
@@ -35,7 +35,7 @@ class InputJob:
 
 @dataclass
 class ComposerConfig:
-    """Configuration for CV Composer inputs."""
+    """Configuration for Resume Composer inputs."""
 
     header: Path
     body: Path
@@ -435,12 +435,12 @@ def create_default_config(dest_path: Path) -> None:
 
     default_data = {
         "composer": {
-            "header": "../cv/example/header.md",
-            "body": "../cv/example/body.md",
-            "footer": "../cv/example/footer.md",
+            "header": "../resume/example/header.md",
+            "body": "../resume/example/body.md",
+            "footer": "../resume/example/footer.md",
         },
         "tailor": {
-            "prompt": "../cv/prompts/tailor_for_description.md",
+            "prompt": "../resume/prompts/tailor_for_description.md",
         },
     }
 
@@ -482,7 +482,7 @@ def check_config(config_path: Path) -> bool:
 
 def main() -> None:
     """Run the CLI application."""
-    parser = argparse.ArgumentParser(description="Manage CV configuration files.")
+    parser = argparse.ArgumentParser(description="Manage Resume configuration files.")
     parser.add_argument(
         "--create",
         action="store_true",
@@ -523,4 +523,4 @@ def main() -> None:
 
 DEFAULT_CONFIG = ConfigManager(CONFIG_DIR / "config.yaml")
 TRULENS_DB_URL = DEFAULT_CONFIG.get_config_value(".trulens_db_url")
-DEFAULT_CV_CONFIG = load_config(CONFIG_DIR / "config.yaml")
+DEFAULT_RESUME_CONFIG = load_config(CONFIG_DIR / "config.yaml")

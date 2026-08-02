@@ -56,7 +56,7 @@ Content of another sub section
 
 
 def test_parse_header_example() -> None:
-    filepath = Path("cv/example/header.md")
+    filepath = Path("resume/example/header.md")
     content = filepath.read_text(encoding="utf-8")
 
     header = Header.from_string(content)
@@ -72,7 +72,7 @@ def test_parse_header_example() -> None:
 
 
 def test_parse_body_example() -> None:
-    filepath = Path("cv/example/body.md")
+    filepath = Path("resume/example/body.md")
     content = filepath.read_text(encoding="utf-8")
 
     body = Body.from_string(content)
@@ -109,7 +109,7 @@ def test_parse_body_example() -> None:
 
 
 def test_parse_footer_example() -> None:
-    filepath = Path("cv/example/footer.md")
+    filepath = Path("resume/example/footer.md")
     content = filepath.read_text(encoding="utf-8")
 
     footer = Footer.from_string(content)
@@ -139,15 +139,15 @@ def test_parse_footer_example() -> None:
     assert normalized_output == normalized_content
 
 
-def test_parse_full_cv() -> None:
-    header_text = Path("cv/example/header.md").read_text(encoding="utf-8")
-    body_text = Path("cv/example/body.md").read_text(encoding="utf-8")
-    footer_text = Path("cv/example/footer.md").read_text(encoding="utf-8")
+def test_parse_full_resume() -> None:
+    header_text = Path("resume/example/header.md").read_text(encoding="utf-8")
+    body_text = Path("resume/example/body.md").read_text(encoding="utf-8")
+    footer_text = Path("resume/example/footer.md").read_text(encoding="utf-8")
 
-    full_cv_text = f"{header_text}\n\n{body_text}\n\n{footer_text}"
-    cv_obj = parse(full_cv_text)
+    full_resume_text = f"{header_text}\n\n{body_text}\n\n{footer_text}"
+    resume_obj = parse(full_resume_text)
 
-    assert cv_obj.header is not None
-    assert cv_obj.header.name == "John Doe"
-    assert len(cv_obj.body.work_experience) == 7
-    assert len(cv_obj.footer.languages) == 3
+    assert resume_obj.header is not None
+    assert resume_obj.header.name == "John Doe"
+    assert len(resume_obj.body.work_experience) == 7
+    assert len(resume_obj.footer.languages) == 3

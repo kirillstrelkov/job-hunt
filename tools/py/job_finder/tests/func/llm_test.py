@@ -1,4 +1,4 @@
-"""Unit tests for the LLM CV matching and screening reviewer."""
+"""Unit tests for the LLM Resume matching and screening reviewer."""
 
 from pathlib import Path
 from pprint import pformat
@@ -10,7 +10,7 @@ from job_finder.reviewer.llm import (
     JobMatchResult,
     _get_analysis,
     _get_screening,
-    analyze_cv,
+    analyze_resume,
     get_checked_passed,
     get_match_percentage,
 )
@@ -19,7 +19,7 @@ __DATA_DIR = Path(__file__).resolve().parent.parent.parent / "data"
 
 
 @pytest.fixture
-def cv_text() -> str:
+def resume_text() -> str:
     return (__DATA_DIR / "private/cv.txt").read_text(encoding="utf-8")
 
 
@@ -38,11 +38,11 @@ def assert_llm_response(
     assert get_match_percentage(result) <= max_match
 
 
-def _run_and_assert(cv_text: str, sub_path: str, min_match: int, fail_reason: str | None = None) -> None:
+def _run_and_assert(resume_text: str, sub_path: str, min_match: int, fail_reason: str | None = None) -> None:
     logger.debug("Path: {}", sub_path)
     job_desc = (__DATA_DIR / sub_path).read_text(encoding="utf-8")
 
-    res = analyze_cv(cv_text, job_desc)
+    res = analyze_resume(resume_text, job_desc)
     assert_llm_response(res, min_match, fail_reason)
 
 
@@ -67,18 +67,18 @@ _ANALYSIS_DATA = (
     ("file_path", "fail_reason"),
     _SCREENING_DATA,
 )
-def test_screening_reason(file_path: str, fail_reason: str, cv_text: str) -> None:
+def test_screening_reason(file_path: str, fail_reason: str, resume_text: str) -> None:
     """Test that jobs failing pre-screening are rejected with the correct flag."""
-    _run_and_assert(cv_text, file_path, 0, fail_reason)
+    _run_and_assert(resume_text, file_path, 0, fail_reason)
 
 
 @pytest.mark.parametrize(
     ("file_path", "min_match"),
     _ANALYSIS_DATA,
 )
-def test_min_match_percentage(file_path: str, min_match: int, cv_text: str) -> None:
+def test_min_match_percentage(file_path: str, min_match: int, resume_text: str) -> None:
     """Test that acceptable jobs pass screening with at least the minimum match percentage."""
-    _run_and_assert(cv_text, file_path, min_match)
+    _run_and_assert(resume_text, file_path, min_match)
 
 
 @pytest.mark.parametrize(
@@ -98,8 +98,8 @@ def test_screening_output(file_path: str, expected_flag: str) -> None:
     ("file_path", "min_match"),
     _ANALYSIS_DATA,
 )
-def test_analysis_output(file_path: str, min_match: int, cv_text: str) -> None:
+def test_analysis_output(file_path: str, min_match: int, resume_text: str) -> None:
     """Test that _get_analysis returns correct fit and match thresholds."""
     job_desc = (__DATA_DIR / file_path).read_text(encoding="utf-8")
-    analysis = _get_analysis(cv_text, job_desc)
+    analysis = _get_analysis(resume_text, job_desc)
     assert analysis.match_percentage > min_match

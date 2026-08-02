@@ -10,21 +10,21 @@ _REGEXP_HEADER_GROUP = re.compile(r"^(#+)\s*(.*)\s*$")
 
 
 class IndexedLine(BaseModel):
-    """Represents a single line from the CV with its content and line index."""
+    """Represents a single line from the Resume with its content and line index."""
 
     line: str
     index: int
 
 
 class Heading(BaseModel):
-    """Represents a heading from the CV."""
+    """Represents a heading from the Resume."""
 
     text: str
     heading_prefix: str
 
 
 class Section(BaseModel):
-    """Base Pydantic model representing a structured section of a CV."""
+    """Base Pydantic model representing a structured section of a Resume."""
 
     heading: Heading = Field(...)
     filepath: Path | None = Field(default_factory=lambda: _TMP_MARKDOWN_FILE)
@@ -41,7 +41,7 @@ class Section(BaseModel):
 
 
 def split_markdown_into_sections(md: str, filepath: Path | None = None) -> list[Section]:
-    """Parse the CV markdown string and split it into sections based on markdown headers."""
+    """Parse the Resume markdown string and split it into sections based on markdown headers."""
     lines_raw = md.splitlines()
     sections = []
     cur_section = None

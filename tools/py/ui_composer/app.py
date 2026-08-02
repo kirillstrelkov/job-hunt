@@ -1,4 +1,4 @@
-"""Streamlit user interface for CV tailoring, editing, checking and PDF conversion."""
+"""Streamlit user interface for Resume tailoring, editing, checking and PDF conversion."""
 
 import argparse
 import base64
@@ -18,18 +18,18 @@ from loguru import logger
 
 sys.path.append(str(Path(__file__).parent.parent))
 
-from cv.tools import process_cv
+from resume.tools import process_resume
 
-importlib.reload(process_cv)
-from cv.tools.combine_resume_parts import combine_resume_parts
-from cv.tools.md2pdf import convert_md_to_pdf
+importlib.reload(process_resume)
+from resume.tools.combine_resume_parts import combine_resume_parts
+from resume.tools.md2pdf import convert_md_to_pdf
 from helpers.llm_helper import get_model_names as get_gemini_models
 from helpers.llm_helper import run_model as run_gemini_model
 from helpers.ollama_helper import run_model as run_ollama_model
 
 # Add required paths
 tools_py_dir = Path(__file__).resolve().parent.parent
-cv_tools_dir = tools_py_dir / "cv" / "tools"
+resume_tools_dir = tools_py_dir / "resume" / "tools"
 
 
 def generate_config(output_path: str) -> None:
@@ -68,7 +68,7 @@ def generate_config(output_path: str) -> None:
 
 def main_cli() -> None:
     """Parse command line arguments and execute CLI operations."""
-    parser = argparse.ArgumentParser(description="Tailored CV UI / CLI")
+    parser = argparse.ArgumentParser(description="Tailored Resume UI / CLI")
     parser.add_argument(
         "--generate-config", type=str, nargs="?", const="./config.yaml", help="Generate a consolidated config file"
     )
@@ -91,7 +91,7 @@ if st.session_state.get("gemini_api_key_val"):
 
 
 def compile_pdf(md_path: str, pdf_path: str) -> None:
-    """Compile Markdown file to PDF using cv/tools/md2pdf.py."""
+    """Compile Markdown file to PDF using resume/tools/md2pdf.py."""
     try:
         convert_md_to_pdf(Path(md_path), Path(pdf_path))
     except SystemExit as e:
@@ -105,16 +105,16 @@ def get_temp_generation_dir(jd_text: str | None = None) -> tuple[Path, str]:
     dt_str = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
     if jd_text and jd_text.strip():
         jd_hash = hashlib.md5(jd_text.strip().encode("utf-8"), usedforsecurity=False).hexdigest()
-        temp_dir = Path(tempfile.gettempdir()) / "tmp_compose_cv" / jd_hash
+        temp_dir = Path(tempfile.gettempdir()) / "tmp_compose_resume" / jd_hash
     else:
-        temp_dir = Path(tempfile.gettempdir()) / "tmp_compose_cv" / "default"
+        temp_dir = Path(tempfile.gettempdir()) / "tmp_compose_resume" / "default"
 
     temp_dir.mkdir(parents=True, exist_ok=True)
     return temp_dir, dt_str
 
 
-st.set_page_config(layout="wide", page_title="CV Composer")
-st.title("CV Composer")
+st.set_page_config(layout="wide", page_title="Resume Composer")
+st.title("Resume Composer")
 
 # Premium styling for primary CTA buttons to be blue
 st.markdown(
@@ -195,20 +195,20 @@ def load_unified_config(path: str) -> dict:
 def _clear_stale_config_states() -> None:
     """Clean up stale session state variables related to previous configuration."""
     st.session_state.pop("master_texts", None)
-    st.session_state.pop("edited_cv_local", None)
-    st.session_state.pop("edited_cv_manual", None)
-    st.session_state.pop("_persistent_edited_cv_local", None)
-    st.session_state.pop("_persistent_edited_cv_manual", None)
+    st.session_state.pop("edited_resume_local", None)
+    st.session_state.pop("edited_resume_manual", None)
+    st.session_state.pop("_persistent_edited_resume_local", None)
+    st.session_state.pop("_persistent_edited_resume_manual", None)
     st.session_state.pop("tailored_body", None)
     st.session_state.pop("shared_jd", None)
     st.session_state.pop("jd_local", None)
     st.session_state.pop("jd_manual", None)
     st.session_state.pop("pdf_bytes", None)
     st.session_state.pop("arbitrary_pdf_bytes", None)
-    st.session_state.pop("local_cv_errors", None)
-    st.session_state.pop("local_cv_checked", None)
-    st.session_state.pop("manual_cv_errors", None)
-    st.session_state.pop("manual_cv_checked", None)
+    st.session_state.pop("local_resume_errors", None)
+    st.session_state.pop("local_resume_checked", None)
+    st.session_state.pop("manual_resume_errors", None)
+    st.session_state.pop("manual_resume_checked", None)
     st.session_state.pop("local_tailor_error", None)
     st.session_state.pop("local_tailor_warning", None)
     st.session_state.pop("local_tailor_note", None)
@@ -455,7 +455,7 @@ with tabs[0]:
             "Paste JD here", height=250, key="jd_local", label_visibility="collapsed", on_change=on_jd_local_change
         )
 
-    # 3. Dynamic column structure for CV Markdown and CV PDF
+    # 3. Dynamic column structure for Resume Markdown and Resume PDF
     show_pdf_local = st.session_state.get("show_pdf_local_val", True)
 
     if show_pdf_local:
@@ -464,42 +464,44 @@ with tabs[0]:
         col_md = st.container()
 
     with col_md:
-        st.subheader("Step 2: Compose CV to Markdown")
+        st.subheader("Step 2: Compose Resume to Markdown")
 
-        # Combine CV
+        # Combine Resume
         tailored_body = st.session_state.get("tailored_body", "")
         if not tailored_body:
-            full_cv_md = ""
+            full_resume_md = ""
         else:
             header = st.session_state["master_texts"]["header"]
             footer = st.session_state["master_texts"]["footer"]
-            full_cv_md = combine_resume_parts(header, tailored_body, footer)
+            full_resume_md = combine_resume_parts(header, tailored_body, footer)
 
         # Apply any pending update from PDF handler (must happen before widget is rendered)
-        if "_edited_cv_local_pending" in st.session_state:
-            st.session_state["edited_cv_local"] = st.session_state.pop("_edited_cv_local_pending")
+        if "_edited_resume_local_pending" in st.session_state:
+            st.session_state["edited_resume_local"] = st.session_state.pop("_edited_resume_local_pending")
 
-        if "edited_cv_local" not in st.session_state:
-            st.session_state["edited_cv_local"] = st.session_state.get("_persistent_edited_cv_local", full_cv_md)
+        if "edited_resume_local" not in st.session_state:
+            st.session_state["edited_resume_local"] = st.session_state.get(
+                "_persistent_edited_resume_local", full_resume_md
+            )
 
-        edited_full_cv = st.session_state.get("edited_cv_local", full_cv_md)
-        if "edited_cv_local" in st.session_state:
-            st.session_state["_persistent_edited_cv_local"] = st.session_state["edited_cv_local"]
+        edited_full_resume = st.session_state.get("edited_resume_local", full_resume_md)
+        if "edited_resume_local" in st.session_state:
+            st.session_state["_persistent_edited_resume_local"] = st.session_state["edited_resume_local"]
 
         col_btn1, col_btn2, col_btn3 = st.columns([1, 1, 1])
         with col_btn1:
             btn_gen_local_clicked = st.button(
-                "Compose CV with LLM", use_container_width=True, key="btn_gen_local", type="primary"
+                "Compose Resume with LLM", use_container_width=True, key="btn_gen_local", type="primary"
             )
         with col_btn2:
             btn_check_local_clicked = st.button(
-                "Check CV", use_container_width=True, key="btn_check_local", type="secondary"
+                "Check Resume", use_container_width=True, key="btn_check_local", type="secondary"
             )
         with col_btn3:
             st.download_button(
-                "Save Composed CV as Markdown",
-                edited_full_cv,
-                file_name="cv.md",
+                "Save Composed Resume as Markdown",
+                edited_full_resume,
+                file_name="resume.md",
                 key="dl_md_local",
                 use_container_width=True,
             )
@@ -510,19 +512,19 @@ with tabs[0]:
             st.session_state.pop("local_tailor_error", None)
             st.session_state.pop("local_tailor_warning", None)
             st.session_state.pop("local_tailor_note", None)
-            if not edited_full_cv.strip():
-                st.session_state["local_tailor_warning"] = "No CV text to check."
+            if not edited_full_resume.strip():
+                st.session_state["local_tailor_warning"] = "No Resume text to check."
                 st.rerun()
             else:
-                errors = process_cv.check_markdown(edited_full_cv)
-                st.session_state["local_cv_checked"] = True
+                errors = process_resume.check_markdown(edited_full_resume)
+                st.session_state["local_resume_checked"] = True
                 if errors:
                     st.session_state["local_tailor_error"] = (
-                        f"CV check failed with {len(errors)} errors:\n"
+                        f"Resume check failed with {len(errors)} errors:\n"
                         + "\n".join(f"- Line {err.line_num}: {err.msg} (content: `{err.line}`)" for err in errors)
                     )
                 else:
-                    st.session_state["local_tailor_note"] = "No CV errors found!"
+                    st.session_state["local_tailor_note"] = "No Resume errors found!"
                 st.rerun()
 
         if btn_gen_local_clicked:
@@ -538,8 +540,8 @@ with tabs[0]:
             else:
                 st.session_state["local_llm_stdout"] = "Tailoring...\n"
                 prompt_template = st.session_state["master_texts"]["prompt"]
-                master_cv = st.session_state["master_texts"]["body"]
-                hydrated = prompt_template.format(master_cv=master_cv, job_description=jd_local)
+                master_resume = st.session_state["master_texts"]["body"]
+                hydrated = prompt_template.format(master_resume=master_resume, job_description=jd_local)
 
                 spinner_msg = (
                     f"Running Gemini ({selected_model})..." if use_cloud else f"Running Ollama ({selected_model})..."
@@ -590,7 +592,7 @@ with tabs[0]:
 
                         response_text = result.get("response", "")
 
-                        # Process output to trim to CV
+                        # Process output to trim to Resume
                         lines = response_text.splitlines()
                         start_idx = 0
                         for i, line in enumerate(lines):
@@ -614,15 +616,15 @@ with tabs[0]:
                         st.session_state["edited_notes_local"] = notes_text
                         header = st.session_state["master_texts"]["header"]
                         footer = st.session_state["master_texts"]["footer"]
-                        full_cv_md = combine_resume_parts(header, trimmed_text, footer)
+                        full_resume_md = combine_resume_parts(header, trimmed_text, footer)
                         if fix_markdown:
-                            full_cv_md = process_cv.fix_markdown(full_cv_md)
-                        st.session_state["edited_cv_local"] = full_cv_md
-                        st.session_state["_persistent_edited_cv_local"] = full_cv_md
+                            full_resume_md = process_resume.fix_markdown(full_resume_md)
+                        st.session_state["edited_resume_local"] = full_resume_md
+                        st.session_state["_persistent_edited_resume_local"] = full_resume_md
                         st.session_state.pop("pdf_bytes", None)
-                        st.session_state.pop("local_cv_errors", None)
-                        st.session_state.pop("local_cv_checked", None)
-                        st.session_state["local_tailor_note"] = "CV Composed successfully!"
+                        st.session_state.pop("local_resume_errors", None)
+                        st.session_state.pop("local_resume_checked", None)
+                        st.session_state["local_tailor_note"] = "Resume Composed successfully!"
                         st.rerun()
                     except Exception as e:
                         st.session_state["local_tailor_error"] = f"LLM Generation Failed: {e}"
@@ -638,37 +640,42 @@ with tabs[0]:
 
         st.toggle("Show PDF Preview", value=st.session_state.get("show_pdf_local_val", True), key="show_pdf_local_val")
 
-        cv_edit_tab, cv_preview_tab = st.tabs(["Edit", "Preview"])
-        with cv_edit_tab:
-            st.text_area("Full CV Markdown text", height=600, key="edited_cv_local", label_visibility="collapsed")
-        with cv_preview_tab:
-            st.markdown(st.session_state.get("edited_cv_local", full_cv_md))
+        resume_edit_tab, resume_preview_tab = st.tabs(["Edit", "Preview"])
+        with resume_edit_tab:
+            st.text_area(
+                "Full Resume Markdown text", height=600, key="edited_resume_local", label_visibility="collapsed"
+            )
+        with resume_preview_tab:
+            st.markdown(st.session_state.get("edited_resume_local", full_resume_md))
 
     if show_pdf_local:
         with col_pdf:
-            st.subheader("Step 3: Convert CV to PDF")
+            st.subheader("Step 3: Convert Resume to PDF")
 
             col_pdf_btns1, col_pdf_btns2 = st.columns([1, 1])
             with col_pdf_btns1:
                 btn_pdf_local_clicked = st.button(
-                    "Convert Markdown CV to PDF",
+                    "Convert Markdown Resume to PDF",
                     use_container_width=True,
                     key="btn_pdf_local",
-                    disabled=not edited_full_cv.strip(),
+                    disabled=not edited_full_resume.strip(),
                     type="primary",
                 )
             with col_pdf_btns2:
                 if "pdf_bytes" in st.session_state:
                     st.download_button(
-                        "Save Tailored CV as PDF",
+                        "Save Tailored Resume as PDF",
                         st.session_state["pdf_bytes"],
-                        file_name="cv.pdf",
+                        file_name="resume.pdf",
                         key="dl_pdf_local",
                         use_container_width=True,
                     )
                 else:
                     st.button(
-                        "Save Tailored CV as PDF", disabled=True, use_container_width=True, key="dl_pdf_local_disabled"
+                        "Save Tailored Resume as PDF",
+                        disabled=True,
+                        use_container_width=True,
+                        key="dl_pdf_local_disabled",
                     )
 
             # Message placeholders directly after buttons
@@ -686,12 +693,12 @@ with tabs[0]:
                 with st.spinner("Generating PDF..."):
                     jd_local_val = st.session_state.get("jd_local", "")
                     run_dir, dt_str = get_temp_generation_dir(jd_local_val)
-                    f_md_name = str(run_dir / f"cv_{dt_str}.md")
-                    pdf_name = str(run_dir / f"cv_{dt_str}.pdf")
+                    f_md_name = str(run_dir / f"resume_{dt_str}.md")
+                    pdf_name = str(run_dir / f"resume_{dt_str}.pdf")
 
                     try:
                         with Path(f_md_name).open("w", encoding="utf-8") as f_md:
-                            f_md.write(edited_full_cv)
+                            f_md.write(edited_full_resume)
 
                         # Convert to PDF
                         compile_pdf(f_md_name, pdf_name)
@@ -711,7 +718,7 @@ with tabs[0]:
                 pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" {iframe_style}></iframe>'
                 st.markdown(pdf_display, unsafe_allow_html=True)
             else:
-                st.info("Click 'Convert Markdown CV to PDF' to preview.")
+                st.info("Click 'Convert Markdown Resume to PDF' to preview.")
 
     # Render Notes expander for tabs[0]
     notes_text_local = st.session_state.get("tailored_notes", "")
@@ -743,9 +750,9 @@ with tabs[1]:
     st.subheader("Step 2: Generate Prompt for LLM")
     if st.button("Generate Prompt for LLM", key="btn_gen_prompt_manual", type="primary"):
         prompt_template = st.session_state["master_texts"]["prompt"]
-        master_cv = st.session_state["master_texts"]["body"]
+        master_resume = st.session_state["master_texts"]["body"]
         try:
-            hydrated = prompt_template.format(master_cv=master_cv, job_description=jd_manual)
+            hydrated = prompt_template.format(master_resume=master_resume, job_description=jd_manual)
             st.session_state["hydrated_prompt"] = hydrated
         except Exception as e:
             st.error(f"Error formatting prompt: {e}")
@@ -762,25 +769,27 @@ with tabs[1]:
     st.subheader("Step 3: Enter Tailored body")
     manual_body = st.text_area("Manual Tailored Body (Paste from Online LLM)", height=200, key="manual_body_input")
 
-    # Combine CV
+    # Combine Resume
     tailored_body = st.session_state.get("tailored_body", "")
     if not tailored_body:
-        full_cv_md = ""
+        full_resume_md = ""
     else:
         header = st.session_state["master_texts"]["header"]
         footer = st.session_state["master_texts"]["footer"]
-        full_cv_md = combine_resume_parts(header, tailored_body, footer)
+        full_resume_md = combine_resume_parts(header, tailored_body, footer)
 
     # Apply any pending update from PDF handler (must happen before widget is rendered)
-    if "_edited_cv_manual_pending" in st.session_state:
-        st.session_state["edited_cv_manual"] = st.session_state.pop("_edited_cv_manual_pending")
+    if "_edited_resume_manual_pending" in st.session_state:
+        st.session_state["edited_resume_manual"] = st.session_state.pop("_edited_resume_manual_pending")
 
-    if "edited_cv_manual" not in st.session_state:
-        st.session_state["edited_cv_manual"] = st.session_state.get("_persistent_edited_cv_manual", full_cv_md)
+    if "edited_resume_manual" not in st.session_state:
+        st.session_state["edited_resume_manual"] = st.session_state.get(
+            "_persistent_edited_resume_manual", full_resume_md
+        )
 
-    edited_full_cv = st.session_state.get("edited_cv_manual", full_cv_md)
-    if "edited_cv_manual" in st.session_state:
-        st.session_state["_persistent_edited_cv_manual"] = st.session_state["edited_cv_manual"]
+    edited_full_resume = st.session_state.get("edited_resume_manual", full_resume_md)
+    if "edited_resume_manual" in st.session_state:
+        st.session_state["_persistent_edited_resume_manual"] = st.session_state["edited_resume_manual"]
 
     # Dynamic column structure for Step 4 (Markdown) and Step 5 (PDF)
     show_pdf_manual = st.session_state.get("show_pdf_manual_val", True)
@@ -791,7 +800,7 @@ with tabs[1]:
         col_md_man = st.container()
 
     with col_md_man:
-        st.subheader("Step 4: Compose CV to Markdown")
+        st.subheader("Step 4: Compose Resume to Markdown")
         st.toggle(
             "Show PDF Preview", value=st.session_state.get("show_pdf_manual_val", True), key="show_pdf_manual_val"
         )
@@ -799,19 +808,19 @@ with tabs[1]:
         col_btn1, col_btn2, col_btn3, col_btn4 = st.columns([1.2, 0.8, 0.8, 1.2])
         with col_btn1:
             btn_use_manual = st.button(
-                "Compose CV manually", key="btn_use_manual_body", type="primary", use_container_width=True
+                "Compose Resume manually", key="btn_use_manual_body", type="primary", use_container_width=True
             )
         with col_btn2:
             btn_check_manual_clicked = st.button(
-                "Check CV", use_container_width=True, key="btn_check_manual", type="secondary"
+                "Check Resume", use_container_width=True, key="btn_check_manual", type="secondary"
             )
         with col_btn3:
             btn_fix_manual_clicked = st.button("Fix", use_container_width=True, key="btn_fix_manual", type="secondary")
         with col_btn4:
             st.download_button(
-                "Save Composed CV as Markdown",
-                edited_full_cv,
-                file_name="cv.md",
+                "Save Composed Resume as Markdown",
+                edited_full_resume,
+                file_name="resume.md",
                 key="dl_md_manual",
                 use_container_width=True,
             )
@@ -820,36 +829,36 @@ with tabs[1]:
             st.session_state.pop("manual_tailor_error", None)
             st.session_state.pop("manual_tailor_warning", None)
             st.session_state.pop("manual_tailor_note", None)
-            if not edited_full_cv.strip():
-                st.session_state["manual_tailor_warning"] = "No CV text to fix."
+            if not edited_full_resume.strip():
+                st.session_state["manual_tailor_warning"] = "No Resume text to fix."
                 st.rerun()
             else:
-                fixed_content = process_cv.fix_markdown(md=edited_full_cv)
-                st.session_state["edited_cv_manual"] = fixed_content
-                st.session_state["_persistent_edited_cv_manual"] = fixed_content
-                st.session_state["manual_tailor_note"] = "CV Markdown formatting fixed!"
+                fixed_content = process_resume.fix_markdown(md=edited_full_resume)
+                st.session_state["edited_resume_manual"] = fixed_content
+                st.session_state["_persistent_edited_resume_manual"] = fixed_content
+                st.session_state["manual_tailor_note"] = "Resume Markdown formatting fixed!"
                 st.session_state.pop("pdf_bytes", None)
-                st.session_state.pop("manual_cv_errors", None)
-                st.session_state.pop("manual_cv_checked", None)
+                st.session_state.pop("manual_resume_errors", None)
+                st.session_state.pop("manual_resume_checked", None)
                 st.rerun()
 
         if btn_check_manual_clicked:
             st.session_state.pop("manual_tailor_error", None)
             st.session_state.pop("manual_tailor_warning", None)
             st.session_state.pop("manual_tailor_note", None)
-            if not edited_full_cv.strip():
-                st.session_state["manual_tailor_warning"] = "No CV text to check."
+            if not edited_full_resume.strip():
+                st.session_state["manual_tailor_warning"] = "No Resume text to check."
                 st.rerun()
             else:
-                errors = process_cv.check_markdown(edited_full_cv)
-                st.session_state["manual_cv_checked"] = True
+                errors = process_resume.check_markdown(edited_full_resume)
+                st.session_state["manual_resume_checked"] = True
                 if errors:
                     st.session_state["manual_tailor_error"] = (
-                        f"CV check failed with {len(errors)} errors:\n"
+                        f"Resume check failed with {len(errors)} errors:\n"
                         + "\n".join(f"- Line {err.line_num}: {err.msg} (content: `{err.line}`)" for err in errors)
                     )
                 else:
-                    st.session_state["manual_tailor_note"] = "No CV errors found!"
+                    st.session_state["manual_tailor_note"] = "No Resume errors found!"
                 st.rerun()
 
         if btn_use_manual:
@@ -885,14 +894,14 @@ with tabs[1]:
 
                 header = st.session_state["master_texts"]["header"]
                 footer = st.session_state["master_texts"]["footer"]
-                full_cv_md = combine_resume_parts(header, trimmed_text, footer)
-                full_cv_md = process_cv.fix_markdown(full_cv_md)
-                st.session_state["edited_cv_manual"] = full_cv_md
-                st.session_state["_persistent_edited_cv_manual"] = full_cv_md
+                full_resume_md = combine_resume_parts(header, trimmed_text, footer)
+                full_resume_md = process_resume.fix_markdown(full_resume_md)
+                st.session_state["edited_resume_manual"] = full_resume_md
+                st.session_state["_persistent_edited_resume_manual"] = full_resume_md
                 st.session_state.pop("pdf_bytes", None)
-                st.session_state.pop("manual_cv_errors", None)
-                st.session_state.pop("manual_cv_checked", None)
-                st.session_state["manual_tailor_note"] = "CV Composed manually successfully!"
+                st.session_state.pop("manual_resume_errors", None)
+                st.session_state.pop("manual_resume_checked", None)
+                st.session_state["manual_tailor_note"] = "Resume Composed manually successfully!"
                 st.rerun()
 
         # Message placeholders directly after buttons
@@ -903,37 +912,42 @@ with tabs[1]:
         if st.session_state.get("manual_tailor_note"):
             st.info(st.session_state["manual_tailor_note"])
 
-        cv_edit_tab, cv_preview_tab = st.tabs(["Edit", "Preview"])
-        with cv_edit_tab:
-            st.text_area("Full CV Markdown text", height=600, key="edited_cv_manual", label_visibility="collapsed")
-        with cv_preview_tab:
-            st.markdown(st.session_state.get("edited_cv_manual", full_cv_md))
+        resume_edit_tab, resume_preview_tab = st.tabs(["Edit", "Preview"])
+        with resume_edit_tab:
+            st.text_area(
+                "Full Resume Markdown text", height=600, key="edited_resume_manual", label_visibility="collapsed"
+            )
+        with resume_preview_tab:
+            st.markdown(st.session_state.get("edited_resume_manual", full_resume_md))
 
     if show_pdf_manual:
         with col_pdf_man:
-            st.subheader("Step 5: Convert CV to PDF")
+            st.subheader("Step 5: Convert Resume to PDF")
 
             col_pdf_btns1, col_pdf_btns2 = st.columns([1, 1])
             with col_pdf_btns1:
                 btn_pdf_manual_clicked = st.button(
-                    "Convert Markdown CV to PDF",
+                    "Convert Markdown Resume to PDF",
                     use_container_width=True,
                     key="btn_pdf_manual",
-                    disabled=not edited_full_cv.strip(),
+                    disabled=not edited_full_resume.strip(),
                     type="primary",
                 )
             with col_pdf_btns2:
                 if "pdf_bytes" in st.session_state:
                     st.download_button(
-                        "Save Composed CV as PDF",
+                        "Save Composed Resume as PDF",
                         st.session_state["pdf_bytes"],
-                        file_name="cv.pdf",
+                        file_name="resume.pdf",
                         key="dl_pdf_manual",
                         use_container_width=True,
                     )
                 else:
                     st.button(
-                        "Save Composed CV as PDF", disabled=True, use_container_width=True, key="dl_pdf_manual_disabled"
+                        "Save Composed Resume as PDF",
+                        disabled=True,
+                        use_container_width=True,
+                        key="dl_pdf_manual_disabled",
                     )
 
             # Message placeholders directly after buttons
@@ -951,12 +965,12 @@ with tabs[1]:
                 with st.spinner("Generating PDF..."):
                     jd_manual_val = st.session_state.get("jd_manual", "")
                     run_dir, dt_str = get_temp_generation_dir(jd_manual_val)
-                    f_md_name = str(run_dir / f"cv_{dt_str}.md")
-                    pdf_name = str(run_dir / f"cv_{dt_str}.pdf")
+                    f_md_name = str(run_dir / f"resume_{dt_str}.md")
+                    pdf_name = str(run_dir / f"resume_{dt_str}.pdf")
 
                     try:
                         with Path(f_md_name).open("w", encoding="utf-8") as f_md:
-                            f_md.write(edited_full_cv)
+                            f_md.write(edited_full_resume)
 
                         # Convert to PDF
                         compile_pdf(f_md_name, pdf_name)
@@ -976,7 +990,7 @@ with tabs[1]:
                 pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" {iframe_style}></iframe>'
                 st.markdown(pdf_display, unsafe_allow_html=True)
             else:
-                st.info("Click 'Convert Markdown CV to PDF' to preview.")
+                st.info("Click 'Convert Markdown Resume to PDF' to preview.")
 
     # Render Notes expander for tabs[1]
     notes_text_man = st.session_state.get("tailored_notes", "")
@@ -1030,10 +1044,10 @@ with tabs[2]:
                 if not current_md.strip():
                     st.session_state["arbitrary_check_error"] = "No markdown content to check."
                 else:
-                    errors = process_cv.check_markdown(current_md)
+                    errors = process_resume.check_markdown(current_md)
                     if errors:
                         st.session_state["arbitrary_check_error"] = (
-                            f"CV check failed with {len(errors)} errors:\n"
+                            f"Resume check failed with {len(errors)} errors:\n"
                             + "\n".join(f"- Line {err.line_num}: {err.msg} (content: `{err.line}`)" for err in errors)
                         )
                     else:
@@ -1053,7 +1067,7 @@ with tabs[2]:
                 if not current_md.strip():
                     st.session_state["arbitrary_check_error"] = "No markdown content to fix."
                 else:
-                    fixed_md = process_cv.fix_markdown(current_md)
+                    fixed_md = process_resume.fix_markdown(current_md)
                     st.session_state["_arbitrary_md_pending"] = fixed_md
                     st.session_state["arbitrary_check_note"] = "Markdown formatting fixed!"
                 st.rerun()
@@ -1102,8 +1116,8 @@ with tabs[2]:
                     with Path(f_md_name).open("w", encoding="utf-8") as f_md:
                         f_md.write(arbitrary_md)
 
-                    # Fix CV markdown using process_cv
-                    fixed_content = process_cv.fix_markdown(arbitrary_md)
+                    # Fix Resume markdown using process_resume
+                    fixed_content = process_resume.fix_markdown(arbitrary_md)
                     st.session_state["_arbitrary_md_pending"] = fixed_content
 
                     # Convert to PDF
@@ -1133,7 +1147,7 @@ with tabs[2]:
             st.info("Click 'Generate PDF' to preview.")
 
 with tabs[3]:
-    settings_tabs = st.tabs(["CV", "Prompt", "Configuration"])
+    settings_tabs = st.tabs(["Resume", "Prompt", "Configuration"])
 
     with settings_tabs[0]:
         st.subheader("Header")

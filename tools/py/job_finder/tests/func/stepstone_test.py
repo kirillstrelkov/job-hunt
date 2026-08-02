@@ -13,7 +13,7 @@ def browser() -> Browser:
 
 
 @pytest.fixture
-def page(browser: Browser) -> None:
+def page(browser: Browser) -> StepstoneBoard:
     return StepstoneBoard(browser)
 
 
