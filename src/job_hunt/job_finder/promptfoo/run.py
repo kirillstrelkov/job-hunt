@@ -1,6 +1,5 @@
 """Script to run Promptfoo evaluation across different models and generate performance reports."""
 
-import argparse
 import shutil
 import sys
 from pathlib import Path
@@ -113,18 +112,13 @@ def generate_prompts_and_test_cases(resume_text: str, jd_files: list[Path], tmp_
 # run_promptfoo_eval is imported from job_hunt.core.promptfoo_helper
 
 
-def main() -> None:
+def main(force: bool = False) -> None:
     """Generate prompts, execute Promptfoo evaluation, and run Jupyter notebook."""
-    parser = argparse.ArgumentParser(description="Run Promptfoo evaluation across different models.")
-    parser.add_argument("--force", action="store_true", help="Force evaluation by deleting TMP_DIR first.")
-    args = parser.parse_args()
-
-    if args.force and TMP_DIR.exists():
+    if force and TMP_DIR.exists():
         logger.info(f"Force option specified. Deleting temporary directory: {TMP_DIR}")
         shutil.rmtree(TMP_DIR)
 
     logger.info("Generating Prompts and Running Promptfoo Evaluation")
-
     logger.info(f"Models to test: {', '.join(MODELS)}")
 
     results_json_path = TMP_DIR / f"eval_results_for_{len(MODELS)}_models.json"
@@ -152,7 +146,3 @@ def main() -> None:
 
     notebook_path = PRJ_ROOT_DIR / "promptfoo" / "models_analys.ipynb"
     run_jupyter_notebook(notebook_path)
-
-
-if __name__ == "__main__":
-    main()

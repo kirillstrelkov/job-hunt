@@ -1,6 +1,5 @@
 """Main command-line interface for running the Resume-job matching pipeline."""
 
-import argparse
 import sys
 from pathlib import Path
 
@@ -110,28 +109,18 @@ def _main(urls: list[str], output_dir: Path, *, use_cache: bool = True) -> None:
     create_job_matches_csv(jobs, matches_file)
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Process some job URLs from a YAML file.")
-    parser.add_argument(
-        "yaml_path",
-        type=str,
-        nargs="?",
-        default=None,
-        help="Path to the YAML file containing job URLs. If not provided, configuration is loaded from job_hunt.config.yaml",
-    )
-    parser.add_argument("--output", "-o", type=str, default=None, help="Output directory path for CSV files")
-    parser.add_argument("--no-cache", action="store_true", help="Do not cache results")
-    parser.add_argument(
-        "--log-level", default="INFO", choices=["DEBUG", "INFO", "WARNING", "ERROR"], help="Set log level"
-    )
-
-    args = parser.parse_args()
-
+def main(
+    yaml_path: str | None = None,
+    output: str | None = None,
+    no_cache: bool = False,
+    log_level: str = "INFO",
+) -> None:
+    """Main function replacing the CLI block."""
     logger.remove()
-    logger.add(sys.stderr, level=args.log_level)
+    logger.add(sys.stderr, level=log_level)
 
-    if args.yaml_path:
-        data = yaml.safe_load(Path(args.yaml_path).read_text(encoding="utf-8"))
+    if yaml_path:
+        data = yaml.safe_load(Path(yaml_path).read_text(encoding="utf-8"))
         if isinstance(data, list):
             urls = data
         elif isinstance(data, dict):
@@ -154,10 +143,8 @@ if __name__ == "__main__":
         logger.error("No URLs found to process. Please specify them in config.yaml or provide a YAML file.")
         sys.exit(1)
 
-    # Resolve output directory: command-line argument or get_tmp_folder fallback
-    output_dir = Path(args.output) if args.output else get_tmp_folder(__file__)
-
+    output_dir = Path(output) if output else get_tmp_folder(__file__)
     output_dir.mkdir(parents=True, exist_ok=True)
     logger.info(f"Using output directory: {output_dir}")
 
-    _main(urls, output_dir, use_cache=not args.no_cache)
+    _main(urls, output_dir, use_cache=not no_cache)

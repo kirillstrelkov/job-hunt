@@ -68,26 +68,37 @@ uv run --directory /path/to/job-hunt job-hunt resume tailor --resume ~/master_re
 
 ## Workspace Quick Commands (via `just`)
 
-All development tasks can be run directly from the repository root using `just`:
+All development, testing, tailoring, scraping, and evaluation tasks can be executed directly using `just`:
 
 ```bash
-# Install dependencies and package in editable mode
-just install
-
-# Run any CLI subcommand with arbitrary arguments
+# ==================== MAIN CLI RUNNER ====================
 just run resume check data/example_resume/body.md
-just run resume tailor --resume data/example_resume/body.md --jd data/job_tesla.txt -o workspace/outputs/tailored.md
+just run resume tailor -r data/example_resume/body.md -j data/job_tesla.txt -o workspace/outputs/tailored.md
 just run finder fetch
 just run ui
 
-# Run unit tests
-just test
+# ==================== RESUME COMMANDS ====================
+just resume-check data/example_resume/body.md
+just resume-tailor data/example_resume/body.md data/job_tesla.txt workspace/outputs/tailored.md
+just resume-render data/example_resume/body.md
 
-# Run integration tests
-just test-integration
+# ==================== FINDER & UI ====================
+just finder-fetch
+just finder-review data/job_tesla.txt
+just ui
 
-# Code quality and formatting
-just lint
+# ==================== EVALUATION ====================
+just eval-params
+just eval-perf
+just eval-prompts
+just eval-view
+
+# ==================== DEV & TESTING ====================
+just install       # Install dependencies & editable package
+just test          # Run fast unit test suite
+just test-integration # Run browser & live LLM integration tests
+just lint          # Code quality and formatting checks
+just clean         # Clean temporary build outputs and caches
 ```
 
 ---

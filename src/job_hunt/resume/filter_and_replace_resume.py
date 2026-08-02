@@ -11,7 +11,6 @@ Usage:
   python filter_and_replace_resume.py <input> <output> --header <header_path> --footer <footer_path>
 """
 
-import argparse
 import re
 from pathlib import Path
 
@@ -117,26 +116,7 @@ def process_files(input_path: Path, output_path: Path, header_path: Path, footer
     return processed_files
 
 
-def main() -> None:
-    """Parse CLI arguments and execute resume filtering and replacement."""
-    parser = argparse.ArgumentParser(
-        description="Scan markdown file(s), filter for full resumes, and replace header/footer sections.",
-        usage="%(prog)s input output --header HEADER --footer FOOTER",
-    )
-
-    # Strictly positional input and output arguments
-    parser.add_argument("input", type=Path, help="Input directory or markdown file path")
-    parser.add_argument("output", type=Path, help="Output directory or file path")
-
-    # Header and Footer options
-    parser.add_argument("--header", required=True, type=Path, help="Path to header markdown file")
-    parser.add_argument("--footer", required=True, type=Path, help="Path to footer markdown file")
-
-    args = parser.parse_args()
-
-    processed = process_files(args.input, args.output, args.header, args.footer)
+def main(src: Path, output: Path, header: Path, footer: Path) -> None:
+    """Execute resume filtering and replacement."""
+    processed = process_files(src, output, header, footer)
     logger.info("Successfully processed {} resume file(s).", len(processed))
-
-
-if __name__ == "__main__":
-    main()

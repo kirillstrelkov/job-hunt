@@ -1,6 +1,5 @@
 """Read job postings from a CSV and compose Resumes locally for each posting."""
 
-import argparse
 import re
 import sys
 from datetime import datetime
@@ -11,8 +10,8 @@ from config import config as cfg
 from loguru import logger
 from tqdm import tqdm
 
+from job_hunt.resume import prepare_resume
 from job_hunt.resume.compose_resume import compose_resume
-from job_hunt.resume.tools import prepare_resume
 
 WORD_PATTERN = re.compile(r"\w{2,}")
 
@@ -24,47 +23,18 @@ def generate_id(title: str, company: str) -> str:
     return "_".join(company_words + title_words)
 
 
-def main() -> None:  # noqa: PLR0915
+def main(
+    path: str | Path,
+    folder: str | Path,
+    model: str | None = None,
+    force: bool = False,
+    feedback: bool = False,
+    config: str | Path | None = None,
+) -> None:  # noqa: PLR0915
     """Read CSV, extract job postings, and run compose pipeline for each job."""
-    parser = argparse.ArgumentParser(
-        description="Read job postings from a CSV and compose Resumes locally for each posting."
-    )
-    parser.add_argument(
-        "--path",
-        required=True,
-        help="Path to the CSV file containing job postings.",
-    )
-    parser.add_argument(
-        "--config",
-        help="Optional path to a custom configuration YAML file.",
-    )
-    parser.add_argument(
-        "--folder",
-        required=True,
-        help="Output folder where folders and files for each job should be created.",
-    )
-    parser.add_argument(
-        "--model",
-        default=None,
-        help="Optional Ollama model to use for composing. If not set, defaults to configured eval model.",
-    )
-    parser.add_argument(
-        "--force",
-        action="store_true",
-        default=False,
-        help="Force execution of Step 2 (LLM tailoring) even if tailored body already exists.",
-    )
-    parser.add_argument(
-        "--feedback",
-        action="store_true",
-        default=False,
-        help="Run AI feedback loop if checking errors step (Step 5) finds validation errors.",
-    )
-    args = parser.parse_args()
-
     # Load custom config if specified
-    if args.config:
-        config_path = Path(args.config).resolve()
+    if config:
+        config_path = Path(config).resolve()
         if not config_path.exists():
             logger.error(f"Config file not found: {config_path}")
             sys.exit(1)
@@ -74,7 +44,7 @@ def main() -> None:  # noqa: PLR0915
         logger.info(f"Loaded custom configuration from {config_path}")
 
     # Load CSV
-    csv_path = Path(args.path).resolve()
+    csv_path = Path(path).resolve()
     if not csv_path.exists():
         logger.error(f"CSV file not found: {csv_path}")
         sys.exit(1)
@@ -98,7 +68,7 @@ def main() -> None:  # noqa: PLR0915
 
     mtime = csv_path.stat().st_mtime
     timestamp = datetime.fromtimestamp(mtime).strftime(r"%Y-%m-%d_%H-%M-%S")
-    output_dir = (Path(args.folder) / f"from_csv_{csv_path.stem}" / timestamp).resolve()
+    output_dir = (Path(folder) / f"from_csv_{csv_path.stem}" / timestamp).resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
 
     logger.info(f"Processing {len(df)} job postings from CSV...")
@@ -128,13 +98,9 @@ def main() -> None:  # noqa: PLR0915
         try:
             compose_resume(
                 folder=job_folder,
-                model=args.model,
-                force=args.force,
-                feedback=args.feedback,
+                model=model,
+                force=force,
+                feedback=feedback,
             )
         except Exception as e:
             logger.error(f"Failed to compose Resume for job ID {job_id}: {e}")
-
-
-if __name__ == "__main__":
-    main()

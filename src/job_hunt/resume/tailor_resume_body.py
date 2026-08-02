@@ -1,6 +1,5 @@
 """CLI tool to tailor Resume body based on LLM prompts."""
 
-import argparse
 import sys
 import time
 from pathlib import Path
@@ -12,36 +11,6 @@ from job_hunt.core.ollama_helper import get_eval_model
 from job_hunt.core.telemetry import get_tracer
 
 tracer = get_tracer("tailor-resume-body")
-
-
-def parse_args() -> argparse.Namespace:
-    """Parse command line arguments."""
-    parser = argparse.ArgumentParser(description="Tailor Resume using a local LLM via Ollama.")
-    parser.add_argument(
-        "--prompt-file",
-        required=True,
-        type=Path,
-        help="Path to the prompt markdown/txt file",
-    )
-    parser.add_argument(
-        "--output",
-        required=True,
-        type=Path,
-        help="Path to the output tailored markdown file",
-    )
-    parser.add_argument(
-        "--model",
-        type=str,
-        default=None,
-        help="Ollama model to use. Defaults to the configured eval model.",
-    )
-    parser.add_argument(
-        "--force",
-        action="store_true",
-        default=False,
-        help="Force generation even if the output file already exists",
-    )
-    return parser.parse_args()
 
 
 def run_ollama(prompt_content: str, model: str) -> dict:
@@ -107,25 +76,23 @@ def process_output_of_ollama(result: dict, output_file: Path) -> None:
     logger.info(f"Success! Tokens per second: {result.get('tokens_per_sec', 0.0):.2f}")
 
 
-def main() -> None:
+def main(prompt_file: Path, output: Path, model: str | None = None, force: bool = False) -> None:
     """Run the main CLI entry point for tailoring the Resume body."""
-    args = parse_args()
-
-    prompt_file = Path(args.prompt_file).resolve()
-    output_file = Path(args.output).resolve()
+    prompt_file = Path(prompt_file).resolve()
+    output_file = Path(output).resolve()
 
     if not prompt_file.exists():
         logger.error(f"Prompt file not found at: {prompt_file}")
         sys.exit(1)
 
-    if output_file.exists() and not args.force:
+    if output_file.exists() and not force:
         logger.warning(f"Output file already exists at: {output_file}. Skipping generation. Use --force to overwrite.")
         sys.exit(0)
 
     logger.info(f"Reading prompt from: {prompt_file}")
     prompt_content = prompt_file.read_text(encoding="utf-8")
 
-    model = args.model or get_eval_model()
+    model = model or get_eval_model()
 
     try:
         result = run_ollama(prompt_content, model)
@@ -133,7 +100,3 @@ def main() -> None:
     except Exception as e:
         logger.error(f"Failed to generate tailored Resume: {e}")
         sys.exit(1)
-
-
-if __name__ == "__main__":
-    main()

@@ -1,6 +1,5 @@
 """Run Promptfoo evaluation against ground truth Resume."""
 
-import argparse
 import shutil
 import sys
 from pathlib import Path
@@ -191,44 +190,35 @@ def get_prompt_files(prompts_dir: Path, baseline_prompt_file: Path) -> list[Path
     return prompt_files
 
 
-def main() -> None:
+def main(
+    force: bool = False,
+    gt_only: bool = False,
+    prompt: list[Path] | None = None,
+) -> None:
     """Run Promptfoo prompt evaluation pipeline against ground truth reference."""
-    parser = argparse.ArgumentParser(description="Run Promptfoo prompt evaluation")
-    parser.add_argument("--force", action="store_true", help="Remove evaluation temp directory before starting")
-    parser.add_argument("--gt-only", action="store_true", help="Use only the baseline ground truth prompt file")
-    parser.add_argument(
-        "--prompt",
-        action="extend",
-        nargs="+",
-        type=Path,
-        help="Path(s) to candidate prompt files to evaluate. Supports multiple paths.",
-    )
-    args = parser.parse_args()
-
     logger.info("Starting Promptfoo Prompt Evaluation")
 
-    if args.force and TMP_EVAL_DIR.exists():
+    if force and TMP_EVAL_DIR.exists():
         logger.info(f"Removing temporary evaluation directory: {TMP_EVAL_DIR}")
         shutil.rmtree(TMP_EVAL_DIR)
 
     TMP_EVAL_DIR.mkdir(parents=True, exist_ok=True)
-
     PROMPTS_DIR.mkdir(parents=True, exist_ok=True)
 
     job = DEFAULT_CONFIG.get_jobs()[0]
     baseline_prompt_file = job.llm_prompt_path
 
-    if args.prompt:
-        if args.gt_only:
-            logger.error("Cannot specify both --prompt and --gt-only")
+    if prompt:
+        if gt_only:
+            logger.error("Cannot specify both prompt and gt_only")
             sys.exit(1)
         prompt_files = []
-        for pf in args.prompt:
+        for pf in prompt:
             if not pf.exists():
                 logger.error(f"Prompt file not found: {pf}")
                 sys.exit(1)
             prompt_files.append(pf)
-    elif args.gt_only:
+    elif gt_only:
         if not baseline_prompt_file.exists():
             logger.error(f"Baseline prompt file not found: {baseline_prompt_file}")
             sys.exit(1)
@@ -246,16 +236,9 @@ def main() -> None:
         sys.exit(1)
 
     generate_config(prompt_files, gt_file, CONFIG_FILE)
-
     run_promptfoo_eval(CONFIG_FILE, RESULTS_JSON)
     convert_json_to_csv(RESULTS_JSON, RESULTS_CSV)
-
-    # Run the Jupyter Notebook for visual/markdown analysis
     run_jupyter_notebook(NOTEBOOK_PATH)
 
     logger.info("Evaluation completed!")
     logger.info("To view results in the dashboard, run: just view-promptfoo")
-
-
-if __name__ == "__main__":
-    main()

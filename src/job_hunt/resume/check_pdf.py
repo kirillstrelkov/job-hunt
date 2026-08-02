@@ -5,15 +5,11 @@ down each page the body text reaches, so a Resume that overflows onto an almost-
 second page (or leaves page one sparse) gets flagged.
 """
 
-import argparse
 import re
 import shutil
 import subprocess
-import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
-
-from loguru import logger
 
 FOOTER_GAP_FACTOR = 2.5  # last gap must be this many times the typical gap to count as a footer split
 MIN_FILL_PCT = 90.0
@@ -132,22 +128,3 @@ def check_pdf(pdf_path: Path) -> list[str]:
         )
 
     return errors
-
-
-def main() -> None:
-    """CLI entrypoint to check a Resume PDF's page count and visual fill."""
-    parser = argparse.ArgumentParser(description="Check Resume PDF page count and visual page fill.")
-    parser.add_argument("pdf", type=Path, help="Path to the PDF file")
-    args = parser.parse_args()
-
-    errors = check_pdf(args.pdf)
-    if errors:
-        for err in errors:
-            logger.error(err)
-        sys.exit(1)
-
-    logger.info(f"PDF OK: {args.pdf}")
-
-
-if __name__ == "__main__":
-    main()

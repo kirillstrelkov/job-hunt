@@ -1,6 +1,5 @@
 """Streamlit user interface for Resume tailoring, editing, checking and PDF conversion."""
 
-import argparse
 import base64
 import contextlib
 import hashlib
@@ -18,7 +17,7 @@ from loguru import logger
 
 sys.path.append(str(Path(__file__).parent.parent))
 
-from job_hunt.resume.tools import process_resume
+from job_hunt.resume import process_resume
 
 importlib.reload(process_resume)
 from job_hunt.core.llm_helper import get_model_names as get_gemini_models
@@ -67,19 +66,13 @@ def generate_config(output_path: str) -> None:
 
 
 def main_cli() -> None:
-    """Parse command line arguments and execute CLI operations."""
-    parser = argparse.ArgumentParser(description="Tailored Resume UI / CLI")
-    parser.add_argument(
-        "--generate-config", type=str, nargs="?", const="./config.yaml", help="Generate a consolidated config file"
-    )
-
-    # If run under streamlit, sys.argv will have 'streamlit run ...'
-    # We only parse args if we are clearly running as python script
+    """Handle CLI operations when running as a standalone script."""
+    # Only parse args if running as a plain Python script (not under streamlit)
     if "--generate-config" in sys.argv:
-        args, _ = parser.parse_known_args()
-        if args.generate_config:
-            generate_config(args.generate_config)
-            sys.exit(0)
+        idx = sys.argv.index("--generate-config")
+        config_path = sys.argv[idx + 1] if idx + 1 < len(sys.argv) else "./config.yaml"
+        generate_config(config_path)
+        sys.exit(0)
 
 
 main_cli()

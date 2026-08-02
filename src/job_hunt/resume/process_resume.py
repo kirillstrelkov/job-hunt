@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Check and fix Resume markdown formatting and chronological consistency."""
 
-import argparse
 import sys
 from pathlib import Path
 
@@ -11,16 +10,6 @@ from job_hunt.resume.checker import Error, check_and_get_errors, get_section_cla
 from job_hunt.resume.fixer import _FIX_CONFIG, fix_last_pipe
 from job_hunt.resume.models import Resume
 from job_hunt.resume.parse import Section, split_markdown_into_sections
-
-
-def parse_args() -> argparse.Namespace:
-    """Parse CLI arguments for Resume checking and fixing."""
-    parser = argparse.ArgumentParser(description="Check and fix Resume markdown file.")
-    parser.add_argument("file", type=str, help="Path to the markdown file")
-    parser.add_argument("--check", action="store_true", help="Check the file for errors")
-    parser.add_argument("--keep-thesis", action="store_true", help="Keep thesis name")
-    parser.add_argument("--fix", action="store_true", help="Fix the errors in the file")
-    return parser.parse_args()
 
 
 def split_into_sections(filepath: str) -> list[Section]:
@@ -105,25 +94,6 @@ def fix_markdown(md: str, *, keep_thesis: bool = True) -> str:
     resume_obj = do_fix(resume_obj, keep_thesis=keep_thesis)
     # fmt_md = format_md(resume_obj.to_string()) # has errors for '\'
     return fix_last_pipe(resume_obj.to_string())
-
-
-def main() -> None:
-    """Run the main CLI entry point for checking and fixing Resume files."""
-    args = parse_args()
-
-    logger.info("Starting Resume processing for file: {}", args.file)
-
-    if args.check:
-        logger.info("Running checks...")
-        check_file(args.file)
-
-    if args.fix:
-        logger.info("Applying fixes...")
-        fix_file(args.file, keep_thesis=args.keep_thesis)
-
-
-if __name__ == "__main__":
-    main()
 
 
 # Future: check for wrong link syntax in projects section (e.g. mismatched brackets).

@@ -1,8 +1,6 @@
 """Unified configuration helper utilities for resolving paths, substitutions and Resume parts."""
 
-import argparse
 import re
-import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -450,47 +448,6 @@ def check_config(config_path: Path) -> bool:
             all_exist = False
 
     return all_exist
-
-
-def main() -> None:
-    """Run the CLI application."""
-    parser = argparse.ArgumentParser(description="Manage Resume configuration files.")
-    parser.add_argument(
-        "--create",
-        action="store_true",
-        help="Create config.yaml if it doesn't exist.",
-    )
-    parser.add_argument(
-        "--check",
-        action="store_true",
-        help="Check that all files in the configuration file exist.",
-    )
-    parser.add_argument(
-        "--path",
-        type=str,
-        help="Path to the config file to check. Defaults to config/config.yaml.",
-    )
-
-    args = parser.parse_args()
-
-    script_dir = Path(__file__).resolve().parent
-    default_config_path = script_dir / "config.yaml"
-
-    # Handle create
-    if args.create:
-        create_default_config(default_config_path)
-        return
-
-    # Handle check
-    if args.check:
-        config_path = Path(args.path) if args.path else default_config_path
-        success = check_config(config_path)
-        if not success:
-            sys.exit(1)
-        return
-
-    # If no options provided, print help
-    parser.print_help()
 
 
 DEFAULT_CONFIG = ConfigManager(CONFIG_DIR / "config.yaml")

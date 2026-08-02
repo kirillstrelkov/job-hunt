@@ -1,7 +1,5 @@
 """Create tailored Resume documents and PDFs from section headers/titles."""
 
-import argparse
-import sys
 from pathlib import Path
 
 from loguru import logger
@@ -58,20 +56,13 @@ def process_one(folder: Path, resume_md: Path) -> None:
     logger.info(f"PDF: {gen_pdf}")
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Build Resume PDFs from *_resume.md files.")
-    parser.add_argument("--folder", required=True, help="Folder containing *_resume.md files")
-    args = parser.parse_args()
-
-    folder = Path(args.folder)
+def main(folder: Path) -> None:
+    """Build Resume PDFs from *_resume.md files in a folder."""
     resume_files = sorted(folder.glob("*_resume.md"))
-
     if not resume_files:
         logger.error(f"No *_resume.md files found in {folder}")
-        sys.exit(1)
-
+        return
     logger.info(f"Found {len(resume_files)} file(s)")
-
     for resume_md in resume_files:
         logger.info(f"Processing: {resume_md.name}")
         process_one(folder, resume_md)

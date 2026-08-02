@@ -1,6 +1,5 @@
 """Assembles Resume parts (header, body, footer) and prepares LLM tailoring prompts."""
 
-import argparse
 from pathlib import Path
 
 from loguru import logger
@@ -89,43 +88,3 @@ def prepare_resume(  # noqa: C901
         logger.info(f"Generating {resume_out}")
 
         resume_out.write_text(combine_resume_part_files(header, body_file, footer))
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Assemble Resume from header, body and footer.")
-    parser.add_argument(
-        "--folder",
-        "-f",
-        default=None,
-        help="Path to the Resume folder only",
-    )
-    parser.add_argument(
-        "--body",
-        "-b",
-        default=None,
-        help="Path to Resume body markdown file",
-    )
-    parser.add_argument(
-        "--job-description",
-        "--jd",
-        default=None,
-        help="Path to job description text file (defaults to folder/jd.txt)",
-    )
-    parser.add_argument(
-        "--llm-prompt",
-        action="store_true",
-        default=False,
-        help="Create llm_prompt.txt",
-    )
-
-    args = parser.parse_args()
-
-    if args.folder and not Path(args.folder).is_dir():
-        parser.error(f"--folder must be a directory: {args.folder}")
-
-    prepare_resume(
-        folder=args.folder,
-        body=args.body,
-        llm_prompt=args.llm_prompt,
-        job_description=args.job_description,
-    )

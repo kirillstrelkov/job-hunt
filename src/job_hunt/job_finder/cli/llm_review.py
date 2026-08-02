@@ -1,6 +1,5 @@
 """CLI tool to review and update LLM match evaluations from a CSV, TSV, or ODF spreadsheet."""
 
-import argparse
 import os
 import sys
 from pathlib import Path
@@ -58,37 +57,21 @@ def save_file(df: pd.DataFrame, path: Path, file_type: str) -> None:
         df.to_csv(path, sep=file_type, index=False)
 
 
-def main() -> None:
+def main(path: str | Path, no_cache: bool = False, log_level: str = "INFO") -> None:
     """Execute the review CLI."""
-    parser = argparse.ArgumentParser(
-        description="Review and update Resume matching results from a CSV, TSV, or ODF file."
-    )
-    parser.add_argument(
-        "--path", type=str, required=True, help="Path to the CSV, TSV, or ODF file containing jobs to review"
-    )
-    parser.add_argument("--no-cache", action="store_true", help="Do not cache LLM results")
-    parser.add_argument(
-        "--log-level",
-        default="INFO",
-        choices=["DEBUG", "INFO", "WARNING", "ERROR"],
-        help="Set log level",
-    )
-
-    args = parser.parse_args()
-
     logger.remove()
-    logger.add(sys.stderr, level=args.log_level)
+    logger.add(sys.stderr, level=log_level)
 
-    if args.no_cache:
+    if no_cache:
         os.environ[ENV_VAR_DISABLE_CACHED] = "1"
 
-    path = Path(args.path)
-    if not path.exists():
-        logger.error(f"File not found: {path}")
+    path_obj = Path(path)
+    if not path_obj.exists():
+        logger.error(f"File not found: {path_obj}")
         sys.exit(1)
 
-    logger.info(f"Loading data from {path}...")
-    df, file_type = load_file(path)
+    logger.info(f"Loading data from {path_obj}...")
+    df, file_type = load_file(path_obj)
 
     # Ensure required columns exist in the file
     required_cols = ["url", "title", "company", "description"]
@@ -117,10 +100,6 @@ def main() -> None:
         df.loc[idx, "llm_text"] = match.llm_text
         df.loc[idx, "check_passed"] = match.check_passed
 
-    logger.info(f"Saving updated data back to {path}...")
-    save_file(df, path, file_type)
+    logger.info(f"Saving updated data back to {path_obj}...")
+    save_file(df, path_obj, file_type)
     logger.info("Done!")
-
-
-if __name__ == "__main__":
-    main()

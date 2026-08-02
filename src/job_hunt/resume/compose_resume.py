@@ -1,6 +1,5 @@
 """Local Resume composer that coordinates prompt generation, LLM tailoring, and PDF conversion."""
 
-import argparse
 import sys
 from pathlib import Path
 
@@ -137,43 +136,3 @@ def compose_resume(
         logger.error(err)
 
     logger.info("Successfully finished composing Resume locally!")
-
-
-def main() -> None:
-    """Entry point for CLI execution to compose Resume locally."""
-    parser = argparse.ArgumentParser(description="Compose Resume locally using Ollama models.")
-    parser.add_argument(
-        "job_description",
-        help="Path to the Resume folder or the jd.txt file directly",
-    )
-    parser.add_argument(
-        "--model",
-        "-m",
-        default=None,
-        help="Ollama model to use for composing. If None, the configured eval model is used without filename prefixes.",
-    )
-    parser.add_argument(
-        "--force",
-        "-f",
-        action="store_true",
-        default=False,
-        help="Force execution of Step 2 (LLM tailoring) even if the tailored body file already exists",
-    )
-    parser.add_argument(
-        "--feedback",
-        action="store_true",
-        default=False,
-        help="Run AI feedback loop if checking errors step (Step 5) finds validation errors.",
-    )
-    args = parser.parse_args()
-
-    compose_resume(
-        folder=args.job_description,
-        model=args.model,
-        force=args.force,
-        feedback=args.feedback,
-    )
-
-
-if __name__ == "__main__":
-    main()

@@ -1,6 +1,5 @@
 """Prepare prompts for Resume tailoring using templates and job descriptions."""
 
-import argparse
 import os
 from pathlib import Path
 
@@ -51,31 +50,3 @@ def tailor_for_description(output: str, jd_path: str) -> None:
     )
     out.write_text(content)
     logger.info(f"Written: {out}")
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Generate LLM prompt for Resume tailoring.")
-    parser.add_argument("--output", required=True, help="Output path for the generated .md file")
-
-    mode = parser.add_mutually_exclusive_group(required=True)
-    mode.add_argument("--tailor-for-title", metavar="JOB_TITLE", help="Job title text")
-    mode.add_argument(
-        "--tailor-for-description",
-        action="store_true",
-        help="Tailor for a job description file",
-    )
-
-    parser.add_argument(
-        "--job-description",
-        metavar="PATH",
-        help="Path to job description file (use with --tailor-for-description)",
-    )
-
-    args = parser.parse_args()
-
-    if args.tailor_for_description:
-        if not args.job_description:
-            parser.error("--job-description is required with --tailor-for-description")
-        tailor_for_description(args.output, args.job_description)
-    else:
-        tailor_for_title(args.output, args.tailor_for_title)
