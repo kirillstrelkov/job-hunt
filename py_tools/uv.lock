@@ -4457,7 +4457,7 @@ wheels = [
 ]
 
 [[package]]
-name = "py"
+name = "py-job-hunt"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [

@@ -1,6 +1,10 @@
 default:
     @just -l
 
+init:
+    rm -rf .venv
+    uv sync
+
 # Run linter and formatting checks
 lint:
     uv run ruff format
