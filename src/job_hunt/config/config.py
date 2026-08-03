@@ -424,28 +424,50 @@ def create_default_config(dest_path: Path) -> None:
 
 
 def check_config(config_path: Path) -> bool:
-    """Check that all files referenced in the config file exist."""
+    """Check that all paths referenced in the config file exist."""
     if not config_path.exists():
         logger.error(f"Config file not found at {config_path}")
         return False
 
     try:
-        resolved_paths = load(config_path)
+        resolved = load(config_path)
     except (TypeError, ValueError, yaml.YAMLError, OSError) as e:
         logger.error(f"Error loading configuration: {e}")
         return False
 
     all_exist = True
-    composer = resolved_paths.get("composer", {})
-    tailor = resolved_paths.get("tailor", {})
 
-    for key, filepath in {**composer, **tailor}.items():
-        path_obj = Path(filepath)
-        if path_obj.exists() and path_obj.is_file():
-            logger.info(f"File exists: {key} -> {filepath}")
+    def check(label: str, value: Any) -> None:
+        nonlocal all_exist
+        if not value:
+            return
+        path_obj = Path(value)
+        if path_obj.exists():
+            logger.info(f"Path exists: {label} -> {path_obj}")
         else:
-            logger.warning(f"File missing: {key} -> {filepath}")
+            logger.warning(f"Path missing: {label} -> {path_obj}")
             all_exist = False
+
+    for key, val in resolved.get("composer", {}).items():
+        check(f"composer.{key}", val)
+
+    for key, val in resolved.get("tailor", {}).items():
+        check(f"tailor.{key}", val)
+
+    for key, val in resolved.get("paths", {}).items():
+        if key == "trulens_db_url":  # not a plain filesystem path (sqlite:/// URL)
+            continue
+        check(f"paths.{key}", val)
+
+    for job in resolved.get("data", {}).get("jobs", []):
+        name = job.get("name", "?")
+        for key in ("ground_truth", "description", "llm_prompt"):
+            if key in job:
+                check(f"data.jobs[{name}].{key}", job[key])
+
+    for key in ("jobs_path", "job_matches_path"):
+        if key in resolved.get("scraper", {}):
+            check(f"scraper.{key}", resolved["scraper"][key])
 
     return all_exist
 

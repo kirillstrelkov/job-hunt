@@ -1,6 +1,6 @@
 """Filter markdown resume files and replace header/footer sections.
 
-Scans *.md files in a folder (or a single markdown file), filters for full resumes that:
+Recursively scans *.md files in a folder, including subfolders (or a single markdown file), filters for full resumes that:
 - Start with a single `# ` heading
 - Contain `## Summary`, `## Work Experience`, and `## Education` sections
 
@@ -8,7 +8,9 @@ Replaces everything before `## Summary` with `--header` content,
 and everything from/including `## Education` with `--footer` content.
 
 Usage:
-  python substitute_resume.py <input> <output> --header <header_path> --footer <footer_path>
+  python substitute_resume.py <input> [output] --header <header_path> --footer <footer_path>
+
+If [output] is omitted, matched files are replaced in place.
 """
 
 import re
@@ -81,7 +83,7 @@ def process_files(input_path: Path, output_path: Path, header_path: Path, footer
         md_files = [input_path]
         is_single_file_mode = True
     else:
-        md_files = sorted(list(input_path.glob("*.md")) + list(input_path.glob("*.MD")))
+        md_files = sorted(set(input_path.rglob("*.md")) | set(input_path.rglob("*.MD")))
         is_single_file_mode = False
 
     for file in md_files:
@@ -101,12 +103,11 @@ def process_files(input_path: Path, output_path: Path, header_path: Path, footer
             logger.error("Error processing {}: {}", file, err)
             continue
 
-        # Determine output file location
+        # Determine output file location, preserving subfolder structure relative to input_path
         if is_single_file_mode and not output_path.is_dir() and (output_path.suffix or not output_path.exists()):
             target_file = output_path
         else:
-            output_path.mkdir(parents=True, exist_ok=True)
-            target_file = output_path / file.name
+            target_file = output_path / file.relative_to(input_path)
 
         target_file.parent.mkdir(parents=True, exist_ok=True)
         target_file.write_text(new_content, encoding="utf-8")
@@ -116,7 +117,7 @@ def process_files(input_path: Path, output_path: Path, header_path: Path, footer
     return processed_files
 
 
-def main(src: Path, output: Path, header: Path, footer: Path) -> None:
-    """Execute resume filtering and replacement."""
-    processed = process_files(src, output, header, footer)
+def main(src: Path, output: Path | None, header: Path, footer: Path) -> None:
+    """Execute resume filtering and replacement. If output is None, files are replaced in place."""
+    processed = process_files(src, output or src, header, footer)
     logger.info("Successfully processed {} resume file(s).", len(processed))

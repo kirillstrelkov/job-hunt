@@ -149,6 +149,26 @@ def resume_compose(
     typer.secho(f"Composed Resume for folder {folder}", fg=typer.colors.GREEN)
 
 
+@resume_app.command("gen-prompt")
+def resume_gen_prompt(
+    template: Path = typer.Option(..., "--template", "-t", help="Path to the LLM tailoring prompt template"),
+    jd: Path = typer.Option(..., "--jd", "-j", help="Path to the job description file"),
+    resume_body: Path = typer.Option(..., "--resume-body", "-r", help="Path to the master resume body markdown"),
+    output: Path = typer.Option(Path("prompt.md"), "--output", "-o", help="Path for the generated prompt file"),
+):
+    """Generate an LLM tailoring prompt by combining a template, job description, and resume body."""
+    from job_hunt.resume.prepare_resume import generate_llm_prompt
+
+    for label, p in (("template", template), ("jd", jd), ("resume-body", resume_body)):
+        if not p.exists():
+            typer.secho(f"Error: {label} file not found: {p}", fg=typer.colors.RED, err=True)
+            raise typer.Exit(code=1)
+
+    content = generate_llm_prompt(template=template, resume_body=resume_body, job_description=jd)
+    output.write_text(content, encoding="utf-8")
+    typer.secho(f"Generated prompt saved to {output.resolve()}", fg=typer.colors.GREEN)
+
+
 @resume_app.command("compose-csv")
 def resume_compose_csv(
     csv_path: Path = typer.Option(..., "--path", "-p", help="Path to jobs CSV file"),
@@ -224,7 +244,9 @@ def resume_build_pdfs(
 @resume_app.command("substitute")
 def resume_filter(
     input_path: Path = typer.Argument(..., help="Input directory or markdown file path"),
-    output_path: Path = typer.Argument(..., help="Output directory or file path"),
+    output_path: Path = typer.Argument(
+        None, help="Output directory or file path (defaults to overwriting input in place)"
+    ),
     header: Path = typer.Option(..., "--header", help="Path to header markdown file"),
     footer: Path = typer.Option(..., "--footer", help="Path to footer markdown file"),
 ):

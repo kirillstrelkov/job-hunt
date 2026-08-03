@@ -8,6 +8,14 @@ from job_hunt.config.config import DEFAULT_RESUME_CONFIG as DEFAULT_CONFIG
 from job_hunt.resume.combine_resume_parts import combine_resume_part_files
 
 
+def generate_llm_prompt(*, template: Path, resume_body: Path, job_description: Path) -> str:
+    """Fill an LLM tailoring prompt template with a resume body and a job description."""
+    return template.read_text(encoding="utf-8").format(
+        master_resume=resume_body.read_text(encoding="utf-8"),
+        job_description=job_description.read_text(encoding="utf-8"),
+    )
+
+
 def prepare_resume(  # noqa: C901
     *,
     folder: str | None = None,
@@ -77,10 +85,7 @@ def prepare_resume(  # noqa: C901
     if llm_prompt:
         logger.info(f"Generating {tailored_llm_text}")
 
-        content = tailor_for_desc.read_text().format(
-            master_resume=(master_resume).read_text(),
-            job_description=(jd).read_text(),
-        )
+        content = generate_llm_prompt(template=tailor_for_desc, resume_body=master_resume, job_description=jd)
         tailored_llm_text.write_text(content)
 
     if generate_resume_mode:

@@ -24,15 +24,22 @@ def config_show():
 
 
 @config_app.command("check")
-def config_check():
-    """Validate that configured paths and template files exist."""
+def config_check(
+    config_path: Path = typer.Argument(
+        None, help="Path to config.yaml to validate (defaults to the workspace config.yaml)"
+    ),
+):
+    """Validate that all paths referenced in the config file exist."""
     from job_hunt.config.config import DEFAULT_CONFIG, check_config
 
-    success = check_config(DEFAULT_CONFIG.get_path())
+    target = config_path if config_path is not None else DEFAULT_CONFIG.get_path()
+    success = check_config(target)
     if success:
-        typer.secho("Configuration validation successful: All paths exist.", fg=typer.colors.GREEN)
+        typer.secho(f"Configuration validation successful: All paths exist. ({target})", fg=typer.colors.GREEN)
     else:
-        typer.secho("Configuration validation failed: Some paths are missing.", fg=typer.colors.RED, err=True)
+        typer.secho(
+            f"Configuration validation failed: Some paths are missing. ({target})", fg=typer.colors.RED, err=True
+        )
         raise typer.Exit(code=1)
 
 

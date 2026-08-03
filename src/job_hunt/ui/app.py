@@ -20,6 +20,7 @@ sys.path.append(str(Path(__file__).parent.parent))
 from job_hunt.resume import process_resume
 
 importlib.reload(process_resume)
+from job_hunt.config.config import ConfigManager
 from job_hunt.core.llm_helper import get_model_names as get_gemini_models
 from job_hunt.core.llm_helper import run_model as run_gemini_model
 from job_hunt.core.ollama_helper import run_model as run_ollama_model
@@ -30,6 +31,11 @@ from job_hunt.resume.md2pdf import convert_md_to_pdf
 tools_py_dir = Path(__file__).resolve().parent.parent
 resume_tools_dir = tools_py_dir / "resume" / "tools"
 
+# Anchored to this file's location so it resolves correctly regardless of the
+# process's current working directory (e.g. when launched via `job-hunt ui`
+# from the repo root vs. `streamlit run app.py` from this directory).
+DEFAULT_CONFIG_PATH = str(tools_py_dir / "config" / "config.yaml")
+
 
 def generate_config(output_path: str) -> None:
     """Generate consolidated configuration file from unified config.yaml."""
@@ -39,21 +45,12 @@ def generate_config(output_path: str) -> None:
     consolidated = {}
 
     if unified_config_path.exists():
-        with unified_config_path.open(encoding="utf-8") as f:
-            data = yaml.safe_load(f) or {}
+        resolved = ConfigManager(unified_config_path).get_config()
 
         # Flatten composer and tailor sections
-        if "composer" in data:
-            consolidated.update(data.get("composer") or {})
-        if "tailor" in data:
-            consolidated.update(data.get("tailor") or {})
-        consolidated.update({k: v for k, v in data.items() if k not in ("composer", "tailor")})
-
-        # Resolve relative paths relative to config/ folder
-        config_dir = unified_config_path.parent
-        for k, v in consolidated.items():
-            if isinstance(v, str) and (v.startswith(("./", "../")) or v in {".", ".."}):
-                consolidated[k] = str((config_dir / v).resolve())
+        consolidated.update(resolved.get("composer") or {})
+        consolidated.update(resolved.get("tailor") or {})
+        consolidated.update({k: v for k, v in resolved.items() if k not in ("composer", "tailor")})
     else:
         logger.warning(f"Warning: {unified_config_path} not found.")
 
@@ -137,52 +134,24 @@ st.markdown(
 
 @st.cache_data
 def load_unified_config(path: str) -> dict:
-    """Load and parse the consolidated YAML config file."""
+    """Load the workspace config.yaml via ConfigManager, resolving {placeholder} and relative paths."""
     p = Path(path)
     if not p.exists():
         return {}
-    with p.open(encoding="utf-8") as f:
-        data = yaml.safe_load(f) or {}
 
-    # Extract composer and tailor settings to root level
-    if "composer" in data:
-        data.update(data.get("composer") or {})
-    if "tailor" in data:
-        data.update(data.get("tailor") or {})
-    if "paths" in data:
-        data.update(data.get("paths") or {})
-    if "llm" in data:
-        llm = data.get("llm") or {}
-        data.update(llm)
-        # Ensure eval_model, models and gemini_models are available at root level
-        data["eval_model"] = llm.get("eval_mode")
-        data["model_default_options"] = llm.get("model_default_options")
-        data["top_models"] = llm.get("top_models")
-
-        ollama_models = llm.get("ollama", {}).get("models", [])
-        gemini_models = llm.get("gemini", {}).get("models", [])
-        data["models"] = ollama_models + gemini_models
-        data["gemini_models"] = [m["name"] for m in gemini_models]
-
-        # Build "ollama" dictionary for UI compatibility
-        data["ollama"] = {
-            "eval_model": llm.get("eval_mode"),
-            "model_default_options": llm.get("model_default_options"),
-            "models": ollama_models,
-            "top_models": llm.get("top_models"),
-        }
-    if "data" in data:
-        data_sec = data.get("data") or {}
-        if "jobs" in data_sec:
-            data["jobs"] = data_sec["jobs"]
-
-    # Resolve paths relative to config directory
-    config_dir = p.parent
-    for k, v in data.items():
-        if isinstance(v, str) and (v.startswith(("./", "../")) or v in {".", ".."}):
-            data[k] = str((config_dir / v).resolve())
-
-    return data
+    cm = ConfigManager(p)
+    return {
+        "header": str(cm.composer.header),
+        "body": str(cm.composer.body),
+        "footer": str(cm.composer.footer),
+        "prompt": str(cm.tailor.prompt),
+        "ollama": {
+            "eval_model": cm.llm.eval_model,
+            "model_default_options": cm.llm.model_default_options,
+            "models": [{"name": m.name, "options": m.options or {}} for m in cm.llm.ollama.models],
+            "top_models": cm.llm.top_models,
+        },
+    }
 
 
 def _clear_stale_config_states() -> None:
@@ -230,7 +199,7 @@ def load_config_data_action(config_data: dict) -> None:
 
 # Initial Config Loading
 if "config" not in st.session_state:
-    config_path = st.session_state.get("config_path_input_val", "../config/config.yaml")
+    config_path = st.session_state.get("config_path_input_val", DEFAULT_CONFIG_PATH)
     st.session_state["config"] = load_unified_config(config_path)
 
 if "local_llm_stdout" not in st.session_state:
@@ -1240,7 +1209,7 @@ with tabs[3]:
 
         config_path_input = st.text_input(
             "Config File Path",
-            value=st.session_state.get("config_path_input_val", "../config/config.yaml"),
+            value=st.session_state.get("config_path_input_val", DEFAULT_CONFIG_PATH),
             key="config_path_input_val",
             on_change=on_config_path_change_tab,
             label_visibility="collapsed",
