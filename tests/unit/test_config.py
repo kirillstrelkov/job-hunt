@@ -43,3 +43,16 @@ def test_check_config_with_valid_and_missing_paths(tmp_path: Path) -> None:
 
     (tmp_path / "missing_dir").mkdir()
     assert check_config(config_path) is True
+
+
+def test_job_hunt_config_env_var(monkeypatch, tmp_path: Path) -> None:
+    from job_hunt.config.config import ConfigManager, get_default_config_path
+
+    custom_config = tmp_path / "custom_config.yaml"
+    custom_config.write_text(yaml.safe_dump({"paths": {"root_dir": str(tmp_path)}}))
+
+    monkeypatch.setenv("JOB_HUNT_CONFIG", str(custom_config))
+    assert get_default_config_path() == custom_config.resolve()
+
+    cm = ConfigManager()
+    assert cm.get_path() == custom_config.resolve()

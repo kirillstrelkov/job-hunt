@@ -1,5 +1,4 @@
-"""Unified configuration helper utilities for resolving paths, substitutions and Resume parts."""
-
+import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
@@ -9,6 +8,14 @@ import yaml
 from loguru import logger
 
 CONFIG_DIR = Path(__file__).resolve().parent
+
+
+def get_default_config_path() -> Path:
+    """Get the default config path, prioritizing JOB_HUNT_CONFIG env var if set."""
+    env_path = os.getenv("JOB_HUNT_CONFIG")
+    if env_path:
+        return Path(env_path).resolve()
+    return CONFIG_DIR / "config.yaml"
 
 
 @dataclass
@@ -172,9 +179,9 @@ def _make_paths_absolute(val: Any) -> Any:
 class ConfigManager:
     """Manages reading and querying YAML configurations."""
 
-    def __init__(self, config_path: Path) -> None:
+    def __init__(self, config_path: Path | str | None = None) -> None:
         """Initialize ConfigManager with path to YAML config."""
-        self.config_path = Path(config_path)
+        self.config_path = Path(config_path) if config_path is not None else get_default_config_path()
         self._config = None
         self.composer: ComposerConfig = None
         self.tailor: TailorConfig = None
@@ -369,26 +376,6 @@ class ConfigManager:
         return self.paths.env_file
 
 
-def load_config(path: Path = CONFIG_DIR / "config.yaml", *, strict: bool = False) -> Config:
-    """Load config from YAML file and verify all paths exist if strict is True."""
-    data = load(path) if path.exists() else {}
-    composer = data.get("composer", {})
-    tailor = data.get("tailor", {})
-
-    config = Config(
-        header=Path(composer.get("header", "")),
-        body=Path(composer.get("body", "")),
-        footer=Path(composer.get("footer", "")),
-        prompt=Path(tailor.get("prompt", "")),
-    )
-    if strict:
-        for p in (config.header, config.body, config.footer, config.prompt):
-            if not p.is_file():
-                msg = f"Configured file path does not exist: {p}"
-                raise FileNotFoundError(msg)
-    return config
-
-
 def load(config_path: str | Path) -> dict:
     """Load config from YAML file and resolve paths to absolute paths."""
     cm = ConfigManager(Path(config_path))
@@ -473,10 +460,5 @@ def check_config(config_path: Path) -> bool:
     return all_exist
 
 
-DEFAULT_CONFIG = ConfigManager(CONFIG_DIR / "config.yaml")
+DEFAULT_CONFIG = ConfigManager(get_default_config_path())
 TRULENS_DB_URL = DEFAULT_CONFIG.get_config_value(".trulens_db_url")
-try:
-    DEFAULT_RESUME_CONFIG = load_config(CONFIG_DIR / "config.yaml", strict=False)
-except Exception as e:
-    logger.warning(f"Could not load DEFAULT_RESUME_CONFIG: {e}")
-    DEFAULT_RESUME_CONFIG = Config(header=Path(""), body=Path(""), footer=Path(""), prompt=Path(""))

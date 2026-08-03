@@ -38,8 +38,8 @@ def main(
         if not config_path.exists():
             logger.error(f"Config file not found: {config_path}")
             sys.exit(1)
-        custom_cfg = cfg.load_config(config_path)
-        cfg.DEFAULT_RESUME_CONFIG = custom_cfg
+        custom_cfg = cfg.ConfigManager(config_path)
+        cfg.DEFAULT_CONFIG = custom_cfg
         prepare_resume.DEFAULT_CONFIG = custom_cfg
         logger.info(f"Loaded custom configuration from {config_path}")
 

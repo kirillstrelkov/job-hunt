@@ -4,7 +4,7 @@ from pathlib import Path
 
 from loguru import logger
 
-from job_hunt.config.config import DEFAULT_RESUME_CONFIG as DEFAULT_CONFIG
+from job_hunt.config.config import DEFAULT_CONFIG
 from job_hunt.resume.combine_resume_parts import combine_resume_part_files
 
 
@@ -59,10 +59,10 @@ def prepare_resume(  # noqa: C901
         raise FileNotFoundError(msg)
 
     # inputs
-    header = DEFAULT_CONFIG.header
-    footer = DEFAULT_CONFIG.footer
-    master_resume = DEFAULT_CONFIG.body
-    tailor_for_desc = DEFAULT_CONFIG.prompt
+    header = DEFAULT_CONFIG.composer.header
+    footer = DEFAULT_CONFIG.composer.footer
+    master_resume = DEFAULT_CONFIG.composer.body
+    tailor_for_desc = DEFAULT_CONFIG.tailor.prompt
 
     jd = Path(job_description) if job_description else target_folder / "jd.txt"
 
