@@ -93,7 +93,9 @@ def fix_markdown(md: str, *, keep_thesis: bool = True) -> str:
     resume_obj = Resume.from_string(md)
     resume_obj = do_fix(resume_obj, keep_thesis=keep_thesis)
     # fmt_md = format_md(resume_obj.to_string()) # has errors for '\'
-    return fix_last_pipe(resume_obj.to_string())
+    fixed_md = fix_last_pipe(resume_obj.to_string())
+    # Drop filler articles ('a'/'an') to keep bullet points terse
+    return fixed_md.replace(" a ", " ").replace(" an ", " ")
 
 
 # Future: check for wrong link syntax in projects section (e.g. mismatched brackets).
