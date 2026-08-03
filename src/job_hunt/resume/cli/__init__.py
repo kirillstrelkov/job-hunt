@@ -175,19 +175,22 @@ def resume_gen_prompt(
     typer.secho(f"Generated prompt saved to {output.resolve()}", fg=typer.colors.GREEN)
 
 
-@resume_app.command("compose-csv")
-def resume_compose_csv(
+@resume_app.command("compose-from-csv")
+def resume_compose_from_csv(
     csv_path: Path = typer.Option(..., "--path", "-p", help="Path to jobs CSV file"),
     folder: Path = typer.Option(Path("workspace/outputs"), "--folder", "-f", help="Output target directory"),
+    model: str = typer.Option(None, "--model", "-m", help="LLM model name to use"),
+    force: bool = typer.Option(False, "--force", help="Overwrite output even if it already exists"),
+    feedback: bool = typer.Option(False, "--feedback", help="Enable feedback loop during composition"),
 ):
     """Batch compose Resumes from a CSV job list."""
-    from job_hunt.resume.compose_jobs_from_csv import main as compose_csv_main
+    from job_hunt.resume.compose_jobs_from_csv import main as compose_from_csv_main
 
     if not csv_path.exists():
         typer.secho(f"Error: CSV file not found: {csv_path}", fg=typer.colors.RED, err=True)
         raise typer.Exit(code=1)
 
-    compose_csv_main(path=csv_path, folder=folder)
+    compose_from_csv_main(path=csv_path, folder=folder, model=model, force=force, feedback=feedback)
     typer.secho("Batch CSV composition complete.", fg=typer.colors.GREEN)
 
 

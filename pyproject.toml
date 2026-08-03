@@ -31,6 +31,7 @@ dependencies = [
     "pandas>=2.0.0",
     "pydantic-ai>=1.107.0",
     "pytest>=8.0.0",
+    "python-calamine>=0.8.2",
     "pyyaml",
     "ragas>=0.1.0",
     "ruff",

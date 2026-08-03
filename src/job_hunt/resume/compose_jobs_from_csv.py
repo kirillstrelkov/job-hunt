@@ -6,10 +6,10 @@ from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
-from config import config as cfg
 from loguru import logger
 from tqdm import tqdm
 
+from job_hunt.config import config as cfg
 from job_hunt.resume import prepare_resume
 from job_hunt.resume.compose_resume import compose_resume
 
@@ -51,7 +51,7 @@ def main(
 
     try:
         if csv_path.suffix == ".ods":
-            df = pd.read_excel(csv_path, engine="odf")
+            df = pd.read_excel(csv_path, engine="calamine")
         else:
             df = pd.read_csv(csv_path, sep=None, engine="python")
     except Exception as e:
@@ -71,7 +71,7 @@ def main(
     output_dir = (Path(folder) / f"from_csv_{csv_path.stem}" / timestamp).resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    logger.info(f"Processing {len(df)} job postings from CSV...")
+    logger.info("Processing {} job postings from {}", len(df), csv_path)
 
     for idx, row in tqdm(df.iterrows(), total=len(df)):
         title = str(row["title"]).strip() if pd.notna(row["title"]) else ""

@@ -5,7 +5,10 @@ from pathlib import Path
 from typing import Any
 
 import yaml
+from dotenv import load_dotenv
 from loguru import logger
+
+load_dotenv()
 
 CONFIG_DIR = Path(__file__).resolve().parent
 
@@ -13,6 +16,7 @@ CONFIG_DIR = Path(__file__).resolve().parent
 def get_default_config_path() -> Path:
     """Get the default config path, prioritizing JOB_HUNT_CONFIG env var if set."""
     env_path = os.getenv("JOB_HUNT_CONFIG")
+    print("ENV:", env_path)
     if env_path:
         return Path(env_path).resolve()
     return CONFIG_DIR / "config.yaml"

@@ -54,6 +54,8 @@ def prepare_resume(  # noqa: C901
         target_folder = folder_path
         generate_resume_mode = not llm_prompt
 
+    assert target_folder is not None
+
     if not target_folder.exists():
         msg = f"{target_folder} not found"
         raise FileNotFoundError(msg)

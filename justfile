@@ -72,8 +72,8 @@ resume-compose folder model="gemma-4-26b-a4b-it":
     uv run job-hunt resume compose "{{ folder }}" --model "{{ model }}"
 
 # Batch compose Resumes from a CSV job list
-resume-compose-csv csv_path output_folder="workspace/outputs":
-    uv run job-hunt resume compose-csv -p "{{ csv_path }}" -f "{{ output_folder }}"
+resume-compose-from-csv csv_path output_folder="workspace/outputs" model="" force="false" feedback="false":
+    uv run job-hunt resume compose-from-csv -p "{{ csv_path }}" -f "{{ output_folder }}" {{ if model == "" { "" } else { "-m " + model } }} {{ if force == "true" { "--force" } else { "" } }} {{ if feedback == "true" { "--feedback" } else { "" } }}
 
 # List available resume templates
 resume-template-list:
