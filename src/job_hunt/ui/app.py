@@ -20,28 +20,21 @@ sys.path.append(str(Path(__file__).parent.parent))
 from job_hunt.resume import process_resume
 
 importlib.reload(process_resume)
-from job_hunt.config.config import ConfigManager
+from job_hunt.config.config import ConfigManager, get_default_config_path
 from job_hunt.core.llm_helper import get_model_names as get_gemini_models
 from job_hunt.core.llm_helper import run_model as run_gemini_model
 from job_hunt.core.ollama_helper import run_model as run_ollama_model
 from job_hunt.resume.combine_resume_parts import combine_resume_parts
 from job_hunt.resume.md2pdf import convert_md_to_pdf
 
-# Add required paths
-tools_py_dir = Path(__file__).resolve().parent.parent
-resume_tools_dir = tools_py_dir / "resume" / "tools"
-
-# Anchored to this file's location so it resolves correctly regardless of the
-# process's current working directory (e.g. when launched via `job-hunt ui`
-# from the repo root vs. `streamlit run app.py` from this directory).
-DEFAULT_CONFIG_PATH = str(tools_py_dir / "config" / "config.yaml")
+DEFAULT_CONFIG_PATH = str(get_default_config_path())
 
 
 def generate_config(output_path: str) -> None:
     """Generate consolidated configuration file from unified config.yaml."""
     logger.info(f"Generating consolidated config at {output_path}")
 
-    unified_config_path = tools_py_dir / "config" / "config.yaml"
+    unified_config_path = get_default_config_path()
     consolidated = {}
 
     if unified_config_path.exists():
@@ -81,7 +74,7 @@ if st.session_state.get("gemini_api_key_val"):
 
 
 def compile_pdf(md_path: str, pdf_path: str) -> None:
-    """Compile Markdown file to PDF using resume/tools/md2pdf.py."""
+    """Compile Markdown file to PDF using resume/md2pdf.py."""
     try:
         convert_md_to_pdf(Path(md_path), Path(pdf_path))
     except SystemExit as e:
