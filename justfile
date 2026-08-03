@@ -39,6 +39,10 @@ clean:
 resume-check file:
     uv run job-hunt resume check "{{ file }}"
 
+# Check Resume PDF page count and visual fill
+resume-check-pdf pdf:
+    uv run job-hunt resume check-pdf "{{ pdf }}"
+
 # Tailor master Resume body against a job description
 resume-tailor resume jd output="" model="gemma4:e2b":
     uv run job-hunt resume tailor -r "{{ resume }}" -j "{{ jd }}" {{ if output == "" { "" } else { "-o " + output } }} -m "{{ model }}"
@@ -50,6 +54,18 @@ resume-render input output="":
 # Auto-correct Markdown syntax errors
 resume-fix input output="":
     uv run job-hunt resume fix "{{ input }}" {{ if output == "" { "" } else { "-o " + output } }}
+
+# Combine header, body and footer markdown files into a single Resume
+resume-combine header body footer output="":
+    uv run job-hunt resume combine -H "{{ header }}" -b "{{ body }}" -f "{{ footer }}" {{ if output == "" { "" } else { "-o " + output } }}
+
+# Substitute header and footer sections in resume markdown file(s)
+resume-substitute src output header footer:
+    uv run job-hunt resume substitute "{{ src }}" "{{ output }}" --header "{{ header }}" --footer "{{ footer }}"
+
+# Build Resume PDFs from all *_resume.md files in a folder
+resume-build-pdfs folder:
+    uv run job-hunt resume build-pdfs "{{ folder }}"
 
 # Auto-compose Resume for a target folder
 resume-compose folder model="gemma-4-26b-a4b-it":
@@ -76,6 +92,10 @@ resume-template-generate name="custom" out="data/templates":
 # Scrape job boards and filter listings with LLM matching
 finder-fetch:
     uv run job-hunt finder fetch
+
+# Analyze a single job description file
+finder-check-jd jd:
+    uv run job-hunt finder check-jd "{{ jd }}"
 
 # Review role match for a single job description file
 finder-review jd:
