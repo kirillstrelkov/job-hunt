@@ -1,14 +1,22 @@
 """Prepare prompts for Resume tailoring using templates and job descriptions."""
 
-import os
 from pathlib import Path
 
 from loguru import logger
 
-_CUR_DIR = Path(__file__).parent
-_MASTER_RESUME = Path(os.getenv("MASTERCV_PATH"))
-_PROMPT_TITLE = _CUR_DIR / ".." / "prompts/tailor_for_title.md"
-_PROMPT_DESC = _CUR_DIR / ".." / "prompts/tailor_for_description.md"
+from job_hunt.config.config import DEFAULT_CONFIG
+from job_hunt.resume.prepare_resume import generate_llm_prompt
+
+_CUR_DIR = Path(__file__).parent.resolve()
+_PROMPT_TITLE = _CUR_DIR / "prompts/tailor_for_title.md"
+_PROMPT_DESC = _CUR_DIR / "prompts/tailor_for_description.md"
+
+
+def get_master_resume_body_path(custom_path: Path | str | None = None) -> Path:
+    """Resolve master resume body path from parameter or config.yaml."""
+    if custom_path:
+        return Path(custom_path)
+    return DEFAULT_CONFIG.composer.body
 
 
 def _require(path: Path) -> Path:
@@ -19,34 +27,48 @@ def _require(path: Path) -> Path:
     return resolved
 
 
-def tailor_for_title(output: str, job_title: str) -> None:
+def tailor_for_title(
+    output: str | Path,
+    job_title: str,
+    *,
+    resume_body: Path | str | None = None,
+    template_path: Path | str | None = None,
+) -> None:
     """Generate a prompt tailored for a specific job title using the template."""
-    master_resume = _require(_MASTER_RESUME)
-    template = _require(_PROMPT_TITLE)
+    master_resume_body = _require(get_master_resume_body_path(resume_body))
+    template = _require(Path(template_path) if template_path else _PROMPT_TITLE)
 
     out = Path(output)
     out.parent.mkdir(parents=True, exist_ok=True)
 
-    content = template.read_text().format(
+    content = generate_llm_prompt(
+        template=template,
+        resume_body=master_resume_body,
         job_title=job_title,
-        master_resume=master_resume.read_text(),
     )
-    out.write_text(content)
+    out.write_text(content, encoding="utf-8")
     logger.info(f"Written: {out}")
 
 
-def tailor_for_description(output: str, jd_path: str) -> None:
+def tailor_for_description(
+    output: str | Path,
+    jd_path: str | Path,
+    *,
+    resume_body: Path | str | None = None,
+    template_path: Path | str | None = None,
+) -> None:
     """Generate a prompt tailored for a detailed job description file."""
-    master_resume = _require(_MASTER_RESUME)
-    template = _require(_PROMPT_DESC)
+    master_resume_body = _require(get_master_resume_body_path(resume_body))
+    template = _require(Path(template_path) if template_path else _PROMPT_DESC)
     jd = _require(Path(jd_path))
 
     out = Path(output)
     out.parent.mkdir(parents=True, exist_ok=True)
 
-    content = template.read_text().format(
-        job_description=jd.read_text(),
-        master_resume=master_resume.read_text(),
+    content = generate_llm_prompt(
+        template=template,
+        resume_body=master_resume_body,
+        job_description=jd,
     )
-    out.write_text(content)
+    out.write_text(content, encoding="utf-8")
     logger.info(f"Written: {out}")

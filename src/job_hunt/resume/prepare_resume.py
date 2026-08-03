@@ -8,11 +8,21 @@ from job_hunt.config.config import DEFAULT_RESUME_CONFIG as DEFAULT_CONFIG
 from job_hunt.resume.combine_resume_parts import combine_resume_part_files
 
 
-def generate_llm_prompt(*, template: Path, resume_body: Path, job_description: Path) -> str:
-    """Fill an LLM tailoring prompt template with a resume body and a job description."""
+def generate_llm_prompt(
+    *,
+    template: Path,
+    resume_body: Path,
+    job_description: Path | str | None = None,
+    job_title: str | None = None,
+) -> str:
+    """Fill an LLM tailoring prompt template with a resume body and a job description or job title."""
+    jd_text = (
+        job_description.read_text(encoding="utf-8") if isinstance(job_description, Path) else (job_description or "")
+    )
     return template.read_text(encoding="utf-8").format(
         master_resume=resume_body.read_text(encoding="utf-8"),
-        job_description=job_description.read_text(encoding="utf-8"),
+        job_description=jd_text,
+        job_title=job_title or "",
     )
 
 

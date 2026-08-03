@@ -1,22 +1,18 @@
 """Evaluation preparation script for LLM prompts."""
 
-import os
 import shutil
 import subprocess
 import sys
 from pathlib import Path
 
-from job_hunt.core.config import DEFAULT_CONFIG
 from loguru import logger
+
+from job_hunt.config.config import DEFAULT_CONFIG
 
 
 def main() -> None:
-    """Prepare LLM prompt for evaluation."""
+    """Prepare LLM Prompt for evaluation."""
     logger.info("Preparing LLM Prompt")
-    if not os.getenv("MASTERCV_PATH"):
-        logger.error("MASTERCV_PATH not set")
-        sys.exit(1)
-
     job = DEFAULT_CONFIG.get_jobs()[0]
     output_file = Path(job.llm_prompt_path)
     output_file.parent.mkdir(parents=True, exist_ok=True)

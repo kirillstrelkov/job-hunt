@@ -43,7 +43,13 @@ def resume_check(
 
 @resume_app.command("tailor")
 def resume_tailor(
-    resume: Path = typer.Option(None, "--resume", "-r", help="Path to Master Resume body markdown"),
+    resume_body: Path = typer.Option(
+        None,
+        "--resume-body",
+        "--resume",
+        "-r",
+        help="Path to Master Resume body markdown (defaults to configured body path)",
+    ),
     jd: Path = typer.Option(None, "--jd", "-j", help="Path to Job Description file"),
     title: str = typer.Option(None, "--title", "-t", help="Job title string (alternative to --jd)"),
     output: Path = typer.Option(Path("tailored_resume.md"), "--output", "-o", help="Path for output markdown file"),
@@ -51,19 +57,20 @@ def resume_tailor(
     force: bool = typer.Option(False, "--force", help="Overwrite output even if it already exists"),
 ):
     """Tailor a master Resume body against a job description or job title using an LLM."""
+    from job_hunt.config.config import DEFAULT_CONFIG
     from job_hunt.core.ollama_helper import get_eval_model
     from job_hunt.resume.prepare_llm_prompt import tailor_for_description, tailor_for_title
     from job_hunt.resume.tailor_resume_body import process_output_of_ollama, run_ollama
 
-    if not resume:
-        typer.secho("Error: --resume is required", fg=typer.colors.RED, err=True)
+    resume_body_path = resume_body or DEFAULT_CONFIG.composer.body
+    if not resume_body_path or not resume_body_path.exists():
+        typer.secho(f"Error: Master Resume body file not found: {resume_body_path}", fg=typer.colors.RED, err=True)
         raise typer.Exit(code=1)
+
     if not jd and not title:
         typer.secho("Error: either --jd or --title is required", fg=typer.colors.RED, err=True)
         raise typer.Exit(code=1)
-    if not resume.exists():
-        typer.secho(f"Error: Resume file not found: {resume}", fg=typer.colors.RED, err=True)
-        raise typer.Exit(code=1)
+
     if output.exists() and not force:
         typer.secho(f"Output already exists (use --force to overwrite): {output}", fg=typer.colors.YELLOW)
         return
@@ -75,14 +82,13 @@ def resume_tailor(
     with tempfile.NamedTemporaryFile(suffix=".txt", delete=False) as tmp:
         tmp_prompt_path = Path(tmp.name)
 
-    # Note: prepare_llm_prompt.py relies on MASTERCV_PATH env var.
     if title:
-        tailor_for_title(str(tmp_prompt_path), title)
+        tailor_for_title(tmp_prompt_path, title, resume_body=resume_body_path)
     else:
         if not jd.exists():
             typer.secho(f"Error: Job description file not found: {jd}", fg=typer.colors.RED, err=True)
             raise typer.Exit(code=1)
-        tailor_for_description(str(tmp_prompt_path), str(jd))
+        tailor_for_description(tmp_prompt_path, jd, resume_body=resume_body_path)
 
     typer.echo(f"Tailoring Resume with model '{resolved_model}'...")
     prompt_content = tmp_prompt_path.read_text(encoding="utf-8")
@@ -242,7 +248,7 @@ def resume_build_pdfs(
 
 
 @resume_app.command("substitute")
-def resume_filter(
+def resume_substitute(
     input_path: Path = typer.Argument(..., help="Input directory or markdown file path"),
     output_path: Path = typer.Argument(
         None, help="Output directory or file path (defaults to overwriting input in place)"
@@ -251,10 +257,10 @@ def resume_filter(
     footer: Path = typer.Option(..., "--footer", help="Path to footer markdown file"),
 ):
     """Scan markdown file(s), filter for full resumes, and replace header/footer sections."""
-    from job_hunt.resume.substitute_resume import main as filter_main
+    from job_hunt.resume.substitute_resume import main as substitute_main
 
-    filter_main(src=input_path, output=output_path, header=header, footer=footer)
-    typer.secho("Filtering complete.", fg=typer.colors.GREEN)
+    substitute_main(src=input_path, output=output_path, header=header, footer=footer)
+    typer.secho("Substitution complete.", fg=typer.colors.GREEN)
 
 
 # --- Level 3 Commands: job-hunt resume template ... ---

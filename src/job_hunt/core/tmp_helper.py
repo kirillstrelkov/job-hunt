@@ -19,7 +19,7 @@ def get_tmp_output_dir() -> Path:
 def get_tmp_folder(file_path: str | Path) -> Path:
     """Get the tmp folder path for a given file_path.
 
-    Constructed using tmp_output_dir from tools/py/helpers/config.yaml.
+    Constructed using tmp_output_dir from config.yaml.
     The path is mapped relative to the common parent path with get_tmp_output_dir().
     """
     abs_file_path = Path(file_path).resolve()

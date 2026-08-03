@@ -369,9 +369,9 @@ class ConfigManager:
         return self.paths.env_file
 
 
-def load_config(path: Path = CONFIG_DIR / "config.yaml") -> Config:
-    """Load config from YAML file and verify all paths exist."""
-    data = load(path)
+def load_config(path: Path = CONFIG_DIR / "config.yaml", *, strict: bool = False) -> Config:
+    """Load config from YAML file and verify all paths exist if strict is True."""
+    data = load(path) if path.exists() else {}
     composer = data.get("composer", {})
     tailor = data.get("tailor", {})
 
@@ -381,10 +381,11 @@ def load_config(path: Path = CONFIG_DIR / "config.yaml") -> Config:
         footer=Path(composer.get("footer", "")),
         prompt=Path(tailor.get("prompt", "")),
     )
-    for p in (config.header, config.body, config.footer, config.prompt):
-        if not p.is_file():
-            msg = f"Configured file path does not exist: {p}"
-            raise FileNotFoundError(msg)
+    if strict:
+        for p in (config.header, config.body, config.footer, config.prompt):
+            if not p.is_file():
+                msg = f"Configured file path does not exist: {p}"
+                raise FileNotFoundError(msg)
     return config
 
 
@@ -474,4 +475,8 @@ def check_config(config_path: Path) -> bool:
 
 DEFAULT_CONFIG = ConfigManager(CONFIG_DIR / "config.yaml")
 TRULENS_DB_URL = DEFAULT_CONFIG.get_config_value(".trulens_db_url")
-DEFAULT_RESUME_CONFIG = load_config(CONFIG_DIR / "config.yaml")
+try:
+    DEFAULT_RESUME_CONFIG = load_config(CONFIG_DIR / "config.yaml", strict=False)
+except Exception as e:
+    logger.warning(f"Could not load DEFAULT_RESUME_CONFIG: {e}")
+    DEFAULT_RESUME_CONFIG = Config(header=Path(""), body=Path(""), footer=Path(""), prompt=Path(""))
