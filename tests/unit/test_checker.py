@@ -5,9 +5,13 @@ from job_hunt.resume.checker import (
     BraketCheck,
     ChronologicalCheck,
     DotCheck,
+    DuplicateEntryCheck,
+    DuplicateLineCheck,
     DurationCheck,
     FormatCheck,
+    ProjectFormatCheck,
     RequiredSectionsCheck,
+    SectionNotEmptyCheck,
     TwoSpaceCheck,
     check,
     make_error,
@@ -236,3 +240,143 @@ def test_check_resume_flag() -> None:
     errors_resume = check(sections, is_resume=True)
     assert len(errors_resume) > 0
     assert any("Missing" in err.msg for err in errors_resume)
+
+
+def test_duplicate_entry_check_work_experience() -> None:
+    checker = DuplicateEntryCheck()
+    sec = Section(
+        heading=Heading(text=SectionConstant.WORK_EXPERIENCE, heading_prefix="##"),
+        filepath=Path("dummy.md"),
+        indexed_lines=[
+            IndexedLine(line="**Tester** | _ASM_ | Jun 2007 - Aug 2007", index=1),
+            IndexedLine(line="- Did testing", index=2),
+            IndexedLine(line="**Tester** | _ASM_ | Jun 2007 - Aug 2007", index=3),
+            IndexedLine(line="- Did testing again", index=4),
+        ],
+    )
+    errors = checker.check(sec)
+    assert len(errors) == 1
+    assert "Duplicate entry" in errors[0].msg
+
+
+def test_duplicate_entry_check_projects() -> None:
+    checker = DuplicateEntryCheck()
+    sec = Section(
+        heading=Heading(text=SectionConstant.PERSONAL_PROJECTS, heading_prefix="##"),
+        filepath=Path("dummy.md"),
+        indexed_lines=[
+            IndexedLine(line="**[Cool App](https://github.com/x/cool)** | Jun 2025", index=1),
+            IndexedLine(line="- Built the thing", index=2),
+            IndexedLine(line="- Skills: Python", index=3),
+            IndexedLine(line="**[Cool App](https://github.com/x/cool)** | Jun 2025", index=4),
+            IndexedLine(line="- Built it again", index=5),
+            IndexedLine(line="- Skills: Python", index=6),
+        ],
+    )
+    errors = checker.check(sec)
+    assert len(errors) == 1
+    assert "Duplicate entry" in errors[0].msg
+
+
+def test_duplicate_entry_check_courses() -> None:
+    checker = DuplicateEntryCheck()
+    sec = Section(
+        heading=Heading(text=SectionConstant.COURSES_AND_CERTIFICATES, heading_prefix="##"),
+        filepath=Path("dummy.md"),
+        indexed_lines=[
+            IndexedLine(line="- AWS Certified | _AWS_ | Jan 2024", index=1),
+            IndexedLine(line="- AWS Certified | _AWS_ | Jan 2024", index=2),
+        ],
+    )
+    errors = checker.check(sec)
+    assert len(errors) == 1
+    assert "Duplicate entry" in errors[0].msg
+
+
+def test_duplicate_line_check() -> None:
+    checker = DuplicateLineCheck()
+    sec = Section(
+        heading=Heading(text=SectionConstant.WORK_EXPERIENCE, heading_prefix="##"),
+        filepath=Path("dummy.md"),
+        indexed_lines=[
+            IndexedLine(line="- Built pipelines", index=1),
+            IndexedLine(line="- Built pipelines", index=2),
+            IndexedLine(line="\\hfill", index=3),
+            IndexedLine(line="", index=4),
+        ],
+    )
+    errors = checker.check(sec)
+    assert len(errors) == 1
+    assert errors[0].line_num == 2
+    assert "Duplicate line" in errors[0].msg
+
+
+def test_project_format_check_handles_hfill() -> None:
+    # \hfill is the date separator persisted by fix_markdown - entries using it must still parse.
+    checker = ProjectFormatCheck()
+    sec = Section(
+        heading=Heading(text=SectionConstant.PERSONAL_PROJECTS, heading_prefix="##"),
+        filepath=Path("dummy.md"),
+        indexed_lines=[
+            IndexedLine(line="**[Cool App](https://github.com/x/cool)** \\hfill Jun 2025", index=1),
+            IndexedLine(line="- Built the thing", index=2),
+            IndexedLine(line="- Skills: Python", index=3),
+        ],
+    )
+    assert len(checker.check(sec)) == 0
+
+
+def test_project_format_check() -> None:
+    checker = ProjectFormatCheck()
+
+    incomplete_sec = Section(
+        heading=Heading(text=SectionConstant.PERSONAL_PROJECTS, heading_prefix="##"),
+        filepath=Path("dummy.md"),
+        indexed_lines=[
+            IndexedLine(line="**[Cool App](https://github.com/x/cool)** | Jun 2025", index=1),
+        ],
+    )
+    errors = checker.check(incomplete_sec)
+    assert len(errors) == 2
+    assert any("no bullet points" in e.msg for e in errors)
+    assert any("no Skills line" in e.msg for e in errors)
+
+    complete_sec = Section(
+        heading=Heading(text=SectionConstant.PERSONAL_PROJECTS, heading_prefix="##"),
+        filepath=Path("dummy.md"),
+        indexed_lines=[
+            IndexedLine(line="**[Cool App](https://github.com/x/cool)** | Jun 2025", index=1),
+            IndexedLine(line="- Built the thing", index=2),
+            IndexedLine(line="- Skills: Python", index=3),
+        ],
+    )
+    assert len(checker.check(complete_sec)) == 0
+
+
+def test_section_not_empty_check() -> None:
+    checker = SectionNotEmptyCheck()
+
+    empty_sections = [
+        Section(
+            heading=Heading(text=SectionConstant.COURSES_AND_CERTIFICATES, heading_prefix="##"),
+            filepath=Path("dummy.md"),
+        ),
+        Section(heading=Heading(text="Personal projects", heading_prefix="##"), filepath=Path("dummy.md")),
+    ]
+    errors = checker.check_all(empty_sections)
+    assert len(errors) == 2
+    assert all("no entries" in e.msg for e in errors)
+
+    filled_sections = [
+        Section(
+            heading=Heading(text=SectionConstant.COURSES_AND_CERTIFICATES, heading_prefix="##"),
+            filepath=Path("dummy.md"),
+            indexed_lines=[IndexedLine(line="- AWS Certified | _AWS_ | Jan 2024", index=1)],
+        ),
+        Section(
+            heading=Heading(text=SectionConstant.PERSONAL_PROJECTS, heading_prefix="##"),
+            filepath=Path("dummy.md"),
+            indexed_lines=[IndexedLine(line="**[Cool App](https://github.com/x/cool)** | Jun 2025", index=1)],
+        ),
+    ]
+    assert len(checker.check_all(filled_sections)) == 0

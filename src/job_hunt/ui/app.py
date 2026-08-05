@@ -1072,8 +1072,7 @@ with tabs[2]:
                         f_md.write(arbitrary_md)
 
                     # Fix Resume markdown using process_resume
-                    fixed_content = process_resume.fix_markdown(arbitrary_md)
-                    st.session_state["_arbitrary_md_pending"] = fixed_content
+                    st.session_state["_arbitrary_md_pending"] = arbitrary_md
 
                     # Convert to PDF
                     compile_pdf(f_md_name, pdf_name)

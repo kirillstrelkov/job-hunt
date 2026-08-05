@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Check and fix Resume markdown formatting and chronological consistency."""
 
+import re
 import sys
 from pathlib import Path
 
@@ -10,6 +11,8 @@ from job_hunt.resume.checker import Error, check_and_get_errors, get_section_cla
 from job_hunt.resume.fixer import _FIX_CONFIG, fix_last_pipe
 from job_hunt.resume.models import Resume
 from job_hunt.resume.parse import Section, split_markdown_into_sections
+
+RE_BREAK_LINE = re.compile(r"^\s*\\break\s*$")
 
 
 def split_into_sections(filepath: str) -> list[Section]:
@@ -90,12 +93,48 @@ def fix_markdown(md: str, *, keep_thesis: bool = True) -> str:
     # \hfill is not supported so first replace it
     md = md.replace("\\hfill", "|")
 
-    resume_obj = Resume.from_string(md)
+    # \break lines aren't recognized by the section models and get dropped when the
+    # Resume round-trips through parse -> fix -> to_string, so remove them up front,
+    # remembering their surrounding context, and reinsert them afterwards.
+    lines = md.split("\n")
+    break_anchors = [
+        (lines[i - 1] if i > 0 else "", lines[i + 1] if i + 1 < len(lines) else "")
+        for i, line in enumerate(lines)
+        if RE_BREAK_LINE.match(line)
+    ]
+    md_no_breaks = "\n".join(line for line in lines if not RE_BREAK_LINE.match(line))
+
+    resume_obj = Resume.from_string(md_no_breaks)
     resume_obj = do_fix(resume_obj, keep_thesis=keep_thesis)
     # fmt_md = format_md(resume_obj.to_string()) # has errors for '\'
     fixed_md = fix_last_pipe(resume_obj.to_string())
     # Drop filler articles ('a'/'an') to keep bullet points terse
-    return fixed_md.replace(" a ", " ").replace(" an ", " ")
+    fixed_md = fixed_md.replace(" a ", " ").replace(" an ", " ")
+
+    return _restore_break_lines(fixed_md, break_anchors)
+
+
+def _normalize_for_match(line: str) -> str:
+    """Normalize a line the same way fix_markdown mutates surrounding text, so anchor lines still match."""
+    line = line.strip().replace(" a ", " ").replace(" an ", " ").rstrip(".")
+    return re.sub(r"\s+", " ", line)
+
+
+def _restore_break_lines(md: str, break_anchors: list[tuple[str, str]]) -> str:
+    r"""Reinsert \break lines between the same before/after lines they originally sat between."""
+    fixed_lines = md.split("\n")
+    for prev_line, next_line in break_anchors:
+        prev_norm = _normalize_for_match(prev_line)
+        next_norm = _normalize_for_match(next_line)
+        for i, line in enumerate(fixed_lines):
+            if (
+                _normalize_for_match(line) == prev_norm
+                and i + 1 < len(fixed_lines)
+                and _normalize_for_match(fixed_lines[i + 1]) == next_norm
+            ):
+                fixed_lines.insert(i + 1, "\\break")
+                break
+    return "\n".join(fixed_lines)
 
 
 # Future: check for wrong link syntax in projects section (e.g. mismatched brackets).

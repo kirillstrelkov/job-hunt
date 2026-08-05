@@ -25,20 +25,19 @@ def resume_check(
     file_path: Path = typer.Argument(..., help="Path to Markdown Resume file"),
 ):
     """Validate Markdown Resume formatting and structure against schema."""
-    from job_hunt.resume.parse import split_markdown_into_sections
+    from job_hunt.resume.process_resume import check_markdown
 
     if not file_path.exists():
         typer.secho(f"Error: File not found: {file_path}", fg=typer.colors.RED, err=True)
         raise typer.Exit(code=1)
 
     content = file_path.read_text(encoding="utf-8")
-    try:
-        sections = split_markdown_into_sections(content, filepath=file_path)
-        typer.secho(f"Valid Markdown Resume: {file_path.name}", fg=typer.colors.GREEN)
-        typer.echo(f"  Sections found: {len(sections)}")
-    except Exception as e:
-        typer.secho(f"Validation failed: {e}", fg=typer.colors.RED, err=True)
+    errors = check_markdown(content, filepath=str(file_path))
+    if errors:
+        for err in errors:
+            typer.secho(f"{err.filepath}:{err.line_num}: {err.msg}\n  `{err.line}`", fg=typer.colors.RED, err=True)
         raise typer.Exit(code=1)
+    typer.secho(f"Valid Markdown Resume: {file_path.name}", fg=typer.colors.GREEN)
 
 
 @resume_app.command("tailor")

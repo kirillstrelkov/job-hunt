@@ -364,6 +364,133 @@ class FormatCheck(Check):
         return self.errors
 
 
+def _section_text_with_heading(section: Section) -> str:
+    r"""Serialize a section back to markdown, guaranteeing the '#'-heading line `sec_class.from_string` expects.
+
+    Sections built by `split_markdown_into_sections` already carry the heading line as their first
+    `indexed_lines` entry, but hand-built `Section` objects (e.g. in tests) often don't - so prepend it
+    when missing to avoid `from_string` mistaking the first content line for the heading.
+
+    Also normalizes `\\hfill` back to `|`, since a resume already run through `fix_markdown` persists
+    dates as `\\hfill` (see `fix_markdown`'s first line), but the entry models only parse `|`.
+    """
+    lines = [line.line for line in section.indexed_lines] if section.indexed_lines else []
+    if lines and lines[0].strip().startswith("#"):
+        text = "\n".join(lines)
+    else:
+        heading_line = f"{section.heading.heading_prefix} {section.heading.text}".strip()
+        text = "\n".join([heading_line, *lines])
+    return text.replace("\\hfill", "|")
+
+
+def _find_line_containing(section: Section, needle: str) -> IndexedLine:
+    """Best-effort lookup of the raw line an entry originated from, for error reporting."""
+    for line in section.indexed_lines:
+        if needle and needle in line.line:
+            return line
+    if section.indexed_lines:
+        return section.indexed_lines[0]
+    return IndexedLine(line="", index=1)
+
+
+class DuplicateEntryCheck(Check):
+    """Checks that Work experience / Personal projects / Courses entries aren't duplicated within a section."""
+
+    _DEFAULT_ERROR_MSG = "Duplicate entry found"
+
+    def check(self, section: Section) -> list[Error]:
+        self.errors = []
+        heading_title = section.heading.text.lower()
+
+        if SectionConstant.WORK_EXPERIENCE.lower() in heading_title:
+            self._check_entries(
+                section,
+                WorkExperience,
+                key_fn=lambda e: (e.title.lower(), e.company.lower(), e.duration.to_string().lower()),
+                label_fn=lambda e: e.title,
+            )
+        elif "projects" in heading_title or SectionConstant.PERSONAL_PROJECTS.lower() in heading_title:
+            self._check_entries(
+                section,
+                PersonalProjects,
+                key_fn=lambda e: (e.name.lower(), e.url.lower()),
+                label_fn=lambda e: e.name,
+            )
+        elif SectionConstant.COURSES_AND_CERTIFICATES.lower() in heading_title:
+            self._check_entries(
+                section,
+                CourseOrCertificate,
+                key_fn=lambda e: (e.name.lower(), e.institution.lower()),
+                label_fn=lambda e: e.name,
+            )
+
+        return self.errors
+
+    def _check_entries(self, section: Section, sec_class: type[Section], *, key_fn, label_fn) -> None:
+        try:
+            typed_section = sec_class.from_string(_section_text_with_heading(section), section.filepath)
+        except Exception:  # noqa: BLE001
+            return
+
+        seen = set()
+        for entry in typed_section.entries:
+            key = key_fn(entry)
+            if key in seen:
+                line = _find_line_containing(section, label_fn(entry))
+                self.add_error(section, line, f"Duplicate entry in {section.heading.text}: '{label_fn(entry)}'")
+            else:
+                seen.add(key)
+
+
+class DuplicateLineCheck(Check):
+    """Checks that no non-trivial line is repeated verbatim within a section."""
+
+    _DEFAULT_ERROR_MSG = "Duplicate line found"
+    _SKIP_LINES = {"\\hfill", "\\break"}
+
+    def check(self, section: Section) -> list[Error]:
+        self.errors = []
+        seen: set[str] = set()
+        for line in section.indexed_lines:
+            stripped = line.line.strip()
+            if not stripped or stripped.startswith("#") or stripped in self._SKIP_LINES:
+                continue
+            if stripped in seen:
+                self.add_error(section, line, f"Duplicate line: '{stripped}'")
+            else:
+                seen.add(stripped)
+        return self.errors
+
+
+class ProjectFormatCheck(Check):
+    """Checks that Personal projects entries have all required fields filled in."""
+
+    _DEFAULT_ERROR_MSG = "Personal project entry is incomplete"
+
+    def check(self, section: Section) -> list[Error]:
+        self.errors = []
+        heading_title = section.heading.text.lower()
+        if "projects" not in heading_title and SectionConstant.PERSONAL_PROJECTS.lower() not in heading_title:
+            return self.errors
+
+        try:
+            typed_section = PersonalProjects.from_string(_section_text_with_heading(section), section.filepath)
+        except Exception:  # noqa: BLE001
+            return self.errors
+
+        for entry in typed_section.entries:
+            line = _find_line_containing(section, entry.name)
+            if not entry.name:
+                self.add_error(section, line, "Project entry is missing a name")
+            if not entry.duration.end_date:
+                self.add_error(section, line, f"Project '{entry.name}' is missing a date")
+            if not entry.bullet_points:
+                self.add_error(section, line, f"Project '{entry.name}' has no bullet points")
+            if not entry.skills:
+                self.add_error(section, line, f"Project '{entry.name}' has no Skills line")
+        return self.errors
+
+
 class RequiredSectionsCheck:
     """Checks that all required sections exist in the Resume."""
 
@@ -396,6 +523,32 @@ class RequiredSectionsCheck:
         ]
 
 
+class SectionNotEmptyCheck:
+    """Checks that required sections which are present in the headers actually contain at least one entry."""
+
+    _SECTION_CLASSES = {
+        SectionConstant.PERSONAL_PROJECTS.lower(): PersonalProjects,
+        SectionConstant.COURSES_AND_CERTIFICATES.lower(): CourseOrCertificate,
+    }
+
+    def check_all(self, sections: list[Section]) -> list[Error]:
+        errors = []
+        for section in sections:
+            heading_title = section.heading.text.lower()
+            for name, sec_class in self._SECTION_CLASSES.items():
+                is_match = name in heading_title or (sec_class is PersonalProjects and "projects" in heading_title)
+                if not is_match:
+                    continue
+                try:
+                    typed_section = sec_class.from_string(_section_text_with_heading(section), section.filepath)
+                except Exception:  # noqa: BLE001, S112
+                    continue
+                if not typed_section.entries:
+                    line = section.indexed_lines[0] if section.indexed_lines else IndexedLine(line="", index=1)
+                    errors.append(make_error(f"'{section.heading.text}' section has no entries", section, line))
+        return errors
+
+
 def get_section_class(section: Section) -> type[Section]:
     """Determine the Section subclass corresponding to a generic Section name/prefix."""
     if is_root_section(section):
@@ -424,6 +577,9 @@ def get_all_check_klasses(skip: list[type[Check]] | None = None) -> list[type[Ch
         DurationCheck,
         FormatCheck,
         ChronologicalCheck,
+        DuplicateEntryCheck,
+        DuplicateLineCheck,
+        ProjectFormatCheck,
     ]
     if skip:
         return [k for k in all_klasses if k not in skip]
@@ -457,6 +613,7 @@ def check(sections: list[Section], *, is_resume: bool = False) -> list[Error]:
 
     if is_resume:
         errors.extend(RequiredSectionsCheck().check_all(sections))
+        errors.extend(SectionNotEmptyCheck().check_all(sections))
     return errors
 
 

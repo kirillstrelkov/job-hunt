@@ -79,7 +79,32 @@ Proficient in Java, Go, TypeScript, and Python.
     assert "Built high-performance" in fixed_md, "' a ' article should be removed leaving a single space"
 
     # TODO run do check over fixed resume
-    # TODO: add check for \break - should not be removed after fix
+
+
+def test_fix_markdown_preserves_break() -> None:
+    resume_md = """
+# John Doe
+
+Berlin, Germany | <john.doe@example.com> | +49 123 4567890
+
+---
+
+## Work experience
+
+**Senior Software Engineer** | _Global Tech Solutions Inc., Berlin, Germany_ | Jan 2024 - Present
+
+- Wrote a script to build an automated pipeline
+\\break
+- Second point here
+
+    """
+    fixed_md = fix_markdown(resume_md)
+    assert "\\break" in fixed_md, "\\break should not be removed after fix"
+
+    lines = [l.strip() for l in fixed_md.splitlines()]
+    break_index = lines.index("\\break")
+    assert lines[break_index - 1] == "- Wrote script to build automated pipeline"
+    assert lines[break_index + 1] == "- Second point here"
 
 
 def test_fix_markdown_removes_articles() -> None:
