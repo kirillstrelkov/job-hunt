@@ -3,7 +3,7 @@
 from datetime import UTC, datetime, timedelta, timezone
 
 from job_hunt.job_finder.reviewer.match import JobMatch
-from job_hunt.job_finder.scraper.base import Job, make_job
+from job_hunt.job_finder.scraper.base import BaseJob, Job, JobBoard, make_job
 
 
 def test_uniq_jobs() -> None:
@@ -129,3 +129,52 @@ def test_job_match_processed_at_string_conversion() -> None:
     assert match.created_at == datetime(2026, 7, 7, 13, 3, 48, 20672, tzinfo=UTC)
     assert isinstance(match.processed_at, datetime)
     assert match.processed_at == datetime(2026, 7, 8, 14, 5, 50, 123456, tzinfo=UTC)
+
+
+def _make_board(*, existing_jobs: list[BaseJob] | None = None) -> JobBoard:
+    board = JobBoard.__new__(JobBoard)
+    board._excluded_companies = []
+    board._excluded_title_keywords = []
+    board._existing_jobs = {
+        BaseJob(title=j.title.lower(), company=j.company.lower(), url="") for j in existing_jobs or []
+    }
+    return board
+
+
+def test_filter_base_jobs_skips_jobs_matching_existing_title_and_company() -> None:
+    board = _make_board(existing_jobs=[BaseJob(title="Skip", company="Acme", url="https://example.com/old")])
+
+    base_jobs = [
+        BaseJob(title="Keep", company="Acme", url="https://example.com/1"),
+        # different url but same title/company as an existing job - should be skipped
+        BaseJob(title="Skip", company="Acme", url="https://example.com/2"),
+    ]
+
+    filtered = board._filter_base_jobs(base_jobs)
+
+    assert [j.url for j in filtered] == ["https://example.com/1"]
+
+
+def test_filter_base_jobs_matches_title_and_company_case_insensitively() -> None:
+    board = _make_board(
+        existing_jobs=[BaseJob(title="Software Engineer", company="Acme", url="https://example.com/old")]
+    )
+
+    base_jobs = [BaseJob(title="SOFTWARE ENGINEER", company="acme", url="https://example.com/new")]
+
+    filtered = board._filter_base_jobs(base_jobs)
+
+    assert filtered == []
+
+
+def test_filter_base_jobs_without_existing_jobs_keeps_all() -> None:
+    board = _make_board()
+
+    base_jobs = [
+        BaseJob(title="A", company="Acme", url="https://example.com/1"),
+        BaseJob(title="B", company="Acme", url="https://example.com/2"),
+    ]
+
+    filtered = board._filter_base_jobs(base_jobs)
+
+    assert [j.url for j in filtered] == ["https://example.com/1", "https://example.com/2"]

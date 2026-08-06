@@ -58,13 +58,19 @@ def _filter_jobs(jobs: list[Job]) -> list[Job]:
     return uniq_jobs
 
 
-def get_jobs(*urls: str, limit: int | None = None, use_cache: bool = False) -> list[Job]:
+def get_jobs(
+    *urls: str,
+    limit: int | None = None,
+    use_cache: bool = False,
+    existing_jobs: list[Job] | None = None,
+) -> list[Job]:
     """Retrieve job descriptions from a list of URLs using respective scrapers.
 
     Args:
         *urls: One or more job listing/search URLs.
         limit: Maximum number of jobs to fetch per site.
         use_cache: If True, use cached job details if available.
+        existing_jobs: Previously fetched jobs to skip re-scraping (matched by title/company).
 
     Returns:
         A list of unique Job instances fetched from the URLs.
@@ -93,6 +99,7 @@ def get_jobs(*urls: str, limit: int | None = None, use_cache: bool = False) -> l
                 use_cache=use_cache,
                 excluded_companies=_EXCLUDED_COMPANIES,
                 excluded_title_keywords=_EXCLUDED_TITLE_KEYWORDS,
+                existing_jobs=existing_jobs,
             )
             location_and_pages[loc] = page
             if "linkedin" in loc:

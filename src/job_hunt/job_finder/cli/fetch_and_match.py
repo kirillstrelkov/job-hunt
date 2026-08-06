@@ -47,7 +47,7 @@ def create_jobs_csv(urls: list[str], jobs_file: Path, *, use_cache: bool = True)
     existing_jobs = _get_from_csv(jobs_file, Job)
 
     logger.info("Fetching jobs...")
-    new_jobs = get_jobs(*urls, use_cache=use_cache)
+    new_jobs = get_jobs(*urls, use_cache=use_cache, existing_jobs=existing_jobs)
 
     all_jobs = existing_jobs + new_jobs
     jobs_no_dup = list(set(all_jobs))

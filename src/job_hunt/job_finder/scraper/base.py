@@ -96,6 +96,7 @@ class JobBoard:
         use_cache: bool = False,
         excluded_companies: list[str] | None = None,
         excluded_title_keywords: list[str] | None = None,
+        existing_jobs: list[BaseJob] | None = None,
     ) -> None:
         """Create a JobBoard object."""
         assert self._BOARD_CSS_SELECTORS
@@ -105,6 +106,9 @@ class JobBoard:
         self._credentials = get_credentials(self.__class__.__name__.removesuffix("Board"))
         self._excluded_companies = excluded_companies or []
         self._excluded_title_keywords = excluded_title_keywords or []
+        self._existing_jobs = {
+            BaseJob(title=j.title.lower(), company=j.company.lower(), url=j.url) for j in existing_jobs or []
+        }
 
         logger.info("Signing in...")
         self._signin()
@@ -179,13 +183,19 @@ class JobBoard:
         return get_cached_value(hs, wrap_get_job)
 
     def _filter_base_jobs(self, jobs: list[BaseJob]) -> list[BaseJob]:
-        """Filter jobs by excluded companies and title keywords."""
+        """Filter jobs by excluded companies, title keywords, and already-known urls."""
         filtered_jobs: list[BaseJob] = []
 
         excluded_jobs = defaultdict(list)
 
         for job in jobs:
             is_excluded = False
+
+            normalized_job = BaseJob(title=job.title.lower(), company=job.company.lower(), url=job.url)
+            if normalized_job in self._existing_jobs:
+                excluded_jobs["existing job"].append(job)
+                continue
+
             for company in self._excluded_companies:
                 if company in job.company.lower():
                     excluded_jobs[company].append(job)
