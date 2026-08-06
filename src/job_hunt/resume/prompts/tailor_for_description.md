@@ -74,7 +74,7 @@ Here are the strict rules for tailoring the Resume:
     - Tailored: Customize it for each job application, aligning with the company's needs and values.
     - Specific: Highlight quantifiable achievements and specific skills.
     - Avoid Clichés: Steer clear of overused phrases like "hardworking professional" or "team player."
-  - Skills (List ONLY the technologies, tools, and skills explicitly mentioned in this tailored Resume. Group them logically. Example: **Languages:** Python, Go | **Cloud & DevOps:** AWS, Docker).
+  - Skills (List ONLY the technologies, tools, and skills explicitly mentioned in this tailored Resume. Group them logically. Example: **Languages:** Python, Go \n **Cloud & DevOps:** AWS, Docker). Each skill group must contain at least 5 skills.
   - Work Experience
   - Personal Projects
   - Courses and Certificates
