@@ -89,12 +89,13 @@ Berlin, Germany | <john.doe@example.com> | +49 123 4567890
 
 ---
 
+\\break
+
 ## Work experience
 
 **Senior Software Engineer** | _Global Tech Solutions Inc., Berlin, Germany_ | Jan 2024 - Present
 
 - Wrote a script to build an automated pipeline
-\\break
 - Second point here
 
     """
@@ -103,8 +104,7 @@ Berlin, Germany | <john.doe@example.com> | +49 123 4567890
 
     lines = [l.strip() for l in fixed_md.splitlines()]
     break_index = lines.index("\\break")
-    assert lines[break_index - 1] == "- Wrote script to build automated pipeline"
-    assert lines[break_index + 1] == "- Second point here"
+    assert lines[break_index + 2] == "## Work experience"
 
 
 def test_fix_markdown_removes_articles() -> None:

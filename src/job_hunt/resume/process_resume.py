@@ -95,13 +95,14 @@ def fix_markdown(md: str, *, keep_thesis: bool = True) -> str:
 
     # \break lines aren't recognized by the section models and get dropped when the
     # Resume round-trips through parse -> fix -> to_string, so remove them up front,
-    # remembering their surrounding context, and reinsert them afterwards.
+    # remembering the next non-empty line as an anchor, and reinsert them afterwards.
     lines = md.split("\n")
-    break_anchors = [
-        (lines[i - 1] if i > 0 else "", lines[i + 1] if i + 1 < len(lines) else "")
-        for i, line in enumerate(lines)
-        if RE_BREAK_LINE.match(line)
-    ]
+    break_anchors = []
+    for i, line in enumerate(lines):
+        if not RE_BREAK_LINE.match(line):
+            continue
+        next_line = next((next_l for next_l in lines[i + 1 :] if next_l.strip()), "")
+        break_anchors.append(next_line)
     md_no_breaks = "\n".join(line for line in lines if not RE_BREAK_LINE.match(line))
 
     resume_obj = Resume.from_string(md_no_breaks)
@@ -120,19 +121,14 @@ def _normalize_for_match(line: str) -> str:
     return re.sub(r"\s+", " ", line)
 
 
-def _restore_break_lines(md: str, break_anchors: list[tuple[str, str]]) -> str:
-    r"""Reinsert \break lines between the same before/after lines they originally sat between."""
+def _restore_break_lines(md: str, break_anchors: list[str]) -> str:
+    r"""Reinsert \break lines right before the next non-empty line they originally preceded."""
     fixed_lines = md.split("\n")
-    for prev_line, next_line in break_anchors:
-        prev_norm = _normalize_for_match(prev_line)
+    for next_line in break_anchors:
         next_norm = _normalize_for_match(next_line)
         for i, line in enumerate(fixed_lines):
-            if (
-                _normalize_for_match(line) == prev_norm
-                and i + 1 < len(fixed_lines)
-                and _normalize_for_match(fixed_lines[i + 1]) == next_norm
-            ):
-                fixed_lines.insert(i + 1, "\\break")
+            if _normalize_for_match(line) == next_norm:
+                fixed_lines.insert(i, "\\break\n")
                 break
     return "\n".join(fixed_lines)
 
