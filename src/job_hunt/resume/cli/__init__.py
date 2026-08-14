@@ -150,7 +150,11 @@ def resume_compose(
         typer.secho(f"Error: Folder not found: {folder}", fg=typer.colors.RED, err=True)
         raise typer.Exit(code=1)
 
-    compose_resume(folder, model=model)
+    try:
+        compose_resume(folder, model=model)
+    except RuntimeError as e:
+        typer.secho(f"Error: {e}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1) from e
     typer.secho(f"Composed Resume for folder {folder}", fg=typer.colors.GREEN)
 
 
@@ -221,7 +225,7 @@ def resume_check_pdf(
     pdf: Path = typer.Argument(..., help="Path to the PDF file to check"),
 ):
     """Check Resume PDF page count and visual fill."""
-    from job_hunt.resume.check_pdf import check_pdf
+    from job_hunt.resume.check_pdf import check_pdf, check_pdf_page_fill
 
     if not pdf.exists():
         typer.secho(f"Error: File not found: {pdf}", fg=typer.colors.RED, err=True)
@@ -232,7 +236,12 @@ def resume_check_pdf(
         for err in errors:
             typer.secho(err, fg=typer.colors.RED, err=True)
         raise typer.Exit(code=1)
-    typer.secho(f"PDF OK: {pdf}", fg=typer.colors.GREEN)
+
+    result = check_pdf_page_fill(pdf)
+    typer.secho(
+        f"PDF OK: {pdf} (page 1 = {result['fill_p1']:.1f}%, page 2 = {result['fill_p2']:.1f}%)",
+        fg=typer.colors.GREEN,
+    )
 
 
 @resume_app.command("build-pdfs")

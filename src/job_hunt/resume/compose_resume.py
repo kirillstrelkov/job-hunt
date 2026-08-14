@@ -132,7 +132,9 @@ def compose_resume(
 
     logger.info(f"Step 7: Checking PDF layout: {pdf_output}")
     pdf_errors = check_pdf(pdf_output)
-    for err in pdf_errors:
-        logger.error(err)
+    if pdf_errors:
+        for err in pdf_errors:
+            logger.error(err)
+        raise RuntimeError(f"PDF layout check failed for {pdf_output}:\n" + "\n".join(pdf_errors))
 
     logger.info("Successfully finished composing Resume locally!")

@@ -73,15 +73,24 @@ def _page_visual_fill(page_elem: ET.Element) -> dict:
 
 
 def check_pdf_page_fill(pdf_path: Path) -> dict:
-    """Check page count and visual vertical fill percentage per page."""
+    """Check page count and visual vertical fill percentage per page.
+
+    `measured` is False (with `measure_error` set) whenever the fill percentages could
+    not actually be computed - e.g. `pdftotext` is missing or its output failed to parse.
+    Callers must not treat that the same as a measured 0.0% fill.
+    """
     page_count = get_pdf_page_count(pdf_path)
     fill_p1 = 0.0
     fill_p2 = 0.0
     pages_detail: list[dict] = []
+    measured = False
+    measure_error: str | None = None
 
     if page_count == 2:  # noqa: PLR2004
         pdftotext_bin = shutil.which("pdftotext")
-        if pdftotext_bin:
+        if not pdftotext_bin:
+            measure_error = "Could not measure fill: pdftotext binary not found on PATH"
+        else:
             try:
                 res = subprocess.run(  # noqa: S603
                     [pdftotext_bin, "-bbox-layout", str(pdf_path), "-"],
@@ -99,15 +108,20 @@ def check_pdf_page_fill(pdf_path: Path) -> dict:
                             fill_p1 = fill["fill_pct"]
                         elif idx == 2:  # noqa: PLR2004
                             fill_p2 = fill["fill_pct"]
-            except Exception:  # noqa: BLE001, S110
-                pass
+                    measured = True
+                else:
+                    measure_error = f"Could not measure fill: pdftotext produced {len(pages)} page(s), expected 2"
+            except Exception as e:  # noqa: BLE001
+                measure_error = f"Could not measure fill (pdftotext failed): {e}"
 
-    is_filled = page_count == 2 and fill_p1 > MIN_FILL_PCT and fill_p2 > MIN_FILL_PCT  # noqa: PLR2004
+    is_filled = measured and fill_p1 > MIN_FILL_PCT and fill_p2 > MIN_FILL_PCT  # noqa: PLR2004
     return {
         "pages": page_count,
         "pages_detail": pages_detail,
         "fill_p1": fill_p1,
         "fill_p2": fill_p2,
+        "measured": measured,
+        "measure_error": measure_error,
         "is_filled": is_filled,
     }
 
@@ -119,6 +133,10 @@ def check_pdf(pdf_path: Path) -> list[str]:
 
     if result["pages"] != 2:  # noqa: PLR2004
         errors.append(f"Expected exactly 2 pages, found {result['pages']}: {pdf_path}")
+        return errors
+
+    if not result["measured"]:
+        errors.append(f"{result['measure_error']}: {pdf_path}")
         return errors
 
     if not result["is_filled"]:
