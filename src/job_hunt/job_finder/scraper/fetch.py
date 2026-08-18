@@ -9,6 +9,7 @@ from loguru import logger
 
 from job_hunt.config.config import DEFAULT_CONFIG
 from job_hunt.job_finder.scraper.base import Job, browser_context
+from job_hunt.job_finder.scraper.hiring_cafe import HiringCafeBoard
 from job_hunt.job_finder.scraper.indeed import IndeedBoard
 from job_hunt.job_finder.scraper.linkedin import LinkedinBoard
 from job_hunt.job_finder.scraper.stepstone import StepstoneBoard
@@ -87,6 +88,7 @@ def get_jobs(
         "www.linkedin.com": LinkedinBoard,
         "www.stepstone.de": StepstoneBoard,
         "de.indeed.com": IndeedBoard,
+        "hiringcafe.com": HiringCafeBoard,
     }
 
     with browser_context() as browser:
@@ -112,7 +114,10 @@ def get_jobs(
             "www.linkedin.com",
             "www.stepstone.de",
             "de.indeed.com",
+            "hiringcafe.com",
         ]
+
+        assert len(loc_order) == len(page_classes), "Mismatch in order"
 
         for loc in loc_order:
             loc_urls = grouped_url.get(loc)

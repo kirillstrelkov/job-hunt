@@ -254,17 +254,14 @@ class JobBoard:
     def _next_page(self) -> None:
         """Go to the next page."""
         if self._browser.is_visible(by_css=self._BOARD_CSS_SELECTORS.next_page):
+            cur_url = self._browser.get_current_url()
+            self._browser.click(by_css=self._BOARD_CSS_SELECTORS.next_page)
 
-            def _click(_: object) -> bool | None:
-                cur_url = self._browser.get_current_url()
-                try:
-                    self._browser.click(by_css=self._BOARD_CSS_SELECTORS.next_page)
-                    return cur_url != self._browser.get_current_url()
-                except Exception:
-                    return not self._browser.is_visible(by_css=self._BOARD_CSS_SELECTORS.next_page)
+            def _not_same_page(_: object) -> bool | None:
+                return cur_url != self._browser.get_current_url()
 
             try:
-                self._browser.webdriver_wait(_click, timeout=10)
+                self._browser.webdriver_wait(_not_same_page, timeout=10)
             except Exception as e:
                 logger.warning("failed to get next page: {}", e)
 
