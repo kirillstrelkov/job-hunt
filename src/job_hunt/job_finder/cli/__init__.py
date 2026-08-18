@@ -12,12 +12,14 @@ finder_app = typer.Typer(
 
 
 @finder_app.command("fetch")
-def finder_fetch():
+def finder_fetch(
+    log_level: str = typer.Option("INFO", "--log-level", help="Logging level (e.g. DEBUG, INFO, WARNING)"),
+):
     """Scrape configured job boards and save listings."""
     typer.echo("Starting job scrapers...")
     from job_hunt.job_finder.cli.fetch_and_match import main as fetch_main
 
-    fetch_main()
+    fetch_main(log_level=log_level.upper())
 
 
 @finder_app.command("review")

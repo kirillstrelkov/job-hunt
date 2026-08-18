@@ -91,7 +91,7 @@ resume-template-generate name="custom" out="data/templates":
 
 # Scrape job boards and filter listings with LLM matching
 finder-fetch:
-    uv run job-hunt finder fetch
+    uv run job-hunt finder fetch --log-level debug
 
 # Analyze a single job description file
 finder-check-jd jd:
