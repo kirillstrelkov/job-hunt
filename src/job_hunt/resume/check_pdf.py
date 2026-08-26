@@ -1,8 +1,8 @@
 """Validate a generated Resume PDF: must be exactly 2 pages, both reasonably filled.
 
 Uses `pdfinfo` for the page count and `pdftotext -bbox-layout` to measure how far
-down each page the body text reaches, so a Resume that overflows onto an almost-empty
-second page (or leaves page one sparse) gets flagged.
+down each page the body text reaches. Verification requires:
+Page Count = 2 ∧ Visual Fill(P1) >= 90.0% ∧ Visual Fill(P2) >= 90.0%
 """
 
 import re
@@ -103,7 +103,7 @@ def check_pdf_page_fill(pdf_path: Path) -> dict:
                 if len(pages) >= 2:  # noqa: PLR2004
                     for idx, page_elem in enumerate(pages[:2], 1):
                         fill = _page_visual_fill(page_elem)
-                        pages_detail.append({"page": idx, **fill, "filled": fill["fill_pct"] > MIN_FILL_PCT})
+                        pages_detail.append({"page": idx, **fill, "filled": fill["fill_pct"] >= MIN_FILL_PCT})
                         if idx == 1:
                             fill_p1 = fill["fill_pct"]
                         elif idx == 2:  # noqa: PLR2004
@@ -114,7 +114,7 @@ def check_pdf_page_fill(pdf_path: Path) -> dict:
             except Exception as e:  # noqa: BLE001
                 measure_error = f"Could not measure fill (pdftotext failed): {e}"
 
-    is_filled = measured and fill_p1 > MIN_FILL_PCT and fill_p2 > MIN_FILL_PCT  # noqa: PLR2004
+    is_filled = measured and fill_p1 >= MIN_FILL_PCT and fill_p2 >= MIN_FILL_PCT  # noqa: PLR2004
     return {
         "pages": page_count,
         "pages_detail": pages_detail,
@@ -141,7 +141,7 @@ def check_pdf(pdf_path: Path) -> list[str]:
 
     if not result["is_filled"]:
         errors.append(
-            f"Resume page fill too low (both pages must be > {MIN_FILL_PCT:.0f}% filled): "
+            f"Resume page fill too low (both pages must be >= {MIN_FILL_PCT:.0f}% filled): "
             f"page 1 = {result['fill_p1']:.1f}%, page 2 = {result['fill_p2']:.1f}%: {pdf_path}"
         )
 
