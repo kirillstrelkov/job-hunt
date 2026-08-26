@@ -11,6 +11,7 @@ import yaml
 from loguru import logger
 
 from job_hunt.config.config import DEFAULT_CONFIG
+from job_hunt.core.binary_helper import get_npx
 
 _MAX_GOOD_LATENCY_SEC = 60
 
@@ -73,7 +74,7 @@ def run_promptfoo_eval(config_file: Path, results_json_path: Path) -> None:
 
     logger.info("Executing Promptfoo evaluation...")
     cmd = [
-        "npx",
+        get_npx(),
         "-y",
         "promptfoo@latest",
         "eval",

@@ -1,7 +1,6 @@
 """Main hierarchical CLI application dispatcher for job-hunt."""
 
 import subprocess
-import sys
 from pathlib import Path
 
 import typer
@@ -27,9 +26,12 @@ app.add_typer(config_app, name="config")
 @app.command("ui")
 def launch_ui():
     """Launch the Streamlit web composer interface."""
+    from job_hunt.core.binary_helper import get_streamlit
+
     app_path = Path(__file__).parent / "ui" / "app.py"
     typer.echo(f"Launching Streamlit app at {app_path}...")
-    cmd = [sys.executable, "-m", "streamlit", "run", str(app_path)]
+    streamlit_bin = get_streamlit()
+    cmd = [streamlit_bin, "run", str(app_path)]
     subprocess.run(cmd)
 
 

@@ -1,6 +1,5 @@
 """Evaluation preparation script for LLM prompts."""
 
-import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -30,11 +29,10 @@ def main() -> None:
 
     # Run prepare script using subprocess
     logger.info(f"Running prompt preparation script: {script_path.name}...")
-    uv_cmd = shutil.which("uv") or "uv"
     try:
         subprocess.run(  # noqa: S603
             [
-                uv_cmd,
+                "uv",
                 "run",
                 str(script_path),
                 "--output",

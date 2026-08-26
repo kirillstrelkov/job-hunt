@@ -106,8 +106,10 @@ def resume_render(
         typer.secho(f"Error: File not found: {input_file}", fg=typer.colors.RED, err=True)
         raise typer.Exit(code=1)
 
+    from job_hunt.core.binary_helper import get_pandoc
+
     out_path = output_pdf or input_file.with_suffix(".pdf")
-    cmd = ["pandoc", str(input_file), "-o", str(out_path)]
+    cmd = [get_pandoc(), str(input_file), "-o", str(out_path)]
     try:
         subprocess.run(cmd, check=True)
         typer.secho(f"Rendered PDF saved to {out_path.resolve()}", fg=typer.colors.GREEN)

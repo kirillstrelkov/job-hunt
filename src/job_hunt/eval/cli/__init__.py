@@ -30,7 +30,9 @@ def eval_prompts():
 @eval_app.command("view")
 def eval_view():
     """Launch Promptfoo web dashboard."""
-    cmd = ["npx", "-y", "promptfoo@latest", "view"]
+    from job_hunt.core.binary_helper import get_npx
+
+    cmd = [get_npx(), "-y", "promptfoo@latest", "view"]
     subprocess.run(cmd)
 
 

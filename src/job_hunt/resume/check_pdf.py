@@ -6,10 +6,11 @@ Page Count = 2 ∧ Visual Fill(P1) >= 90.0% ∧ Visual Fill(P2) >= 90.0%
 """
 
 import re
-import shutil
 import subprocess
 import xml.etree.ElementTree as ET
 from pathlib import Path
+
+from job_hunt.core.binary_helper import BinaryNotFoundError, get_pdfinfo, get_pdftotext
 
 FOOTER_GAP_FACTOR = 2.5  # last gap must be this many times the typical gap to count as a footer split
 MIN_FILL_PCT = 90.0
@@ -19,17 +20,16 @@ def get_pdf_page_count(pdf_path: Path) -> int:
     """Return the total number of pages in a PDF file using pdfinfo or regex parsing."""
     if not pdf_path.exists():
         return 0
-    pdfinfo_bin = shutil.which("pdfinfo")
-    if pdfinfo_bin:
-        try:
-            res = subprocess.run(  # noqa: S603
-                [pdfinfo_bin, str(pdf_path)], capture_output=True, text=True, check=True
-            )
-            for line in res.stdout.splitlines():
-                if line.startswith("Pages:"):
-                    return int(line.split(":")[1].strip())
-        except Exception:  # noqa: BLE001, S110
-            pass
+    try:
+        pdfinfo_bin = get_pdfinfo()
+        res = subprocess.run(  # noqa: S603
+            [pdfinfo_bin, str(pdf_path)], capture_output=True, text=True, check=True
+        )
+        for line in res.stdout.splitlines():
+            if line.startswith("Pages:"):
+                return int(line.split(":")[1].strip())
+    except (BinaryNotFoundError, Exception):  # noqa: BLE001, S110
+        pass
 
     try:
         content = pdf_path.read_bytes()
@@ -87,32 +87,31 @@ def check_pdf_page_fill(pdf_path: Path) -> dict:
     measure_error: str | None = None
 
     if page_count == 2:  # noqa: PLR2004
-        pdftotext_bin = shutil.which("pdftotext")
-        if not pdftotext_bin:
-            measure_error = "Could not measure fill: pdftotext binary not found on PATH"
-        else:
-            try:
-                res = subprocess.run(  # noqa: S603
-                    [pdftotext_bin, "-bbox-layout", str(pdf_path), "-"],
-                    capture_output=True,
-                    text=True,
-                    check=True,
-                )
-                root = ET.fromstring(res.stdout)  # noqa: S314
-                pages = root.findall(".//{http://www.w3.org/1999/xhtml}page")
-                if len(pages) >= 2:  # noqa: PLR2004
-                    for idx, page_elem in enumerate(pages[:2], 1):
-                        fill = _page_visual_fill(page_elem)
-                        pages_detail.append({"page": idx, **fill, "filled": fill["fill_pct"] >= MIN_FILL_PCT})
-                        if idx == 1:
-                            fill_p1 = fill["fill_pct"]
-                        elif idx == 2:  # noqa: PLR2004
-                            fill_p2 = fill["fill_pct"]
-                    measured = True
-                else:
-                    measure_error = f"Could not measure fill: pdftotext produced {len(pages)} page(s), expected 2"
-            except Exception as e:  # noqa: BLE001
-                measure_error = f"Could not measure fill (pdftotext failed): {e}"
+        try:
+            pdftotext_bin = get_pdftotext()
+            res = subprocess.run(  # noqa: S603
+                [pdftotext_bin, "-bbox-layout", str(pdf_path), "-"],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+            root = ET.fromstring(res.stdout)  # noqa: S314
+            pages = root.findall(".//{http://www.w3.org/1999/xhtml}page")
+            if len(pages) >= 2:  # noqa: PLR2004
+                for idx, page_elem in enumerate(pages[:2], 1):
+                    fill = _page_visual_fill(page_elem)
+                    pages_detail.append({"page": idx, **fill, "filled": fill["fill_pct"] >= MIN_FILL_PCT})
+                    if idx == 1:
+                        fill_p1 = fill["fill_pct"]
+                    elif idx == 2:  # noqa: PLR2004
+                        fill_p2 = fill["fill_pct"]
+                measured = True
+            else:
+                measure_error = f"Could not measure fill: pdftotext produced {len(pages)} page(s), expected 2"
+        except BinaryNotFoundError as e:
+            measure_error = f"Could not measure fill: {e}"
+        except Exception as e:  # noqa: BLE001
+            measure_error = f"Could not measure fill (pdftotext failed): {e}"
 
     is_filled = measured and fill_p1 >= MIN_FILL_PCT and fill_p2 >= MIN_FILL_PCT  # noqa: PLR2004
     return {

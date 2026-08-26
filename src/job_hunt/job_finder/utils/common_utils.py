@@ -11,6 +11,8 @@ from typing import Any
 
 from easelenium.browser import Browser
 
+from job_hunt.core.binary_helper import get_codesign
+
 with contextlib.suppress(ImportError):
     import undetected_chromedriver.patcher as uc_patcher
 
@@ -20,8 +22,9 @@ with contextlib.suppress(ImportError):
         def _safe_patch_exe(self: Any, *args: Any, **kwargs: Any) -> Any:
             res = _orig_patch_exe(self, *args, **kwargs)
             with contextlib.suppress(Exception):
+                codesign_bin = get_codesign(required=False) or "codesign"
                 subprocess.run(
-                    ["codesign", "-s", "-", "--force", self.executable_path],
+                    [codesign_bin, "-s", "-", "--force", self.executable_path],
                     capture_output=True,
                     check=False,
                 )

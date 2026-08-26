@@ -1,40 +1,16 @@
 """Evaluation runner for testing prompt variations using Promptfoo."""
 
-import os
-import shutil
 import subprocess
 import sys
 from pathlib import Path
 
-from job_hunt.core.config import DEFAULT_CONFIG
 from loguru import logger
 
+from job_hunt.config.config import DEFAULT_CONFIG
+from job_hunt.core.binary_helper import get_npx
 from job_hunt.core.ollama_helper import get_eval_model
 from job_hunt.core.promptfoo_helper import get_provider_id
 from job_hunt.core.tmp_helper import get_root_dir, get_tmp_folder
-
-
-def get_npx_command() -> str:
-    """Find the npx command path in system PATH or NVM directories."""
-    # Check if npx is in the system path
-    npx_path = shutil.which("npx")
-    if npx_path:
-        return npx_path
-
-    # Try typical NVM paths
-    home = Path.home()
-    nvm_dir = home / ".nvm" / "versions" / "node"
-    if nvm_dir.exists():
-        # Find the latest node version subdirectory
-        node_versions = sorted(nvm_dir.glob("v*"), reverse=True)
-        for version in node_versions:
-            npx_bin = version / "bin" / "npx"
-            if npx_bin.exists():
-                # We need to add the bin directory to PATH so node is also found by npx
-                os.environ["PATH"] = str(version / "bin") + os.pathsep + os.environ.get("PATH", "")
-                return str(npx_bin)
-
-    return "npx"
 
 
 def main() -> None:
@@ -55,11 +31,10 @@ def main() -> None:
         script_path = DEFAULT_CONFIG.get_config_value_as_path(".prepare_llm_prompt_script")
         jd_input = Path(get_root_dir()) / "inputs" / "job1" / "input.txt"
         llm_prompt_file.parent.mkdir(parents=True, exist_ok=True)
-        uv_cmd = shutil.which("uv") or "uv"
         try:
             subprocess.run(  # noqa: S603
                 [
-                    uv_cmd,
+                    "uv",
                     "run",
                     str(script_path),
                     "--output",
@@ -141,7 +116,7 @@ tests:
     logger.info("Running Promptfoo parameter evaluation...")
     res = subprocess.run(  # noqa: S603
         [
-            get_npx_command(),
+            get_npx(),
             "-y",
             "promptfoo@latest",
             "eval",
