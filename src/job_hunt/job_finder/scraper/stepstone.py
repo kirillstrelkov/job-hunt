@@ -11,6 +11,7 @@ class StepstoneBoard(JobBoard):
     _BOARD_CSS_SELECTORS = BoardCSSSelectors(
         job_results='[role="group"] > [data-testid="job-item"]',
         job_results_url="h2 a",
+        job_results_title="h2 a",
         job_results_company='[data-at="job-item-company-name"]',
         next_page='[aria-label="Nächste"]',
         profile='[data-testid="menu-item-profile"]',

@@ -39,6 +39,7 @@ class LinkedinBoard(JobBoard):
     _BOARD_CSS_SELECTORS = BoardCSSSelectors(
         job_results=".scaffold-layout__list  ul > li.ember-view",
         job_results_url="a",
+        job_results_title="a",
         job_results_company=".artdeco-entity-lockup__subtitle",
         next_page='[aria-label="View next page"]',
         profile='"header button>span>span"',

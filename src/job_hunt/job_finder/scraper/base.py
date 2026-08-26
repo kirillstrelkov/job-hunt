@@ -71,6 +71,7 @@ class BoardCSSSelectors(BaseModel):
 
     job_results: str
     job_results_url: str
+    job_results_title: str
     job_results_company: str
     next_page: str
     profile: str
@@ -292,7 +293,7 @@ class JobBoard:
         title = _get_safely_object_or_none(
             lambda: self._browser.get_text(
                 parent=element,
-                by_css=self._BOARD_CSS_SELECTORS.job_results_url,
+                by_css=self._BOARD_CSS_SELECTORS.job_results_title,
                 visible=False,
             ).strip()
         )
@@ -344,6 +345,8 @@ class JobBoard:
 
         if url:
             job = BaseJob(url=url, title="", company="")
+
+        assert job
 
         self.open(job.url)
         title = job.title or self._browser.get_text(by_css=self._BOARD_CSS_SELECTORS.job_desc_page_title).strip()

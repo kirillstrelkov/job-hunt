@@ -11,7 +11,8 @@ class HiringCafeBoard(JobBoard):
     _BOARD_CSS_SELECTORS = BoardCSSSelectors(
         job_results=".grid > div",
         job_results_url="a",
-        job_results_company=".font-light .font-bold",
+        job_results_title="span.w-full",
+        job_results_company=".line-clamp-3 .font-bold",
         next_page='a[aria-label="Next page"]',
         profile="button .rounded-full .to-pink-500",
         job_desc_page_title=".flex h1",

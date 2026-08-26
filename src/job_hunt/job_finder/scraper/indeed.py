@@ -11,6 +11,7 @@ class IndeedBoard(JobBoard):
     _BOARD_CSS_SELECTORS = BoardCSSSelectors(
         job_results='div:not([class*="recommendation-section"]).result .mainContentTable .resultContent',
         job_results_url="a",
+        job_results_title="a",
         job_results_company='[data-testid="company-name"]',
         next_page='a[data-testid="pagination-page-next"]',
         profile='button[id="AccountMenu"]',
