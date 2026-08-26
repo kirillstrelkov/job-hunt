@@ -1,7 +1,8 @@
-"""Common utility functions for numbers and browser decorators."""
-
+import contextlib
 import os
 import re
+import subprocess
+import sys
 from collections.abc import Callable
 from functools import wraps
 from pathlib import Path
@@ -9,6 +10,24 @@ from tempfile import gettempdir
 from typing import Any
 
 from easelenium.browser import Browser
+
+with contextlib.suppress(ImportError):
+    import undetected_chromedriver.patcher as uc_patcher
+
+    if sys.platform == "darwin":
+        _orig_patch_exe = uc_patcher.Patcher.patch_exe
+
+        def _safe_patch_exe(self: Any, *args: Any, **kwargs: Any) -> Any:
+            res = _orig_patch_exe(self, *args, **kwargs)
+            with contextlib.suppress(Exception):
+                subprocess.run(
+                    ["codesign", "-s", "-", "--force", self.executable_path],
+                    capture_output=True,
+                    check=False,
+                )
+            return res
+
+        uc_patcher.Patcher.patch_exe = _safe_patch_exe
 
 
 def get_number(text: object) -> int:

@@ -5,9 +5,11 @@ from pathlib import Path
 from pprint import pformat
 
 from loguru import logger
-from reviewer.llm import MODEL, analyze_resume, get_match_percentage
 
-_RESUME_TEXT = (Path(__file__).resolve().parent.parent / "data/private/resume.txt").read_text(encoding="utf-8")
+from job_hunt.config.config import DEFAULT_CONFIG
+from job_hunt.job_finder.reviewer.llm import MODEL, analyze_resume, get_match_percentage
+
+_RESUME_TEXT = DEFAULT_CONFIG.composer.body.read_text()
 
 
 def main(jd_path: Path | str, model: str = MODEL) -> None:

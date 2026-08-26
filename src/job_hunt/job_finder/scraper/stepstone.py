@@ -14,7 +14,7 @@ class StepstoneBoard(JobBoard):
         job_results_title="h2 a",
         job_results_company='[data-at="job-item-company-name"]',
         next_page='[aria-label="Nächste"]',
-        profile='[data-testid="menu-item-profile"]',
+        profile='[data-at="profile-details-preview-full-name"]',
         job_desc_page_title='h1[data-at="header-job-title"]',
         job_desc_page_company='[data-at="metadata-company-name"]',
         job_desc_page_description='[data-at="job-ad-content"]',

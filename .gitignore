@@ -36,3 +36,5 @@ tsconfig.tsbuildinfo
 .agent/
 *.egg-info
 workspace/
+
+.DS_Store

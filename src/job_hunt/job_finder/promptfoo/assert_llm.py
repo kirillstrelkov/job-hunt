@@ -5,11 +5,27 @@ import re
 import traceback
 from typing import Any
 
-from reviewer.llm import (
+from job_hunt.job_finder.reviewer.llm import (
     Analysis,
     JobMatchResult,
+    get_checked_passed,
+    get_match_percentage,
 )
-from reviewer.llm_test import assert_llm_response
+
+
+def assert_llm_response(
+    result: JobMatchResult, min_match: int = 0, fail_reason: str | None = None, max_match: int = 100
+) -> None:
+    """Assert that LLM response matches expected screening and fit thresholds."""
+    if fail_reason:
+        assert result.screening is not None
+        assert fail_reason in result.screening.gate_failed_reasons, f"Failed : {result.screening}"
+        return
+
+    if result.screening:
+        assert get_checked_passed(result), f"Failed : {result.model_dump()}"
+    assert get_match_percentage(result) >= min_match
+    assert get_match_percentage(result) <= max_match
 
 
 def extract_json_from_text(text: str) -> str | None:

@@ -195,6 +195,8 @@ class ConfigManager:
         self.scraper: ScraperConfig = None
         if self.config_path.exists():
             self.load()
+        else:
+            raise ValueError(f"Config file does not exist: {self.config_path}")
 
     def get_path(self) -> Path:
         """Get the absolute path of the configuration file."""

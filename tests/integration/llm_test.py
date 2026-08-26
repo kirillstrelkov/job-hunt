@@ -6,6 +6,7 @@ from pprint import pformat
 import pytest
 from loguru import logger
 
+from job_hunt.config.config import DEFAULT_CONFIG
 from job_hunt.job_finder.reviewer.llm import (
     JobMatchResult,
     _get_analysis,
@@ -15,12 +16,12 @@ from job_hunt.job_finder.reviewer.llm import (
     get_match_percentage,
 )
 
-__DATA_DIR = Path(__file__).resolve().parent.parent.parent / "data"
+__DATA_DIR = DEFAULT_CONFIG.paths.root_dir.resolve() / "src/job_hunt/job_finder/data/"
 
 
 @pytest.fixture
 def resume_text() -> str:
-    return (__DATA_DIR / "private/cv.txt").read_text(encoding="utf-8")
+    return DEFAULT_CONFIG.composer.body.read_text(encoding="utf-8")
 
 
 def assert_llm_response(

@@ -3,7 +3,7 @@ name = "job-hunt"
 version = "0.1.0"
 description = "Job Hunt & Resume Tailoring Workspace"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.12, <3.13"
 dependencies = [
     "arize-phoenix",
     "datasets>=2.14.0",
@@ -66,12 +66,58 @@ line-length = 120
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [
-    "INP001", "D203", "D213", "COM812", "CPY001", "TD", "FIX",
-    "ANN", "D100", "D101", "D102", "D103", "D104", "D105", "D107", "D401", "D400", "D415",
-    "EM", "TRY", "PLR2004", "ERA001", "PTH", "SLF001", "A004", "A001",
-    "E501", "PERF", "S101", "T201", "BLE", "E402", "RUF", "S108", "ARG",
-    "E741", "C901", "PLC0415", "EXE001", "PLR0912", "PLR0913", "PLR0915", "PLR0917",
-    "DTZ006", "FBT", "PLW", "RUF100", "B008", "B904", "S603", "S607", "PD015"
+    "INP001",
+    "D203",
+    "D213",
+    "COM812",
+    "CPY001",
+    "TD",
+    "FIX",
+    "ANN",
+    "D100",
+    "D101",
+    "D102",
+    "D103",
+    "D104",
+    "D105",
+    "D107",
+    "D401",
+    "D400",
+    "D415",
+    "EM",
+    "TRY",
+    "PLR2004",
+    "ERA001",
+    "PTH",
+    "SLF001",
+    "A004",
+    "A001",
+    "E501",
+    "PERF",
+    "S101",
+    "T201",
+    "BLE",
+    "E402",
+    "RUF",
+    "S108",
+    "ARG",
+    "E741",
+    "C901",
+    "PLC0415",
+    "EXE001",
+    "PLR0912",
+    "PLR0913",
+    "PLR0915",
+    "PLR0917",
+    "DTZ006",
+    "FBT",
+    "PLW",
+    "RUF100",
+    "B008",
+    "B904",
+    "S603",
+    "S607",
+    "PD015",
 ]
 unfixable = ["B"]
 

@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Any
 from unittest.mock import patch
 
 from job_hunt.config.config import DEFAULT_CONFIG
@@ -14,11 +15,17 @@ def test_fetch_and_match() -> None:
 
     testing_limit = 3
 
-    def _get_jobs_with_limit(*urls: str, limit: int | None = None, use_cache: bool = False) -> list[Job]:
-        return get_jobs(*urls, limit=testing_limit, use_cache=use_cache)
+    def _get_jobs_with_limit(
+        *urls: str,
+        limit: int | None = None,
+        use_cache: bool = False,
+        existing_jobs: list[Job] | None = None,
+        **kwargs: Any,
+    ) -> list[Job]:
+        return get_jobs(*urls, limit=testing_limit, use_cache=use_cache, existing_jobs=existing_jobs, **kwargs)
 
     with (
-        patch("job_finder.scraper.fetch.get_jobs", side_effect=_get_jobs_with_limit),
+        patch("job_hunt.job_finder.cli.fetch_and_match.get_jobs", side_effect=_get_jobs_with_limit),
     ):
         _main(urls=[url], output_dir=tmp_output)
 
