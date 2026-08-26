@@ -141,6 +141,12 @@ scraper:
     - director
     - postdoctoral
     - freelance
+    - designer
+    - customer
+    - cyber
+    - operation
+    - expert
+    - business
   urls:
     # indeed:
     # Python
