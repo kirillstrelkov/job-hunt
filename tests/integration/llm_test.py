@@ -1,6 +1,5 @@
 """Unit tests for the LLM Resume matching and screening reviewer."""
 
-from pathlib import Path
 from pprint import pformat
 
 import pytest

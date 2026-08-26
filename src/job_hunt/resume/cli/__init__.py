@@ -197,6 +197,38 @@ def resume_compose_from_csv(
     typer.secho("Batch CSV composition complete.", fg=typer.colors.GREEN)
 
 
+@resume_app.command("scaffold")
+def resume_scaffold(
+    path: Path = typer.Argument(..., help="Path to jobs CSV or ODS file"),
+    min_score: int = typer.Option(80, "--min-score", "-s", help="Minimum match score percentage threshold"),
+    folder: Path = typer.Option(Path("tmp/manual_jds"), "--folder", "-f", help="Output target directory"),
+    force: bool = typer.Option(False, "--force", help="Overwrite existing files in target folders"),
+    config: Path = typer.Option(None, "--config", "-c", help="Path to custom config.yaml"),
+):
+    """Scaffold workspace job folders, extracted job descriptions, and tailoring prompts."""
+    from job_hunt.resume.scaffold_resume import scaffold_jobs_from_csv
+
+    if not path.exists():
+        typer.secho(f"Error: File not found: {path}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1)
+
+    try:
+        records = scaffold_jobs_from_csv(
+            path=path,
+            folder=folder,
+            min_score=min_score,
+            force=force,
+            config=config,
+        )
+        if records:
+            typer.secho(f"Successfully scaffolded {len(records)} job(s) in {folder}", fg=typer.colors.GREEN)
+        else:
+            typer.secho("No job matches met the filtering threshold.", fg=typer.colors.YELLOW)
+    except Exception as e:
+        typer.secho(f"Error: {e}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1) from e
+
+
 @resume_app.command("combine")
 def resume_combine(
     header: Path = typer.Option(..., "--header", "-H", help="Path to header markdown file"),
