@@ -560,8 +560,9 @@ class PersonalProjectsEntry(BaseModel):
         lines.append(f"**[{self.name}]({self.url})** | {duration_str}")
         lines.append("")
         lines.extend(bp.to_string() for bp in self.bullet_points)
-        skills_str = ", ".join(s.to_string() for s in self.skills)
-        lines.append(f"- Skills: {skills_str}")
+        if self.skills:
+            skills_str = ", ".join(s.to_string() for s in self.skills)
+            lines.append(f"- Skills: {skills_str}")
         return "\n".join(lines)
 
 

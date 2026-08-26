@@ -168,6 +168,20 @@ def test_personal_projects_roundtrip() -> None:
     assert pp.to_string().strip() == s.strip()
 
 
+def test_personal_projects_to_string_empty_skills() -> None:
+    s = (
+        "**[Employee Polls Web App](https://github.com/kirillstrelkov/employee-pools)** | Sep 2022\n\n"
+        "- Developed an interactive dashboard application allowing users to create, answer and visualize results "
+        "for internal polls\n"
+        "- Implemented a responsive UI with Material-UI (MUI)"
+    )
+    pp = PersonalProjectsEntry.from_string(s)
+    assert len(pp.skills) == 0
+    res = pp.to_string()
+    assert "- Skills:" not in res
+    assert res.strip() == s.strip()
+
+
 def test_courses_and_certificates_roundtrip() -> None:
     s = "- Agentic AI Nanodegree | _Udacity_ | Jul 2026"
     cc = CourseOrCertificateEntry.from_string(s)
