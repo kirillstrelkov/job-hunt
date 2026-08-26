@@ -14,13 +14,22 @@ def test_tailored_resume_parsing() -> None:
             "Highly motivated Software Engineer with robust experience architecting scalable, "
             "fault-tolerant infrastructure and enterprise tooling using C/C++, Rust, and Python."
         ),
-        "skills": {
-            "languages": ["Golang", "C", "C++", "Rust", "Python", "Java", "Kotlin", "Ruby", "SQL"],
-            "databases_and_brokers": ["PostgreSQL", "MySQL", "Kafka", "NATS"],
-            "infrastructure_and_cloud": ["Docker", "Kubernetes", "Google Kubernetes Engine (GKE)", "ArgoCD", "Helm"],
-            "ci_cd_and_testing": ["Bazel", "GitHub Actions", "Jenkins", "Robot Framework", "OpenHTF", "Django"],
-            "observability_and_apis": ["Prometheus", "Kibana", "Elasticsearch", "gRPC", "GraphQL", "REST"],
-        },
+        "skills": [
+            {"name": "Languages", "skills": ["Golang", "C", "C++", "Rust", "Python", "Java", "Kotlin", "Ruby", "SQL"]},
+            {"name": "Databases & Brokers", "skills": ["PostgreSQL", "MySQL", "Kafka", "NATS"]},
+            {
+                "name": "Infrastructure & Cloud",
+                "skills": ["Docker", "Kubernetes", "Google Kubernetes Engine (GKE)", "ArgoCD", "Helm"],
+            },
+            {
+                "name": "CI/CD & Testing",
+                "skills": ["Bazel", "GitHub Actions", "Jenkins", "Robot Framework", "OpenHTF", "Django"],
+            },
+            {
+                "name": "Observability & APIs",
+                "skills": ["Prometheus", "Kibana", "Elasticsearch", "gRPC", "GraphQL", "REST"],
+            },
+        ],
         "work_experience": [
             {
                 "title": "Software Engineer",
@@ -103,7 +112,8 @@ def test_tailored_resume_parsing() -> None:
 
     # Asset fields match
     assert resume.summary.startswith("Highly motivated Software Engineer")
-    assert "Golang" in resume.skills.languages
+    assert resume.skills[0].name == "Languages"
+    assert "Golang" in resume.skills[0].skills
     assert resume.work_experience[0].company == "CARIAD SE"
     assert resume.projects[0].name.startswith("University of Helsinki DevOps Labs")
     assert resume.courses_and_certificates[0].provider == "Confluent"

@@ -3,29 +3,11 @@
 from pydantic import BaseModel, Field
 
 
-class Skills(BaseModel):
-    """List of skills grouped by categories."""
+class GroupSkills(BaseModel):
+    """A named group of skills."""
 
-    languages: list[str] = Field(
-        ...,
-        description="Programming languages candidate is proficient in.",
-    )
-    databases_and_brokers: list[str] = Field(
-        ...,
-        description="Databases, message brokers, and queues.",
-    )
-    infrastructure_and_cloud: list[str] = Field(
-        ...,
-        description="Infrastructure, containerization, cloud, orchestration, and GitOps tools.",
-    )
-    ci_cd_and_testing: list[str] = Field(
-        ...,
-        description="CI/CD, build tools, and testing frameworks.",
-    )
-    observability_and_apis: list[str] = Field(
-        ...,
-        description="Observability, monitoring, and API protocols/standards.",
-    )
+    name: str = Field(..., description="Category or group name of skills.")
+    skills: list[str] = Field(..., description="List of skills in this category.")
 
     model_config = {
         "populate_by_name": True,
@@ -156,7 +138,7 @@ class TailoredResumeBody(BaseModel):
         ...,
         description="Tailored summary/pitch paragraph highlighting matching qualifications.",
     )
-    skills: Skills = Field(..., description="Grouped skills section.")
+    skills: list[GroupSkills] = Field(..., description="Grouped skills list.")
     work_experience: list[WorkExperience] = Field(
         ...,
         description="Tailored professional work experience list.",
