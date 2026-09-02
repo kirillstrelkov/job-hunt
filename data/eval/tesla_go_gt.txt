@@ -1,0 +1,131 @@
+## PART 1: TAILORED RESUME
+
+```markdown
+## Summary
+
+Software Engineer with a proven track record in developing complex software systems using Go (Golang), C++, Rust, Java, and Python. Experienced in deploying fault-tolerant, enterprise-scale applications utilizing Docker and Kubernetes, and building robust tools, test-automation, and documentation. Proficient in distributed computing, algorithms, and data structures, with hands-on expertise in SQL and relational databases including MySQL and PostgreSQL. Adept at debugging complex systems using centralized logging tools like Prometheus and Kibana to ensure optimal modularity and code maintainability.
+
+## Skills
+
+**Languages:** Go (Golang), C++, Rust, Java, Kotlin, Python, SQL
+**Cloud & DevOps:** Docker, Kubernetes, Kafka, Prometheus, GitHub Actions, CI/CD
+**Databases & Data Storage Systems:** MySQL, PostgreSQL, MongoDB, Redis, SQLite
+**Architecture & Engineering Core:** Distributed Computing, Stream Processing, Data Structures, Algorithms, Test-Automation, Modularity
+
+## Work Experience
+
+**Software Engineer** | _CARIAD SE, Berlin, Germany_ | Oct 2023 - Aug 2025
+
+- Supported build infrastructure with Bazel improvements, Python scripting and GitHub Actions, and optimized build infrastructure by updating Bazel from 5 to 6 version, implementing performance enhancements through profiling analysis
+- Integrated time client into Classic AUTOSAR stack using C++ and EB Tresos
+- Integrated Doxygen toolchain to Bazel targets to have unified approach for documentation generation, and integrated Python toolchain with pytest for testing, Python packaging and ZipApps into Bazel to support faster deployment to Artifactory
+- Developed custom GitHub Actions analytics dashboard using Python to visualize job statistics and enhance CI/CD monitoring and observability
+- Delivered over 50 Pull Requests across 4 core repositories with new features, bug fixes and code maintainability improvements
+
+**Software Engineer** | _Argo AI GmbH, Munich, Germany_ | Feb 2022 - Oct 2023
+
+- Developed framework based on OpenHTF for testing hardware and flashing firmware in autonomous vehicle, increased smoke test coverage from 33% to 78% and boosted test-automation process for sensors, camera, radar and lidar systems up to 86%
+- Participated in car preparation process and collected feedback from integration team and used it to improve our software
+- Improved log reviewing process by creating log viewer web application for faster debugging complex systems
+
+**Integration Engineer** | _Airbus Operations GmbH, Hamburg, Germany_ | Aug 2019 - Feb 2021
+
+- Ensured quality of cabin intercommunication data system by writing, reviewing and documenting software integration tests
+
+**Software Test Engineer** | _ESR Labs AG, Munich, Germany_ | Sep 2018 - Apr 2019
+
+- Extended Ruby internal framework for testing automotive gateway with new features and improved quality of the source code by introducing static code analysis into continuous integration pipeline (Jenkins)
+
+**Software Test Engineer** | _HERE Deutschland GmbH, Berlin, Germany_ | Mar 2016 - Aug 2018
+
+- Integrated comprehensive Testing and DevOps practices throughout the Agile/Scrum development lifecycle for the Map Matching algorithm team, and significantly scaled testing coverage by expanding functional tests from 16 tests to over 290
+- Ensured development consistency and improved code quality by standardizing environments through pre-built Docker images and embedding comprehensive linting support directly into the CI pipeline
+- Developed robust Python scripts to automate log parsing and data transformation, enabling efficient integration of system logs into existing test-automation pipelines
+
+**QA Engineer** | _Helpling GmbH, Berlin, Germany_ | Sep 2015 - Feb 2016
+
+- Improved quality of PHP/Ruby on Rails web application by participating in Agile/Scrum development and performing regression testing for new releases with manual and automated tests
+
+**Automation QA Engineer** | _Satprof B.V. Eesti filiaal, Tallinn, Estonia_ | Jul 2014 - Jun 2015
+
+- Increased quality of satellite receiver’s library by adding automated test cases and tools for development
+
+**Software Developer** | _Betsson Group, Tallinn, Estonia_ | Aug 2013 - Jul 2014
+
+- Enriched website with additional features to backend with Python, twisted framework and PostgreSQL and new marketing campaign landing pages using HTML, jQuery and JavaScript
+- Maintained continuous system stability during nine-hour overnight shifts by proactively monitoring performance and resolving technical issues in real-time, and triaged bugs with Kibana and Elasticsearch, and with logs on remote machines from terminal
+- Participated in all stages of software development lifecycle with continuous deployment, code reviews and Agile practices
+
+**Senior Test Automation Specialist** | _Ixonos Estonia OÜ, Tallinn, Estonia_ | Nov 2010 - Apr 2013
+
+- Designed, built, and maintained Python web test-automation framework for client, which resulted in award for outstanding work and successful project delivery
+
+## Personal Projects
+
+**[Golang Web Services Playground](https://github.com/kirillstrelkov/go-web-services)** | May 2026
+
+- Built REST API for blogging platform with CRUD operations, JWT authorization, Argon2 password hashing and custom routing middleware, and developed gRPC server featuring access control (ACL) and request logging
+- Implemented concurrent data processing pipelines and synchronized multiplayer game state, using pprof to identify and resolve performance bottlenecks
+- Skills: Go, gRPC, GraphQL, REST, Concurrency, pprof, JWT, MySQL, Go Reflection
+
+**[University of Helsinki: DevOps with Kubernetes](https://github.com/kirillstrelkov/KubernetesSubmissions)** | Oct 2025 - Feb 2026
+
+- Developed distributed computing application in Go, utilizing NATS as message broker to asynchronously trigger Telegram notifications, with state managed in PostgreSQL
+- Configured advanced progressive delivery utilizing Argo Rollouts, integrating automated canary rollbacks triggered by Prometheus CPU utilization metrics to ensure zero-downtime releases
+- Skills: Kubernetes, Go, GKE, NATS, Prometheus, Istio, Knative, Helm, SOPS, Docker, Distributed computing
+
+**[Car Search and Comparison Website](https://github.com/kirillstrelkov/vscar)** | Jun 2020 - Present
+
+- Architected and developed full-stack car search and comparison platform utilizing ADAC vehicle data
+- Engineered dynamic frontend using Angular and RxJS and designed polyglot backend ecosystem to evaluate and benchmark multiple languages and frameworks, including Go, Rust, Java, and Kotlin
+- Skills: TypeScript, Angular, Go, Rust, Java, Kotlin, Docker, Microservices, MongoDB, PostgreSQL, Playwright, Grafana k6
+
+**[To do App GitOps Kubernetes Deployment Pipeline](https://github.com/kirillstrelkov/todo-app-gitops)** | Jan 2026 - Feb 2026
+
+- Engineered declarative Continuous Delivery pipeline using ArgoCD to automatically synchronize and deploy application infrastructure to Kubernetes clusters
+- Architected scalable deployment configurations by isolating environments into base and app-specific directories, managing Kubernetes manifests as code to eliminate configuration drift
+- Skills: Kubernetes, ArgoCD, GitOps, Continuous Delivery, Makefile, Infrastructure as Code
+
+## Courses and Certificates
+
+- SQL Nanodegree | _Udacity_ | Aug 2026
+- Apache Kafka Fundamentals | _Confluent_ | May 2026
+- Go Programming Language | _Coursera_ | Apr 2026
+- Go Essentials: Concurrency, gRPC & More | _Coursera_ | Mar 2026
+- Certified Kubernetes Application Developer | _Cloud Native Computing Foundation_ | Feb 2026
+- DevOps with Kubernetes | _University of Helsinki_ | Feb 2026
+- Data Engineering with Rust | _Coursera_ | Apr 2024
+- Data Structures | _Coursera_ | Sep 2021
+```
+
+---
+
+## PART 2: TAILORING JUSTIFICATION REPORT
+
+- **ATS Keyword Strategy:** Extracted and naturally injected the following exact-match keywords from the Job Description into the Resume: *Go (Golang), Java, Kotlin, Rust, SQL, MySQL, PostgreSQL, Docker, Kubernetes, Kafka, Prometheus, distributed computing, algorithms, data structures, test-automation, debugging complex systems, code maintainability.*
+- **Reductions & Omissions:**
+  - **Roles Removed:** Omitted *AS Tallink Group* (1 month) and *Fabek Elektroonika OÜ* (3 months) in strict accordance with the "< 4 months duration" rule.
+  - **Projects/Courses Excluded:** Heavily trimmed GenAI, LLM, and Frontend specific projects (e.g., Agentic AI Nanodegree, Gemini browser extension) and courses. Tesla’s Factory Software Engineering team strictly focuses on scalable backend systems, Go/C++, databases, and manufacturing tools, rendering AI-specific achievements a distraction in the ATS scoring mechanism.
+  - **Bullet Point Pruning:** Reduced highly detailed non-relevant older roles (like *Ixonos* and *Airbus*) to exactly 1 bullet point summarizing the core technical deliverable to preserve strict space limitations while meeting formatting constraints.
+- **Merging & Selections:** 
+  - *CARIAD SE:* Merged two build infrastructure bullet points (Bazel improvements and updates) using the conjunction "and" to demonstrate continuous improvement workflows in one cohesive sentence without bloating the bullet limit or inventing facts.
+  - *Betsson Group:* Merged the overnight server stability monitoring bullet with the Kibana log debugging bullet to form a single impact statement highlighting centralized logging and real-time debugging, leveraging the exact wording from the original resume.
+  - *Keyword substitutions:* Explicitly substituted words precisely where it matched factually (e.g., changing "debugging" to "debugging complex systems" at Argo AI; "quality improvements" to "code maintainability" at CARIAD SE; and "automation" to "test-automation" at HERE and Ixonos) to boost exact-match frequency. 
+
+---
+
+## PART 3: ADDITIONAL OPTIONS (IF SPACE PERMITS)
+
+**Work Experience Overflow:**
+- *CARIAD SE:* Conducted Python package creation, Python project, Python release tool, git rebase and Bazel profiling workshops for 30+ developers to improve developer efficiency and experience
+- *HERE Deutschland GmbH:* Ensured continuous system quality by introducing weekly end-to-end regression testing within CI/HIL infrastructure to facilitate trace playback and video capture using Python scripts
+
+**Courses and Certificates Overflow:**
+- Scalable Microservices with Kubernetes | _Udacity_ | Sep 2025
+- Architecting with Google Kubernetes Engine | _Coursera/Google_ | Sep 2025
+- Algorithms on Strings | _Coursera_ | Sep 2025
+- Algorithms on Graphs | _Coursera_ | May 2022
+
+**Personal Projects Overflow:**
+- **[Csv2qif](https://github.com/kirillstrelkov/csv2qif)** | Mar 2021 - Present
+  - Engineered high-performance, multithreaded Command-Line Interface (CLI) tool using Rust to parse financial CSV files and convert them into structured QIF format.

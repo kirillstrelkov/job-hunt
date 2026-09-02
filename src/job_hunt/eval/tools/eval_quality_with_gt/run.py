@@ -205,8 +205,7 @@ def main(
     TMP_EVAL_DIR.mkdir(parents=True, exist_ok=True)
     PROMPTS_DIR.mkdir(parents=True, exist_ok=True)
 
-    job = DEFAULT_CONFIG.get_jobs()[0]
-    baseline_prompt_file = job.llm_prompt_path
+    baseline_prompt_file = DEFAULT_CONFIG.tailor.prompt
 
     if prompt:
         if gt_only:
@@ -230,7 +229,7 @@ def main(
     for pf in prompt_files:
         logger.info(f"  - {pf.name}")
 
-    gt_file = job.ground_truth_path
+    gt_file = DEFAULT_CONFIG.get_jobs()[0].ground_truth_path
     if not gt_file.exists():
         logger.error(f"Ground truth file not found: {gt_file}")
         sys.exit(1)

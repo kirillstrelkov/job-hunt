@@ -190,17 +190,21 @@ def convert_json_to_csv(results_json_path: Path, results_csv_path: Path) -> None
             )
 
         # Print Provider Performance using pandas DataFrame and grouping
-        perf_df = df.groupby(PromptfooCsvCols.PROVIDER_ID).agg(
-            Passed=(PromptfooCsvCols.PASSED, "sum"),
-            Failed=(PromptfooCsvCols.FAILED, "sum"),
-        )
-        perf_df = (
-            perf_df[[PromptfooCsvCols.PASSED, PromptfooCsvCols.FAILED]]
-            .reset_index()
-            .sort_values(by=PromptfooCsvCols.PASSED, ascending=False)
-        )
+        groups = [PromptfooCsvCols.PROVIDER_ID, PromptfooCsvCols.PROMPT_LABEL]
+        for group in groups:
+            perf_df = df.groupby(group).agg(
+                Passed=(PromptfooCsvCols.PASSED, "sum"),
+                Failed=(PromptfooCsvCols.FAILED, "sum"),
+            )
+            perf_df = (
+                perf_df[[PromptfooCsvCols.PASSED, PromptfooCsvCols.FAILED]]
+                .reset_index()
+                .sort_values(by=PromptfooCsvCols.PASSED, ascending=False)
+            )
 
-        logger.info("Provider Performance (Passed / Failed):\n" + perf_df.to_string(index=False))
+            logger.info(
+                f"Provider Performance (Passed / Failed) grouped by {group}:\n" + perf_df.to_string(index=False)
+            )
 
         logger.info(f"Successfully created: {results_csv_path}")
     except Exception as e:
