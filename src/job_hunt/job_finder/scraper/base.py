@@ -4,6 +4,7 @@ import atexit
 from collections import defaultdict
 from collections.abc import Callable, Generator
 from contextlib import contextmanager
+from time import sleep
 from traceback import format_exc
 from typing import Self
 
@@ -167,12 +168,16 @@ class JobBoard:
         """
 
         def wrap_get_job() -> Job:
-            try:
-                return self._get_job_with_description(job=base_job)
-            except Exception:
-                e_stack = format_exc()
-                logger.error("creating default job due to exception: {}", e_stack)
-                return make_job(base_job=base_job, error=e_stack)
+            e_stack = None
+            for _ in range(3):  # Try 3 times
+                try:
+                    return self._get_job_with_description(job=base_job)
+                except Exception:
+                    e_stack = format_exc()
+                    sleep(0.2)
+
+            logger.error("creating default job due to exception: {}", e_stack)
+            return make_job(base_job=base_job, error=e_stack)
 
         if not self._use_cache:
             return wrap_get_job()
