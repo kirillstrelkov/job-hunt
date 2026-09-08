@@ -106,12 +106,11 @@ def resume_render(
         typer.secho(f"Error: File not found: {input_file}", fg=typer.colors.RED, err=True)
         raise typer.Exit(code=1)
 
-    from job_hunt.core.binary_helper import get_pandoc
+    from job_hunt.resume.md2pdf import convert_md_to_pdf
 
     out_path = output_pdf or input_file.with_suffix(".pdf")
-    cmd = [get_pandoc(), str(input_file), "-o", str(out_path)]
     try:
-        subprocess.run(cmd, check=True)
+        convert_md_to_pdf(input_file, out_path)
         typer.secho(f"Rendered PDF saved to {out_path.resolve()}", fg=typer.colors.GREEN)
     except Exception as e:
         typer.secho(f"PDF rendering failed: {e}", fg=typer.colors.RED, err=True)
@@ -132,8 +131,7 @@ def resume_fix(
         raise typer.Exit(code=1)
 
     raw_text = input_file.read_text(encoding="utf-8")
-    sections = split_markdown_into_sections(raw_text, filepath=input_file)
-    fixed_text = fix_markdown(sections)
+    fixed_text = fix_markdown(raw_text)
 
     target_path = output_file or input_file
     target_path.write_text(fixed_text, encoding="utf-8")

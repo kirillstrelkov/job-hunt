@@ -49,4 +49,4 @@ def finder_review_csv(
 
     from job_hunt.job_finder.cli.llm_review import main as review_csv_main
 
-    review_csv_main(path)
+    review_csv_main(path, no_cache=True)
