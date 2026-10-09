@@ -4,6 +4,8 @@ from collections.abc import Callable
 from random import random
 from time import sleep
 
+from tenacity import retry, stop_after_attempt
+
 from easelenium.browser import Browser
 from loguru import logger
 from selenium.webdriver.remote.webelement import WebElement
@@ -99,6 +101,7 @@ class LinkedinBoard(JobBoard):
             lambda _: "checkpoint" not in self._browser.get_current_url(), timeout=self._SINGIN_TIMEOUT
         )
 
+    @retry(stop=stop_after_attempt(3))
     def __already_logged_in(self) -> bool:
         """Check if the user is already logged in to LinkedIn."""
         css_header_span_text = "header button>span>span"

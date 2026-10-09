@@ -41,9 +41,9 @@ class StepstoneBoard(JobBoard):
 
     def _accept_cookies(self) -> None:
         """Accept cookie consent dialog using stored preferences or clicking the button."""
-        val = self._browser.execute_js("return window.localStorage.getItem('consent_level');")
-        if val is None:
-            css_cookie_accept = "[id='ccmgt_explicit_accept']"
+        self._browser.wait_for_visible(by_id="app-header")
+        css_cookie_accept = "[id='ccmgt_explicit_accept']"
+        if self._browser.is_visible(by_css=css_cookie_accept):
             self._browser.click(by_css=css_cookie_accept)
 
     def __signin_loop(self) -> bool:

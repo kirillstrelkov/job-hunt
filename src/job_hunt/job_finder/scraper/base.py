@@ -328,6 +328,7 @@ class JobBoard:
             return bool(
                 self._BOARD_CSS_SELECTORS.job_results_empty_banner
                 and self._browser.is_visible(by_css=self._BOARD_CSS_SELECTORS.job_results_empty_banner)
+                or not self._browser.is_visible(by_css=self._BOARD_CSS_SELECTORS.job_results)
             )
 
         if _is_no_jobs():
@@ -341,6 +342,7 @@ class JobBoard:
             return []
 
         return [self._get_single_base_job_from_search_results(job_result) for job_result in job_results]
+
 
     def _get_job_with_description(self, *, job: BaseJob | None = None, url: str | None = None) -> Job:
         """Extract job details (title, company, description) from job url."""
