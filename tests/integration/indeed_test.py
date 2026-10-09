@@ -34,15 +34,14 @@ def test_login(browser: Browser) -> None:
 
 def test_get_job(page: IndeedBoard) -> None:
     job = page._get_job_with_description(
-        url="https://de.indeed.com/viewjob?jk=230221f283dacab0&tk=1jncgok7shbu7800&from=serp&vjs=3",
+        url="https://de.indeed.com/viewjob?jk=f23b823465986e07&from=serp&vjs=3",
     )
-    assert "230221f283dacab0" in job.url
+    assert "f23b823465986e07" in job.url
     assert "https" in job.url
-    assert "Senior Python Developer" in job.title
-    assert "Sloboda Studio" in job.company
+    assert "Senior Cloud Software Engineer AI" in job.title
+    assert "Brighter AI" in job.company
     description = job.description
-    assert "Sloboda Studio" in description
-    assert "Quarterly teambuilding activities and company corporate events" in description
+    assert "brighter AI and Milestone" in description
 
 
 def test_get_job_with_company(page: IndeedBoard) -> None:
