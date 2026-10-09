@@ -7,9 +7,12 @@ from collections.abc import Callable
 from functools import wraps
 from pathlib import Path
 from tempfile import gettempdir
+from time import sleep
 from typing import Any
 
 from easelenium.browser import Browser
+from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException, TimeoutException
+from selenium.webdriver.support.wait import WebDriverWait
 
 from job_hunt.core.binary_helper import get_codesign
 
@@ -31,6 +34,58 @@ with contextlib.suppress(ImportError):
             return res
 
         uc_patcher.Patcher.patch_exe = _safe_patch_exe
+
+# Patch easelenium Browser to gracefully handle StaleElementReferenceException during dynamic page rendering
+_orig_browser_is_visible = Browser.is_visible
+
+
+def _safe_browser_is_visible(self: Any, *args: Any, **kwargs: Any) -> bool:
+    try:
+        return _orig_browser_is_visible(self, *args, **kwargs)
+    except StaleElementReferenceException:
+        return False
+
+
+Browser.is_visible = _safe_browser_is_visible
+
+_orig_browser_webdriver_wait = Browser.webdriver_wait
+
+
+def _safe_browser_webdriver_wait(
+    self: Any,
+    function: Callable[..., Any],
+    msg: str | None = None,
+    timeout: float | None = None,
+) -> None:
+    if not timeout:
+        timeout = getattr(self, f"_{self.__class__.__name__}__timeout", 5)
+    try:
+        WebDriverWait(
+            self._driver,
+            timeout,
+            ignored_exceptions=(NoSuchElementException, StaleElementReferenceException),
+        ).until(function, msg or "")
+    except Exception as exc:
+        raise TimeoutException(msg) from exc
+
+
+Browser.webdriver_wait = _safe_browser_webdriver_wait
+
+_orig_browser_get_text = Browser.get_text
+
+
+def _safe_browser_get_text(self: Any, *args: Any, **kwargs: Any) -> str:
+    for attempt in range(3):
+        try:
+            return _orig_browser_get_text(self, *args, **kwargs)
+        except StaleElementReferenceException:
+            if attempt == 2:
+                raise
+            sleep(0.2)
+    return ""
+
+
+Browser.get_text = _safe_browser_get_text
 
 
 def get_number(text: object) -> int:
