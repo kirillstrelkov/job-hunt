@@ -16,7 +16,7 @@ just install                               # install deps and package in editabl
 just test                                  # run fast unit tests (`tests/unit/`)
 just test-integration                      # run integration & browser tests (`tests/integration/`)
 just run resume check data/example_resume/body.md  # validate markdown CV
-just run resume tailor -r <cv.md> -j <jd.txt> -o <out.md> # tailor CV
+just run resume tailor -r <cv.md> -j <job.md> -o <out.md> # tailor CV
 just run ui                                # launch Streamlit web app
 just lint                                  # ruff format + check --fix
 ```

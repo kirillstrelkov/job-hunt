@@ -75,7 +75,7 @@ resume-compose folder model="gemma-4-26b-a4b-it":
 resume-compose-from-csv csv_path output_folder="workspace/outputs" model="" force="false" feedback="false":
     uv run job-hunt resume compose-from-csv -p "{{ csv_path }}" -f "{{ output_folder }}" {{ if model == "" { "" } else { "-m " + model } }} {{ if force == "true" { "--force" } else { "" } }} {{ if feedback == "true" { "--feedback" } else { "" } }}
 
-# Scaffold workspace directories, jd.txt, and prompt.md from CSV/ODS job matches
+# Scaffold workspace directories, job.md, and prompt.md from CSV/ODS job matches
 resume-scaffold csv_path min_score="80" output_folder="tmp/manual_jds" force="false":
     uv run job-hunt resume scaffold "{{ csv_path }}" --min-score "{{ min_score }}" --folder "{{ output_folder }}" {{ if force == "true" { "--force" } else { "" } }}
 
