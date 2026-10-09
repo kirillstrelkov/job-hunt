@@ -10,6 +10,8 @@ from loguru import logger
 from tqdm import tqdm
 
 from job_hunt.config import config as cfg
+from job_hunt.job_finder.utils.models import Job
+from job_hunt.job_finder.utils.okf import write_job
 from job_hunt.resume import prepare_resume
 from job_hunt.resume.compose_resume import compose_resume
 
@@ -92,8 +94,14 @@ def main(
 
         logger.info(f"[{idx + 1}/{len(df)}] Processing job '{title}' at '{company}' (ID: {job_id})")
 
-        jd_file = job_folder / "jd.txt"
-        jd_file.write_text(description, encoding="utf-8")
+        job_file = job_folder / "job.md"
+        job = Job(
+            title=title,
+            company=company,
+            url=str(row.get("url", "")),
+            description=description,
+        )
+        write_job(job, job_file)
 
         try:
             compose_resume(

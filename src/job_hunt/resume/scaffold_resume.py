@@ -11,6 +11,8 @@ from tqdm import tqdm
 
 from job_hunt.config import config as cfg
 from job_hunt.config.config import DEFAULT_CONFIG
+from job_hunt.job_finder.utils.models import JobMatch
+from job_hunt.job_finder.utils.okf import write_job
 from job_hunt.resume import prepare_resume
 from job_hunt.resume.compose_jobs_from_csv import generate_id
 from job_hunt.resume.prepare_resume import generate_llm_prompt
@@ -34,6 +36,15 @@ def filter_job_listings(
     df.columns = [str(col).strip().lower() for col in df.columns]
 
     required_cols = {"title", "company", "description"}
+    if not required_cols.issubset(df.columns):
+        # Check if the header row was preceded by empty rows or banners
+        for idx, row in df.head(10).iterrows():
+            row_vals = {str(v).strip().lower() for v in row.values if pd.notna(v)}
+            if required_cols.issubset(row_vals):
+                df.columns = [str(v).strip().lower() for v in row.values]
+                df = df.iloc[idx + 1 :].reset_index(drop=True)
+                break
+
     if not required_cols.issubset(df.columns):
         msg = f"Data file must contain 'title', 'company', and 'description' columns. Found: {list(df.columns)}"
         raise ValueError(msg)
@@ -81,7 +92,10 @@ def print_scaffold_summary(records: list[dict[str, Any]]) -> None:
         for r in records
     ]
 
-    print("\n" + tabulate(table_data, headers=headers, tablefmt="rounded_outline") + "\n")
+    try:
+        print("\n" + tabulate(table_data, headers=headers, tablefmt="rounded_outline") + "\n")
+    except UnicodeEncodeError:
+        print("\n" + tabulate(table_data, headers=headers, tablefmt="grid") + "\n")
 
 
 def scaffold_jobs_from_csv(
@@ -158,16 +172,27 @@ def scaffold_jobs_from_csv(
         job_folder = output_dir / job_id
         job_folder.mkdir(parents=True, exist_ok=True)
 
-        jd_file = job_folder / "jd.txt"
-        if force or not jd_file.exists():
-            jd_file.write_text(description, encoding="utf-8")
+        job_file = job_folder / "job.md"
+        if force or not job_file.exists():
+            match_score = int(score) if pd.notna(score) and isinstance(score, (int, float)) else -1
+            job = JobMatch(
+                title=title,
+                company=company,
+                url=str(row.get("url", "")),
+                description=description,
+                match_percentage=match_score,
+                check_passed=bool(row.get("check_passed", True)),
+                llm_text=str(row.get("llm_text", "")),
+                error=str(row.get("error", "")),
+            )
+            write_job(job, job_file)
 
         prompt_file = job_folder / "prompt.md"
         if force or not prompt_file.exists():
             prompt_content = generate_llm_prompt(
                 template=template_path,
                 resume_body=master_resume,
-                job_description=jd_file,
+                job_description=job_file,
                 job_title=title,
             )
             prompt_file.write_text(prompt_content, encoding="utf-8")

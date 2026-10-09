@@ -1,6 +1,5 @@
 """Typer CLI subcommands for Resume management and template operations."""
 
-import subprocess
 from pathlib import Path
 
 import typer
@@ -123,7 +122,6 @@ def resume_fix(
     output_file: Path = typer.Option(None, "--output", "-o", help="Output fixed Markdown file"),
 ):
     """Auto-correct Markdown Resume syntax and formatting errors."""
-    from job_hunt.resume.parse import split_markdown_into_sections
     from job_hunt.resume.process_resume import fix_markdown
 
     if not input_file.exists():

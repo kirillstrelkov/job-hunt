@@ -16,9 +16,17 @@ def generate_llm_prompt(
     job_title: str | None = None,
 ) -> str:
     """Fill an LLM tailoring prompt template with a resume body and a job description or job title."""
-    jd_text = (
-        job_description.read_text(encoding="utf-8") if isinstance(job_description, Path) else (job_description or "")
-    )
+    if isinstance(job_description, Path):
+        if job_description.suffix == ".md":
+            from job_hunt.job_finder.utils.okf import read_job
+
+            job = read_job(job_description)
+            jd_text = getattr(job, "description", "")
+        else:
+            jd_text = job_description.read_text(encoding="utf-8")
+    else:
+        jd_text = job_description or ""
+
     return template.read_text(encoding="utf-8").format(
         master_resume=resume_body.read_text(encoding="utf-8"),
         job_description=jd_text,
@@ -66,7 +74,7 @@ def prepare_resume(  # noqa: C901
     master_resume = DEFAULT_CONFIG.composer.body
     tailor_for_desc = DEFAULT_CONFIG.tailor.prompt
 
-    jd = Path(job_description) if job_description else target_folder / "jd.txt"
+    jd = Path(job_description) if job_description else target_folder / "job.md"
 
     paths_to_check = [
         header,

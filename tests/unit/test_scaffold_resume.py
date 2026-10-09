@@ -98,11 +98,15 @@ def test_scaffold_jobs_from_csv(tmp_path: Path) -> None:
 
     job_dir = Path(record["folder"])
     assert job_dir.exists()
-    assert (job_dir / "jd.txt").exists()
+    assert (job_dir / "job.md").exists()
     assert (job_dir / "prompt.md").exists()
 
-    jd_content = (job_dir / "jd.txt").read_text(encoding="utf-8")
-    assert "Python backend role" in jd_content
+    from job_hunt.job_finder.utils.okf import read_job
+
+    job_obj = read_job(job_dir / "job.md")
+    assert job_obj.title == "Senior Python Engineer"
+    assert job_obj.company == "Tesla Inc"
+    assert "Python backend role" in job_obj.description
 
     prompt_content = (job_dir / "prompt.md").read_text(encoding="utf-8")
     assert "Python backend role" in prompt_content

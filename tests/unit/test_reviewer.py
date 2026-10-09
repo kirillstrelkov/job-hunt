@@ -14,7 +14,7 @@ def test_prompts_loaded_correctly() -> None:
     assert "gate_failed_reasons" in llm.SYSTEM_PROMPT_SCREENING
 
     assert len(llm.SYSTEM_PROMPT_CANDIDATE.strip()) > 0
-    assert "Resume against the job description" in llm.SYSTEM_PROMPT_CANDIDATE
+    assert "Resume against the Target Job Description" in llm.SYSTEM_PROMPT_CANDIDATE
     assert "match_percentage" in llm.SYSTEM_PROMPT_CANDIDATE
 
     assert "{resume}" in llm.RESUME_PROMPT

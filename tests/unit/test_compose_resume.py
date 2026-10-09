@@ -43,10 +43,19 @@ This section should be trimmed away and never reach the final Resume.
 
 @pytest.fixture
 def job_folder(tmp_path: Path) -> Path:
-    """Job folder with a jd.txt; header/body/footer/prompt come from the default config."""
+    """Job folder with a job.md; header/body/footer/prompt come from the default config."""
+    from job_hunt.job_finder.utils.models import Job
+    from job_hunt.job_finder.utils.okf import write_job
+
     folder = tmp_path / "job"
     folder.mkdir()
-    (folder / "jd.txt").write_text("QA Engineer role requiring Python and Selenium skills.", encoding="utf-8")
+    job = Job(
+        title="QA Engineer",
+        company="Acme Corp",
+        url="https://example.com/jobs/1",
+        description="QA Engineer role requiring Python and Selenium skills.",
+    )
+    write_job(job, folder / "job.md")
     return folder
 
 

@@ -7,6 +7,7 @@ from loguru import logger
 from pydantic import BaseModel, Field
 
 from job_hunt.core.llm import run_model
+from job_hunt.job_finder.utils.okf import read_job
 from job_hunt.resume.check_pdf import check_pdf
 from job_hunt.resume.feedback_loop import fix_with_feedback
 from job_hunt.resume.md2pdf import convert_md_to_pdf
@@ -97,10 +98,11 @@ def compose_resume(
 
     logger.info(f"Step 4: Fixing Resume: {assembled_resume}")
     keep_thesis = True
-    jd_file = target_folder / "jd.txt"
-    if jd_file.exists():
+    job_file = target_folder / "job.md"
+    if job_file.exists():
         try:
-            keep_thesis = decide_keep_thesis(jd_file.read_text(encoding="utf-8"))
+            job = read_job(job_file)
+            keep_thesis = decide_keep_thesis(getattr(job, "description", ""))
         except Exception as e:
             logger.warning(f"Failed to dynamically decide keep_thesis via LLM: {e}. Defaulting to True.")
 
