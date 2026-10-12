@@ -35,11 +35,8 @@ const btnSave = document.getElementById('btnSave');
 const btnConvert = document.getElementById('btnConvert');
 const convertSpinner = document.getElementById('convertSpinner');
 const convertText = document.getElementById('convertText');
-const btnDownloadPdf = document.getElementById('btnDownloadPdf');
-const btnPrintVector = document.getElementById('btnPrintVector');
 
 // State
-let currentPdfDoc = null;
 let currentPdfUrl = null;
 const STORAGE_KEY = 'resume_md_draft';
 
@@ -75,9 +72,6 @@ function handleBlobSuccess(blob) {
   pdfFrame.src = currentPdfUrl;
   pdfPlaceholder.classList.add('is-hidden');
   pdfFrame.classList.remove('is-hidden');
-
-  btnDownloadPdf.disabled = false;
-  btnPrintVector.disabled = false;
 }
 
 function handleBlobError(error) {
@@ -90,8 +84,6 @@ function generatePdf() {
   if (!md.trim()) {
     pdfPlaceholder.classList.remove('is-hidden');
     pdfFrame.classList.add('is-hidden');
-    btnDownloadPdf.disabled = true;
-    btnPrintVector.disabled = true;
     return;
   }
 
@@ -118,8 +110,8 @@ function generatePdf() {
     pdfContent = cleanPdfNodes(pdfContent);
     const docDef = buildDocDef(pdfContent);
 
-    currentPdfDoc = pdfMake.createPdf(docDef);
-    currentPdfDoc.getBlob(function (blob) {
+    const pdfDoc = pdfMake.createPdf(docDef);
+    pdfDoc.getBlob(function (blob) {
       try {
         if (!blob) throw new Error('PDF generation produced an empty result.');
         handleBlobSuccess(blob);
@@ -207,8 +199,6 @@ btnClear.addEventListener('click', () => {
   updatePreview();
   pdfPlaceholder.classList.remove('is-hidden');
   pdfFrame.classList.add('is-hidden');
-  btnDownloadPdf.disabled = true;
-  btnPrintVector.disabled = true;
 });
 
 btnSave.addEventListener('click', () => {
@@ -226,14 +216,6 @@ btnSave.addEventListener('click', () => {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-});
-
-btnDownloadPdf.addEventListener('click', () => {
-  if (currentPdfDoc) currentPdfDoc.download('resume.pdf');
-});
-
-btnPrintVector.addEventListener('click', () => {
-  if (currentPdfDoc) currentPdfDoc.print();
 });
 
 btnConvert.addEventListener('click', generatePdf);
