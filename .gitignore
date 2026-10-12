@@ -38,3 +38,5 @@ tsconfig.tsbuildinfo
 workspace/
 
 .DS_Store
+docs/md2pdf/output.pdf
+docs/md2pdf/dist/

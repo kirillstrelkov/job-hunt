@@ -1,0 +1,33 @@
+set windows-shell := ["powershell.exe", "-NoLogo", "-Command"]
+
+# List available recipes
+default:
+    @just --list
+
+# Install Node dependencies
+install:
+    npm install
+
+# Run automated tests using Vitest and pdftotext
+test:
+    npm test
+
+# Run tests in interactive watch mode
+test-watch:
+    npm run test:watch
+
+# Build production client-side bundle to dist/
+build:
+    npm run build
+
+# Start local development server with Hot Module Replacement
+dev:
+    npm run dev
+
+# Preview production build locally
+preview:
+    npm run preview
+
+# Clean build artifacts
+clean:
+    Remove-Item -Recurse -Force dist, output.pdf -ErrorAction SilentlyContinue
